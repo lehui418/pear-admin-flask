@@ -49,6 +49,8 @@ def dict_type_save():
     description = str_escape(req_json.get("description"))
     enable = str_escape(req_json.get("enable"))
     type_code = str_escape(req_json.get("typeCode"))
+    if type_code is None:
+        return fail_api(msg="标识必须填写")
     type_name = str_escape(req_json.get("typeName"))
     d = DictType(type_name=type_name, type_code=type_code, enable=enable, description=description)
     db.session.add(d)
