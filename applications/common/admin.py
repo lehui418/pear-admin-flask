@@ -10,7 +10,7 @@ def get_captcha():
     image, code = vieCode().GetCodeImage()
     code = ''.join(code).lower()
     out = BytesIO()
-    session["code"] = code
+    # session["code"] = code
     image.save(out, 'png')
     out.seek(0)
     resp = make_response(out.read())
