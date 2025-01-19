@@ -43,6 +43,8 @@ def configs():
         "keepState": True,
         # 是否开启 Tab 记忆
         "session": True,
+        # 预加载
+        "preload": False,
         # 最大可打开的选项卡数量
         "max": 30,
         "index": {
@@ -117,11 +119,13 @@ def menu():
                 # 当前节点添加子节点
                 _dict['children'] = copy.deepcopy(menu_dict[_dict['id']])
                 _dict['children'].sort(key=lambda item: item['sort'])
+                # 为每个子菜单添加 "openType": "_component"
+                for child in _dict['children']:
+                    child['openType'] = '_component'
                 # 删除子节点
                 del menu_dict[_dict['id']]
 
             if _dict['parent_id'] not in menu_dict:
-
                 menu_dict[_dict['parent_id']] = [_dict]
             else:
                 menu_dict[_dict['parent_id']].append(_dict)
@@ -138,6 +142,9 @@ def menu():
                 # 当前节点添加子节点
                 _dict['children'] = copy.deepcopy(menu_dict[_dict['id']])
                 _dict['children'].sort(key=lambda item: item['sort'])
+                # 为每个子菜单添加 "openType": "_component"
+                for child in _dict['children']:
+                    child['openType'] = '_component'
                 # 删除子节点
                 del menu_dict[_dict['id']]
 
@@ -151,4 +158,4 @@ def menu():
 @bp.get('/welcome')
 @login_required
 def welcome():
-    return render_template('system/console/console.html')
+    return render_template('system/analysis/main.html')

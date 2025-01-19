@@ -12,22 +12,29 @@
                 <div class="layui-form-item">
                     <label class="layui-form-label">账号</label>
                     <div class="layui-input-block">
-                        <input type="text" name="username" lay-verify="title" autocomplete="off" placeholder="请输入标题"
+                        <input type="text" name="username" lay-verify="title" autocomplete="off" placeholder="用户名"
                                class="layui-input">
                     </div>
                 </div>
                 <div class="layui-form-item">
                     <label class="layui-form-label">姓名</label>
                     <div class="layui-input-block">
-                        <input type="text" name="realName" lay-verify="title" autocomplete="off" placeholder="请输入标题"
+                        <input type="text" name="realName" lay-verify="title" autocomplete="off" placeholder="用户姓名"
                                class="layui-input">
                     </div>
                 </div>
                 <div class="layui-form-item">
                     <label class="layui-form-label">密码</label>
                     <div class="layui-input-block">
-                        <input type="text" name="password" lay-verify="title" autocomplete="off" placeholder="请输入标题"
+                        <input type="password" name="password" lay-verify="title" autocomplete="off" placeholder="用户密码"
                                class="layui-input">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">部门</label>
+                    <div class="layui-input-block">
+                        <ul id="selectParent" name="deptId" class="dtree" data-id="0"></ul>
                     </div>
                 </div>
 
@@ -48,11 +55,11 @@
     </div>
     <div class="bottom">
         <div class="button-container">
-            <button type="submit" class="pear-btn pear-btn-primary pear-btn-sm" lay-submit="" lay-filter="user-save">
+            <button type="submit" class="layui-btn layui-btn-sm" lay-submit="" lay-filter="user-save">
                 <i class="layui-icon layui-icon-ok"></i>
                 提交
             </button>
-            <button type="reset" class="pear-btn pear-btn-sm">
+            <button type="reset" class="layui-btn layui-btn-primary layui-btn-sm">
                 <i class="layui-icon layui-icon-refresh"></i>
                 重置
             </button>
@@ -61,9 +68,22 @@
 </form>
 {% include 'system/common/footer.html' %}
 <script>
-  layui.use(['form', 'jquery'], function () {
+  layui.use(['form', 'jquery', 'dtree'], function () {
     let form = layui.form
     let $ = layui.jquery
+
+    let dtree = layui.dtree
+
+    dtree.renderSelect({
+        elem: '#selectParent',
+        url: '/system/dept/tree',
+        method: 'get',
+        selectInputName: {nodeId: 'deptId', context: 'deptName'},
+        skin: 'layui',
+        dataFormat: 'list',
+        response: {treeId: 'id', parentId: 'parent_id', title: 'dept_name'}
+    })
+
     form.on('submit(user-save)', function (data) {
       let roleIds = ''
       $('input[type=checkbox]:checked').each(function () {
@@ -93,7 +113,6 @@
     })
   })
 </script>
-<script>
-</script>
+
 </body>
 </html>

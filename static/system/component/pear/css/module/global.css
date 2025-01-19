@@ -1,99 +1,40 @@
 .pear-container {
-	background-color: whitesmoke;
+	padding: 10px;
+	margin: 0px;
+	box-sizing: border-box;
+	background-color: transparent;
+	width: 100%;
 }
 
-body::-webkit-scrollbar {
+*::-webkit-scrollbar {
 	width: 0px;
 	height: 0px;
 }
 
-body::-webkit-scrollbar {
+*::-webkit-scrollbar {
 	width: 6px;
 	height: 6px;
 }
 
-body::-webkit-scrollbar-track {
-	background: white;
-	border-radius: 2px;
+*::-webkit-scrollbar-track {
+	background: transparent;
 }
 
-body::-webkit-scrollbar-thumb {
+*::-webkit-scrollbar-thumb {
 	background: #E6E6E6;
-	border-radius: 2px;
+	border-radius: 4px;
 }
 
-body::-webkit-scrollbar-thumb:hover {
+*::-webkit-scrollbar-thumb:hover {
 	background: #E6E6E6;
 }
 
-body::-webkit-scrollbar-corner {
+*::-webkit-scrollbar-corner {
 	background: #f6f6f6;
 }
 
-.mainBox::-webkit-scrollbar {
-	width: 0px;
-	height: 0px;
-}
-
-.mainBox::-webkit-scrollbar {
-	width: 6px;
-	height: 6px;
-}
-
-.mainBox::-webkit-scrollbar-track {
-	background: white;
-	border-radius: 2px;
-}
-
-.mainBox::-webkit-scrollbar-thumb {
-	background: #E6E6E6;
-	border-radius: 2px;
-}
-
-.mainBox::-webkit-scrollbar-thumb:hover {
-	background: #E6E6E6;
-}
-
-.mainBox::-webkit-scrollbar-corner {
-	background: #f6f6f6;
-}
-
-.mainBox {
-	width: 100%;
-	position: absolute;
-	top: 0px;
-	left: 0px;
-	bottom: 50px;
-	overflow: auto;
-}
-
-.bottom {
-	width: 100%;
-	position: absolute;
-	bottom: 0px;
-	left: 0px;
-	height: 50px;
-	line-height: 50px;
-	background-color: #F8F8F8;
-	border-top: 1px solid #eee;
-}
-
-.button-container {
-	position: absolute;
-	right: 15px;
-}
-
-.main-container {
-	margin: 15px;
-}
-
-.main-container .layui-form-item {
-	margin-bottom: 15px !important;
-	margin-top: 10px !important;
-}
-
-.pear-row::before,
-.pear-row::after {
+.pear-row::after,
+.pear-row::before {
 	content: "";
 	display: table;
 	clear: both;
@@ -204,103 +145,100 @@ body::-webkit-scrollbar-corner {
 	width: 100%;
 }
 
-@media all and (min-width:993px) and (max-width:1199px) {
+.pear-col-md-offset1 {
+	margin-left: 4.16%;
+}
 
-	.pear-col-md-offset1 {
-		margin-left: 4.16%;
-	}
+.pear-col-md-offset2 {
+	margin-left: 8.33%;
+}
 
-	.pear-col-md-offset2 {
-		margin-left: 8.33%;
-	}
+.pear-col-md-offset3 {
+	margin-left: 12.5%;
+}
 
-	.pear-col-md-offset3 {
-		margin-left: 12.5%;
-	}
+.pear-col-md-offset4 {
+	margin-left: 16.66%;
+}
 
-	.pear-col-md-offset4 {
-		margin-left: 16.66%;
-	}
+.pear-col-md-offset5 {
+	margin-left: 20.83%;
+}
 
-	.pear-col-md-offset5 {
-		margin-left: 20.83%;
-	}
+.pear-col-md-offset6 {
+	margin-left: 25%;
+}
 
-	.pear-col-md-offset6 {
-		margin-left: 25%;
-	}
+.pear-col-md-offset7 {
+	margin-left: 29.16%;
+}
 
-	.pear-col-md-offset7 {
-		margin-left: 29.16%;
-	}
+.pear-col-md-offset8 {
+	margin-left: 33.33%;
+}
 
-	.pear-col-md-offset8 {
-		margin-left: 33.33%;
-	}
+.pear-col-md-offset9 {
+	margin-left: 37.5%;
+}
 
-	.pear-col-md-offset9 {
-		margin-left: 37.5%;
-	}
+.pear-col-md-offset10 {
+	margin-left: 41.66%;
+}
 
-	.pear-col-md-offset10 {
-		margin-left: 41.66%;
-	}
+.pear-col-md-offset11 {
+	margin-left: 45.83%;
+}
 
-	.pear-col-md-offset11 {
-		margin-left: 45.83%;
-	}
+.pear-col-md-offset12 {
+	margin-left: 50%;
+}
 
-	.pear-col-md-offset12 {
-		margin-left: 50%;
-	}
+.pear-col-md-offset13 {
+	margin-left: 54.16%;
+}
 
-	.pear-col-md-offset13 {
-		margin-left: 54.16%;
-	}
+.pear-col-md-offset14 {
+	margin-left: 58.33%;
+}
 
-	.pear-col-md-offset14 {
-		margin-left: 58.33%;
-	}
+.pear-col-md-offset15 {
+	margin-left: 62.5%;
+}
 
-	.pear-col-md-offset15 {
-		margin-left: 62.5%;
-	}
+.pear-col-md-offset16 {
+	margin-left: 66.66%;
+}
 
-	.pear-col-md-offset16 {
-		margin-left: 66.66%;
-	}
+.pear-col-md-offset17 {
+	margin-left: 70.83%;
+}
 
-	.pear-col-md-offset17 {
-		margin-left: 70.83%;
-	}
+.pear-col-md-offset18 {
+	margin-left: 75%;
+}
 
-	.pear-col-md-offset18 {
-		margin-left: 75%;
-	}
+.pear-col-md-offset19 {
+	margin-left: 79.16%;
+}
 
-	.pear-col-md-offset19 {
-		margin-left: 79.16%;
-	}
+.pear-col-md-offset20 {
+	margin-left: 83.33%;
+}
 
-	.pear-col-md-offset20 {
-		margin-left: 83.33%;
-	}
+.pear-col-md-offset21 {
+	margin-left: 87.5%;
+}
 
-	.pear-col-md-offset21 {
-		margin-left: 87.5%;
-	}
+.pear-col-md-offset22 {
+	margin-left: 91.66%;
+}
 
-	.pear-col-md-offset22 {
-		margin-left: 91.66%;
-	}
+.pear-col-md-offset23 {
+	margin-left: 95.83%;
+}
 
-	.pear-col-md-offset23 {
-		margin-left: 95.83%;
-	}
-
-	.pear-col-md-offset24 {
-		margin-left: 100%;
-	}
+.pear-col-md-offset24 {
+	margin-left: 100%;
 }
 
 

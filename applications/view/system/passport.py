@@ -84,5 +84,8 @@ def login_post():
 @login_required
 def logout():
     logout_user()
-    session.pop('permissions')
+
+    if 'permissions' in session:
+        session.pop('permissions')
+
     return success_api(msg="注销成功")
