@@ -92,6 +92,24 @@
 				// yml | json | api
 				admin.setConfigurationPath("{{ url_for('system.rights.configs') }}");
 
+                // 主题色自动通知子页面
+                admin._changeTheme = admin.changeTheme;
+                admin.changeTheme = function() {
+                    admin._changeTheme();  // 调用原方法
+
+                    /* 遍历所有 iframe 更改主题色 */
+                    const variableKey = "--global-primary-color";
+				    const variableVal = localStorage.getItem("theme-color-color");
+                    const iframes = document.querySelectorAll('iframe');
+                    iframes.forEach(function (iframe) {
+                        try {
+                            const iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
+                            // 设置 iframe 中的主题色
+                            iframeDocument.documentElement.style.setProperty(variableKey, variableVal);
+                        } catch (e) {
+                        }
+                    });
+                }
 				// 渲染
 				admin.render();
 

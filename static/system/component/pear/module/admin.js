@@ -299,16 +299,6 @@ layui.define(['jquery', 'tools', 'element', 'yaml', 'form', 'tabPage', 'menu', '
 				const variableKey = "--global-primary-color";
 				const variableVal = localStorage.getItem("theme-color-color");
 				document.documentElement.style.setProperty(variableKey, variableVal);
-
-				/* 遍历所有 iframe 更改主题色 */
-				const iframes = document.querySelectorAll('iframe');
-				iframes.forEach(function(iframe) {
-					try {
-						const iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
-						// 设置 iframe 中的主题色
-						iframeDocument.documentElement.style.setProperty(variableKey, variableVal);
-					} catch (e) {}
-				});
 			}
 
 			/**
