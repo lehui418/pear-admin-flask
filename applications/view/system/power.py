@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, jsonify
 
 from applications.common import curd
-from applications.common.utils.http import success_api, fail_api
+from applications.common.utils.http import success_api, fail_api, table_api
 from applications.common.utils.rights import authorize
 from applications.common.utils.validate import str_escape
 from applications.extensions import db
@@ -22,10 +22,25 @@ def index():
 @authorize("system:power:main")
 def data():
     power = Power.query.all()
-    res = {
-        "data": PowerSchema(many=True).dump(power)
-    }
-    return jsonify(res)
+    data = PowerSchema(many=True).dump(power)
+
+    # 创建一个字典，用于存储每个节点的子节点
+    tree = {}
+    for item in data:
+        item["children"] = []
+        tree[item["id"]] = item
+
+    # 构建树形结构
+    root_nodes = []
+    for item in data:
+        parent_id = item["parent_id"] if item["parent_id"] != 0 else None
+        if parent_id is None:
+            root_nodes.append(item)
+        else:
+            if parent_id in tree:
+                tree[parent_id]["children"].append(item)
+
+    return table_api(msg="请求成功", data=root_nodes)
 
 
 @bp.get('/add')
@@ -53,28 +68,25 @@ def select_parent():
 @authorize("system:power:add", log=True)
 def save():
     req = request.get_json(force=True)
-    icon = str_escape(req.get("icon"))
-    openType = str_escape(req.get("openType"))
-    parentId = str_escape(req.get("parentId"))
-    powerCode = str_escape(req.get("powerCode"))
-    powerName = str_escape(req.get("powerName"))
-    powerType = str_escape(req.get("powerType"))
-    powerUrl = str_escape(req.get("powerUrl"))
-    sort = str_escape(req.get("sort"))
-    power = Power(
-        icon=icon,
-        open_type=openType,
-        parent_id=parentId,
-        code=powerCode,
-        name=powerName,
-        type=powerType,
-        url=powerUrl,
-        sort=sort,
-        enable=1
-    )
-    r = db.session.add(power)
+
+    data = {
+        "icon": str_escape(req.get("icon")),
+        "open_type": str_escape(req.get("openType")),
+        "parent_id": str_escape(req.get("parentId")),
+        "code": str_escape(req.get("powerCode")),
+        "name": str_escape(req.get("powerName")),
+        "type": str_escape(req.get("powerType")),
+        "url": str_escape(req.get("powerUrl")),
+        "sort": str_escape(req.get("sort"))
+    }
+
+    if not data['sort'].isdigit():
+        return fail_api(msg="参数 sort 需为整数")
+
+    power = Power(**data)
+    db.session.add(power)
     db.session.commit()
-    return success_api(msg="成功")
+    return success_api(msg="权限添加成功")
 
 
 # 权限编辑
@@ -96,6 +108,7 @@ def edit(_id):
 def update():
     req_json = request.get_json(force=True)
     id = request.get_json(force=True).get("powerId")
+
     data = {
         "icon": str_escape(req_json.get("icon")),
         "open_type": str_escape(req_json.get("openType")),
@@ -106,6 +119,10 @@ def update():
         "url": str_escape(req_json.get("powerUrl")),
         "sort": str_escape(req_json.get("sort"))
     }
+
+    if not data['sort'].isdigit():
+        return fail_api(msg="参数 sort 需为整数")
+
     res = Power.query.filter_by(id=id).update(data)
     db.session.commit()
     if not res:
@@ -118,7 +135,7 @@ def update():
 @authorize("system:power:edit", log=True)
 def enable():
     _id = request.get_json(force=True).get('powerId')
-    if id:
+    if _id:
         res = curd.enable_status(Power, _id)
         if not res:
             return fail_api(msg="出错啦")
@@ -144,7 +161,9 @@ def dis_enable():
 @authorize("system:power:remove", log=True)
 def remove(id):
     power = Power.query.filter_by(id=id).first()
-    power.role = []
+
+    if power:
+        power.role = []
 
     r = Power.query.filter_by(id=id).delete()
     db.session.commit()
@@ -152,3 +171,30 @@ def remove(id):
         return success_api(msg="删除成功")
     else:
         return fail_api(msg="删除失败")
+
+
+# 批量删除
+@bp.delete('/batchRemove')
+@authorize("system:power:remove", log=True)
+def batch_remove():
+    ids = request.form.getlist('ids[]')
+
+    if not ids:
+        return fail_api(msg="未提供删除 ID")
+
+    for id in ids:
+
+        if not id.isdigit():
+            db.session.rollback()
+            return fail_api(msg="参数提供错误")
+
+        id = int(id)
+
+        power = Power.query.filter_by(id=id).first()
+        if power:
+            # 清空关联的角色（如果需要）
+            power.role = []
+            db.session.delete(power)
+
+    db.session.commit()
+    return success_api(msg="批量删除成功")

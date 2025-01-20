@@ -8,16 +8,16 @@
 <div class="layui-card">
     <div class="layui-card-body">
         <form class="layui-form" action="">
-            <div class="layui-form-item">
+            <div class="layui-form-item" style="margin-bottom: unset;">
                 <label class="layui-form-label">权限名称</label>
                 <div class="layui-input-inline">
                     <input type="text" name="powerName" placeholder="" class="layui-input">
                 </div>
-                <button class="pear-btn pear-btn-md pear-btn-primary" lay-submit lay-filter="power-query">
+                <button class="layui-btn layui-btn-md layui-btn-primary" lay-submit lay-filter="power-query">
                     <i class="layui-icon layui-icon-search"></i>
                     查询
                 </button>
-                <button type="reset" class="pear-btn pear-btn-md">
+                <button type="reset" class="layui-btn layui-btn-md">
                     <i class="layui-icon layui-icon-refresh"></i>
                     重置
                 </button>
@@ -33,13 +33,13 @@
 
 <script type="text/html" id="power-toolbar">
     {% if authorize("system:power:add") %}
-        <button class="pear-btn pear-btn-primary pear-btn-md" lay-event="add">
+        <button class="layui-btn layui-btn-primary layui-btn-sm" lay-event="add">
             <i class="layui-icon layui-icon-add-1"></i>
             新增
         </button>
     {% endif %}
     {% if authorize("system:role:remove") %}
-        <button class="pear-btn pear-btn-md" lay-event="batchRemove">
+        <button class="layui-btn layui-btn-sm" lay-event="batchRemove">
             <i class="layui-icon layui-icon-delete"></i>
             删除
         </button>
@@ -48,13 +48,12 @@
 
 <script type="text/html" id="power-bar">
     {% if authorize("system:role:edit") %}
-        <button class="pear-btn pear-btn-primary pear-btn-sm" lay-event="edit"><i
-                class="layui-icon layui-icon-edit"></i>
+        <button class="layui-btn layui-btn-xs" lay-event="edit"><i class="pear-icon pear-icon-edit"> 编辑</i>
         </button>
     {% endif %}
     {% if authorize("system:role:remove") %}
-        <button class="pear-btn pear-btn-danger pear-btn-sm" lay-event="remove"><i
-                class="layui-icon layui-icon-delete"></i>
+        <button class="layui-btn layui-btn-danger layui-btn-xs" lay-event="remove"><i
+                class="pear-icon pear-icon-ashbin"> 删除</i>
         </button>
     {% endif %}
 </script>
@@ -85,198 +84,198 @@
 </body>
 {% include 'system/common/footer.html' %}
 <script>
-  layui.use(['table', 'form', 'jquery', 'treetable', 'popup'], function () {
-    let table = layui.table
-    let form = layui.form
-    let $ = layui.jquery
-    let treetable = layui.treetable
-    let popup = layui.popup
+    layui.use(['form', 'jquery', 'treeTable', 'popup'], function () {
+        let form = layui.form
+        let $ = layui.jquery
+        let treeTable = layui.treeTable
+        let popup = layui.popup
 
-    let MODULE_PATH = '/system/power/'
+        let MODULE_PATH = '/system/power/'
 
-    window.render = function () {
-      treetable.render({
-        treeColIndex: 1,
-        treeSpid: 0,
-        treeIdName: 'id',
-        treePidName: 'parent_id',
-        skin: 'line',
-        method: 'post',
-        treeDefaultClose: true,
-        toolbar: '#power-toolbar',
-        elem: '#power-table',
-        url: '/system/power/data',
-        page: false,
-        cols: [
-          [{ field: 'id', title: 'id' },
-            { field: 'name', minWidth: 200, title: '权限名称' },
-            { field: 'icon', title: '图标', templet: '#icon' },
-            { field: 'type', title: '权限类型', templet: '#power-type' },
-            { field: 'enable', title: '是否可用', templet: '#power-enable' },
-            { field: 'sort', title: '排序' },
-            { title: '操作', templet: '#power-bar', width: 150, align: 'center' }
-          ]
-        ]
-      })
-    }
-
-    render()
-
-    form.on('submit(power-query)', function (data) {
-      var keyword = data.field.powerName
-      var $tds = $('#power-table').next('.treeTable').find('.layui-table-body tbody tr td')
-      if (!keyword) {
-        $tds.css('background-color', 'transparent')
-        layer.msg('请输入关键字', { icon: 5 })
-        return
-      }
-      var searchCount = 0
-      $tds.each(function () {
-        $(this).css('background-color', 'transparent')
-        if ($(this).text().indexOf(keyword) >= 0) {
-          $(this).css('background-color', 'rgba(250,230,160,0.5)')
-          if (searchCount === 0) {
-            $('body,html').stop(true)
-            $('body,html').animate({ scrollTop: $(this).offset().top - 150 }, 500)
-          }
-          searchCount++
+        window.render = function () {
+            treeTable.render({
+                treeColIndex: 1,
+                treeSpid: 0,
+                treeIdName: 'id',
+                treePidName: 'parent_id',
+                skin: 'line',
+                method: 'post',
+                treeDefaultClose: true,
+                toolbar: '#power-toolbar',
+                elem: '#power-table',
+                url: '/system/power/data',
+                page: false,
+                cols: [
+                    [{type: 'checkbox', fixed: 'left'},
+                        {field: 'id', width: 100, title: '编号'},
+                        {field: 'name', title: '权限名称'},
+                        {field: 'icon', title: '图标', templet: '#icon'},
+                        {field: 'type', title: '权限类型', templet: '#power-type'},
+                        {field: 'enable', title: '是否可用', templet: '#power-enable'},
+                        {field: 'sort', title: '排序'},
+                        {title: '操作', templet: '#power-bar', width: 150, align: 'center'}
+                    ]
+                ]
+            })
         }
-      })
-      if (searchCount === 0) {
-        layer.msg('没有匹配结果', { icon: 5 })
-      } else {
-        treetable.expandAll('#power-table')
-      }
-      return false
-    })
 
-    table.on('tool(power-table)', function (obj) {
-      if (obj.event === 'remove') {
-        window.remove(obj)
-      } else if (obj.event === 'edit') {
-        window.edit(obj)
-      }
-    })
+        render()
 
-    table.on('toolbar(power-table)', function (obj) {
-      if (obj.event === 'add') {
-        window.add()
-      } else if (obj.event === 'refresh') {
-        window.refresh()
-      } else if (obj.event === 'batchRemove') {
-        window.batchRemove(obj)
-      }
-    })
+        form.on('submit(power-query)', function (data) {
+            var keyword = data.field.powerName
+            var $tds = $('#power-table').next('.treeTable').find('.layui-table-body tbody tr td')
+            if (!keyword) {
+                $tds.css('background-color', 'transparent')
+                layer.msg('请输入关键字', {icon: 5})
+                return
+            }
+            var searchCount = 0
+            $tds.each(function () {
+                $(this).css('background-color', 'transparent')
+                if ($(this).text().indexOf(keyword) >= 0) {
+                    $(this).css('background-color', 'rgba(250,230,160,0.5)')
+                    if (searchCount === 0) {
+                        $('body,html').stop(true)
+                        $('body,html').animate({scrollTop: $(this).offset().top - 150}, 500)
+                    }
+                    searchCount++
+                }
+            })
+            if (searchCount === 0) {
+                layer.msg('没有匹配结果', {icon: 5})
+            } else {
+                treeTable.expandAll('#power-table')
+            }
+            return false
+        })
 
-    form.on('switch(power-enable)', function (obj) {
-      let operate
-      if (obj.elem.checked) {
-        operate = 'enable'
-      } else {
-        operate = 'disable'
-      }
-      let loading = layer.load()
-      $.ajax({
-        url: '/system/power/' + operate,
-        data: JSON.stringify({ powerId: this.value }),
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'put',
-        success: function (result) {
-          layer.close(loading)
-          if (result.success) {
-            popup.success(result.msg)
-          } else {
-            popup.failure(result.msg)
-          }
+        treeTable.on('tool(power-table)', function (obj) {
+            if (obj.event === 'remove') {
+                window.remove(obj)
+            } else if (obj.event === 'edit') {
+                window.edit(obj)
+            }
+        })
+
+        treeTable.on('toolbar(power-table)', function (obj) {
+            if (obj.event === 'add') {
+                window.add()
+            } else if (obj.event === 'refresh') {
+                window.refresh()
+            } else if (obj.event === 'batchRemove') {
+                window.batchRemove(obj)
+            }
+        })
+
+        form.on('switch(power-enable)', function (obj) {
+            let operate
+            if (obj.elem.checked) {
+                operate = 'enable'
+            } else {
+                operate = 'disable'
+            }
+            let loading = layer.load()
+            $.ajax({
+                url: '/system/power/' + operate,
+                data: JSON.stringify({powerId: this.value}),
+                dataType: 'json',
+                contentType: 'application/json',
+                type: 'put',
+                success: function (result) {
+                    layer.close(loading)
+                    if (result.success) {
+                        popup.success(result.msg)
+                    } else {
+                        popup.failure(result.msg)
+                    }
+                }
+            })
+        })
+
+        window.add = function () {
+            layer.open({
+                type: 2,
+                title: '新增',
+                shade: 0.1,
+                area: ['450px', '500px'],
+                content: MODULE_PATH + 'add'
+            })
         }
-      })
+
+        window.edit = function (obj) {
+            layer.open({
+                type: 2,
+                title: '修改',
+                shade: 0.1,
+                area: ['450px', '500px'],
+                content: MODULE_PATH + 'edit/' + obj.data['id']
+            })
+        }
+
+        window.remove = function (obj) {
+            layer.confirm('确定要删除该权限', {icon: 3, title: '提示'}, function (index) {
+                layer.close(index)
+                let loading = layer.load()
+                $.ajax({
+                    url: MODULE_PATH + 'remove/' + obj.data['id'],
+                    dataType: 'json',
+                    type: 'delete',
+                    success: function (result) {
+                        layer.close(loading)
+                        if (result.success) {
+                            popup.success(result.msg, function () {
+                                console.log(obj)
+                                obj.del()
+                            })
+                        } else {
+                            popup.failure(result.msg)
+                        }
+                    }
+                })
+            })
+        }
+
+        window.batchRemove = function (obj) {
+            let data = treeTable.checkStatus(obj.config.id).data
+            if (data.length === 0) {
+                layer.msg('未选中数据', {
+                    icon: 3,
+                    time: 1000
+                })
+                return false
+            }
+            var ids = []
+            var hasCheck = treeTable.checkStatus('power-table')
+            var hasCheckData = hasCheck.data
+            if (hasCheckData.length > 0) {
+                $.each(hasCheckData, function (index, element) {
+                    ids.push(element.id)
+                })
+            }
+            layer.confirm('确定要删除选中权限', {
+                icon: 3,
+                title: '提示'
+            }, function (index) {
+                layer.close(index)
+                let loading = layer.load()
+                $.ajax({
+                    url: MODULE_PATH + 'batchRemove',
+                    data: {ids: ids},
+                    dataType: 'json',
+                    type: 'delete',
+                    success: function (result) {
+                        layer.close(loading)
+                        if (result.success) {
+                            popup.success(result.msg, function () {
+                                treeTable.reload('power-table');
+                            })
+                        } else {
+                            popup.failure(result.msg)
+                        }
+                    }
+                })
+            })
+        }
     })
-
-    window.add = function () {
-      layer.open({
-        type: 2,
-        title: '新增',
-        shade: 0.1,
-        area: ['450px', '500px'],
-        content: MODULE_PATH + 'add'
-      })
-    }
-
-    window.edit = function (obj) {
-      layer.open({
-        type: 2,
-        title: '修改',
-        shade: 0.1,
-        area: ['450px', '500px'],
-        content: MODULE_PATH + 'edit/' + obj.data['id']
-      })
-    }
-    window.remove = function (obj) {
-      layer.confirm('确定要删除该权限', { icon: 3, title: '提示' }, function (index) {
-        layer.close(index)
-        let loading = layer.load()
-        $.ajax({
-          url: MODULE_PATH + 'remove/' + obj.data['id'],
-          dataType: 'json',
-          type: 'delete',
-          success: function (result) {
-            layer.close(loading)
-            if (result.success) {
-              popup.success(result.msg, function () {
-                console.log(obj)
-                obj.del()
-              })
-            } else {
-              popup.failure(result.msg)
-            }
-          }
-        })
-      })
-    }
-
-    window.batchRemove = function (obj) {
-      let data = table.checkStatus(obj.config.id).data
-      if (data.length === 0) {
-        layer.msg('未选中数据', {
-          icon: 3,
-          time: 1000
-        })
-        return false
-      }
-      var ids = []
-      var hasCheck = table.checkStatus('power-table')
-      var hasCheckData = hasCheck.data
-      if (hasCheckData.length > 0) {
-        $.each(hasCheckData, function (index, element) {
-          ids.push(element.id)
-        })
-      }
-      layer.confirm('确定要删除选中权限', {
-        icon: 3,
-        title: '提示'
-      }, function (index) {
-        layer.close(index)
-        let loading = layer.load()
-        $.ajax({
-          url: MODULE_PATH + 'batchRemove',
-          data: { ids: ids },
-          dataType: 'json',
-          type: 'delete',
-          success: function (result) {
-            layer.close(loading)
-            if (result.success) {
-              popup.success(result.msg, function () {
-                console.log(obj)
-                obj.del()
-              })
-            } else {
-              popup.failure(result.msg)
-            }
-          }
-        })
-      })
-    }
-  })
 </script>
 </html>

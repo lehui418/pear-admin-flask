@@ -18,7 +18,7 @@
                 <div class="layui-form-item">
                     <label class="layui-form-label">名称</label>
                     <div class="layui-input-block">
-                        <input type="text" name="powerName" lay-verify="title" autocomplete="off" placeholder="权限名称"
+                        <input type="text" name="powerName" lay-verify="required" autocomplete="off" placeholder="权限名称"
                                class="layui-input">
                     </div>
                 </div>
@@ -26,7 +26,7 @@
                     <label class="layui-form-label">标识</label>
                     <div class="layui-input-block">
                         <input type="text" id="powerCode" name="powerCode" autocomplete="off" placeholder="权限标识"
-                               class="layui-input">
+                               class="layui-input" lay-verify="required">
                     </div>
                 </div>
                 <div class="layui-form-item">
@@ -41,15 +41,15 @@
                     <label class="layui-form-label">路径</label>
                     <div class="layui-input-block">
                         <input type="text" id="powerUrl" name="powerUrl" autocomplete="off" placeholder="菜单路径"
-                               class="layui-input">
+                               class="layui-input" lay-verify="required">
                     </div>
                 </div>
                 <div class="layui-form-item" id="openTypeItem">
                     <label class="layui-form-label">打开</label>
                     <div class="layui-input-block">
                         <select name="openType" id="openType">
-                            <option value=""></option>
                             <option value="_iframe">框架</option>
+                            <option value="_component">内置</option>
                             <option value="_blank">签页</option>
                         </select>
                     </div>
@@ -62,9 +62,9 @@
                 </div>
                 <div class="layui-form-item">
                     <label class="layui-form-label">排序</label>
-                    <div class="layui-input-block">
-                        <input type="text" name="sort" lay-verify="required|title" autocomplete="off" placeholder="排序"
-                               class="layui-input">
+                    <div class="layui-input-inline" style="width: 100px !important;">
+                        <input type="text" name="sort" value="0" lay-verify="required" autocomplete="off"
+                               placeholder="排序" min="0" step="1" lay-affix="number" class="layui-input">
                     </div>
                 </div>
             </div>
@@ -72,11 +72,11 @@
     </div>
     <div class="bottom">
         <div class="button-container">
-            <button type="submit" class="pear-btn pear-btn-primary pear-btn-sm" lay-submit="" lay-filter="power-save">
+            <button type="submit" class="layui-btn layui-btn-sm" lay-submit="" lay-filter="power-save">
                 <i class="layui-icon layui-icon-ok"></i>
                 提交
             </button>
-            <button type="reset" class="pear-btn pear-btn-sm">
+            <button type="reset" class="layui-btn layui-btn-primary layui-btn-sm">
                 <i class="layui-icon layui-icon-refresh"></i>
                 重置
             </button>

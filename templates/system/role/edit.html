@@ -11,21 +11,21 @@
                 <div class="layui-form-item layui-hide">
                     <label class="layui-form-label">编号</label>
                     <div class="layui-input-block">
-                        <input type="text" value="{{ role.id }}" name="roleId" lay-verify="title"
+                        <input type="text" value="{{ role.id }}" name="roleId" lay-verify="required"
                                autocomplete="off" placeholder="角色编号" class="layui-input">
                     </div>
                 </div>
                 <div class="layui-form-item">
                     <label class="layui-form-label">名称</label>
                     <div class="layui-input-block">
-                        <input type="text" value="{{ role.name }}" name="roleName" lay-verify="title"
+                        <input type="text" value="{{ role.name }}" name="roleName" lay-verify="required"
                                autocomplete="off" placeholder="角色名称" class="layui-input">
                     </div>
                 </div>
                 <div class="layui-form-item">
                     <label class="layui-form-label">标识</label>
                     <div class="layui-input-block">
-                        <input type="text" value="{{ role.code }}" readonly name="roleCode" lay-verify="title"
+                        <input type="text" value="{{ role.code }}" readonly name="roleCode" lay-verify="required"
                                autocomplete="off" placeholder="角色标识" class="layui-input">
                     </div>
                 </div>
@@ -41,7 +41,7 @@
                 <div class="layui-form-item">
                     <label class="layui-form-label">排序</label>
                     <div class="layui-input-inline" style="width: 100px;">
-                        <input type="text" name="sort" value="{{ role.sort }}" lay-verify="title" autocomplete="off"
+                        <input type="text" name="sort" value="{{ role.sort }}" lay-verify="required" autocomplete="off"
                                placeholder="排序" min="0" step="1" lay-affix="number" class="layui-input">
                     </div>
                 </div>
