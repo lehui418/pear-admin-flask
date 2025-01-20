@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, request, jsonify
 
 from applications.common import curd
 from applications.common.utils import validate
-from applications.common.utils.http import success_api, fail_api
+from applications.common.utils.http import success_api, fail_api, table_api
 from applications.common.utils.rights import authorize
 from applications.common.utils.validate import str_escape
 from applications.extensions import db
@@ -21,11 +21,26 @@ def main():
 @bp.post('/data')
 @authorize("system:dept:main", log=True)
 def data():
-    data = Dept.query.order_by(Dept.sort).all()
-    res = {
-        "data": DeptSchema(many=True).dump(data)
-    }
-    return jsonify(res)
+    dept = Dept.query.order_by(Dept.sort).all()
+    data = DeptSchema(many=True).dump(dept)
+
+    # 创建一个字典，用于存储每个节点的子节点
+    tree = {}
+    for item in data:
+        item["children"] = []
+        tree[item["id"]] = item
+
+    # 构建树形结构
+    root_nodes = []
+    for item in data:
+        parent_id = item["parent_id"] if item["parent_id"] != 0 else None
+        if parent_id is None:
+            root_nodes.append(item)
+        else:
+            if parent_id in tree:
+                tree[parent_id]["children"].append(item)
+
+    return table_api(msg="请求成功", data=root_nodes)
 
 
 @bp.get('/add')
@@ -108,7 +123,7 @@ def dis_enable():
 @authorize("system:dept:edit", log=True)
 def update():
     json = request.get_json(force=True)
-    #id = json.get("deptId"),
+    # id = json.get("deptId"),
     id = str_escape(json.get("deptId"))
     data = {
         "dept_name": validate.str_escape(json.get("deptName")),

@@ -301,7 +301,7 @@ powerdata = [
 
     ), Power(
         id=26,
-        name='用户删除',
+        name='权限删除',
         type='2',
         code='system:power:remove',
         url='',

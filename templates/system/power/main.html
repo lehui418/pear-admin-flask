@@ -47,11 +47,11 @@
 </script>
 
 <script type="text/html" id="power-bar">
-    {% if authorize("system:role:edit") %}
+    {% if authorize("system:power:edit") %}
         <button class="layui-btn layui-btn-xs" lay-event="edit"><i class="pear-icon pear-icon-edit"> 编辑</i>
         </button>
     {% endif %}
-    {% if authorize("system:role:remove") %}
+    {% if authorize("system:power:remove") %}
         <button class="layui-btn layui-btn-danger layui-btn-xs" lay-event="remove"><i
                 class="pear-icon pear-icon-ashbin"> 删除</i>
         </button>
@@ -94,19 +94,16 @@
 
         window.render = function () {
             treeTable.render({
-                treeColIndex: 1,
-                treeSpid: 0,
-                treeIdName: 'id',
-                treePidName: 'parent_id',
                 skin: 'line',
                 method: 'post',
                 treeDefaultClose: true,
                 toolbar: '#power-toolbar',
                 elem: '#power-table',
-                url: '/system/power/data',
+                url: MODULE_PATH + 'data',
                 page: false,
                 cols: [
-                    [{type: 'checkbox', fixed: 'left'},
+                    [
+                        {type: 'checkbox', fixed: 'left'},
                         {field: 'id', width: 100, title: '编号'},
                         {field: 'name', title: '权限名称'},
                         {field: 'icon', title: '图标', templet: '#icon'},

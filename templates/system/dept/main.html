@@ -7,8 +7,8 @@
 <body class="pear-container">
 <div class="layui-card">
     <div class="layui-card-body">
-        <div class="layui-form-item" style="margin-bottom: unset;">
-            <div class="layui-form-item">
+        <form class="layui-form" action="">
+            <div class="layui-form-item" style="margin-bottom: unset;">
                 <label class="layui-form-label">部门名称</label>
                 <div class="layui-input-inline">
                     <input type="text" name="deptName" placeholder="" class="layui-input">
@@ -34,13 +34,13 @@
 
 <script type="text/html" id="dept-toolbar">
     {% if authorize("system:dept:edit") %}
-        <button class="layui-btn layui-btn-primary layui-btn-md" lay-event="add">
+        <button class="layui-btn layui-btn-primary layui-btn-sm" lay-event="add">
             <i class="layui-icon layui-icon-add-1"></i>
             新增
         </button>
     {% endif %}
     {% if authorize("system:dept:remove") %}
-        <button class="layui-btn layui-btn-md" lay-event="batchRemove">
+        <button class="layui-btn layui-btn-sm" lay-event="batchRemove">
             <i class="layui-icon layui-icon-delete"></i>
             删除
         </button>
@@ -49,13 +49,12 @@
 
 <script type="text/html" id="dept-bar">
     {% if authorize("system:dept:edit") %}
-        <button class="layui-btn layui-btn-primary layui-btn-sm" lay-event="edit"><i
-                class="layui-icon layui-icon-edit"></i>
+        <button class="layui-btn layui-btn-xs" lay-event="edit"><i class="pear-icon pear-icon-edit"> 编辑</i>
         </button>
     {% endif %}
     {% if authorize("system:dept:remove") %}
-        <button class="layui-btn layui-btn-danger layui-btn-sm" lay-event="remove"><i
-                class="layui-icon layui-icon-delete"></i>
+        <button class="layui-btn layui-btn-danger layui-btn-xs" lay-event="remove"><i
+                class="pear-icon pear-icon-ashbin"> 删除</i>
         </button>
     {% endif %}
 </script>
@@ -71,8 +70,7 @@
 {% include 'system/common/footer.html' %}
 
 <script>
-    layui.use(['table', 'form', 'jquery', 'popup'], function () {
-        let table = layui.table
+    layui.use(['form', 'jquery', 'popup', 'treeTable'], function () {
         let form = layui.form
         let $ = layui.jquery
         let treeTable = layui.treeTable
@@ -82,28 +80,27 @@
 
         window.render = function () {
             treeTable.render({
-                treeColIndex: 1,
-                treeSpid: 0,
-                treeIdName: 'id',
-                treePidName: 'parent_id',
                 skin: 'line',
                 method: 'post',
-                treeDefaultClose: false,
                 toolbar: '#dept-toolbar',
                 elem: '#dept-table',
-                url: '/system/dept/data',
+                url: MODULE_PATH + 'data',
                 page: false,
+                tree: {
+                    customName: {name: 'dept_name'}
+                },
                 cols: [
                     [
-                        {field: 'id', title: 'id'},
-                        {field: 'dept_name', minWidth: 200, title: '部门名称'},
-                        {field: 'leader', title: '负责人'},
+                        {type: 'checkbox', fixed: 'left'},
+                        {field: 'id', width: 100, title: '编号'},
+                        {field: 'dept_name', title: '部门名称', width: 200},
+                        {field: 'leader', title: '负责人', width: 100},
                         {field: 'phone', title: '联系方式'},
                         {field: 'email', title: '邮箱'},
                         {field: 'address', title: '详细地址'},
                         {field: 'status', title: '状态', templet: '#dept-status'},
-                        {field: 'sort', title: '排序', width: 100},
-                        {title: '操作', templet: '#dept-bar', width: 120, align: 'center'}
+                        {field: 'sort', title: '排序', width: 50},
+                        {title: '操作', templet: '#dept-bar', width: 150, align: 'center'}
                     ]
                 ]
             })
@@ -139,7 +136,7 @@
 
         render()
 
-        table.on('tool(dept-table)', function (obj) {
+        treeTable.on('tool(dept-table)', function (obj) {
             if (obj.event === 'remove') {
                 window.remove(obj)
             } else if (obj.event === 'edit') {
@@ -147,7 +144,7 @@
             }
         })
 
-        table.on('toolbar(dept-table)', function (obj) {
+        treeTable.on('toolbar(dept-table)', function (obj) {
             if (obj.event === 'add') {
                 window.add()
             } else if (obj.event === 'refresh') {
@@ -199,7 +196,6 @@
                 title: '修改',
                 shade: 0.1,
                 area: ['450px', '500px'],
-                //content: MODULE_PATH + 'edit?deptId=' + obj.data['deptId']
                 content: MODULE_PATH + 'edit?deptId=' + obj.data['id']
             })
         }
