@@ -2,12 +2,13 @@
 <html>
 <head>
     <title>用户管理</title>
-    {% include 'system/common/header.html' %}</head>
+    {% include 'system/common/header.html' %}
+</head>
 <body class="pear-container">
 <div class="layui-card">
     <div class="layui-card-body">
         <form class="layui-form" action="">
-            <div class="layui-form-item">
+            <div class="layui-form-item" style="margin-bottom: unset;">
                 <label class="layui-form-label">角色名</label>
                 <div class="layui-input-inline">
                     <input type="text" name="roleName" placeholder="" class="layui-input">
@@ -16,11 +17,11 @@
                 <div class="layui-input-inline">
                     <input type="text" name="roleCode" placeholder="" class="layui-input">
                 </div>
-                <button class="pear-btn pear-btn-md pear-btn-primary" lay-submit lay-filter="role-query">
+                <button class="layui-btn layui-btn-md layui-btn-primary" lay-submit lay-filter="role-query">
                     <i class="layui-icon layui-icon-search"></i>
                     查询
                 </button>
-                <button type="reset" class="pear-btn pear-btn-md">
+                <button type="reset" class="layui-btn layui-btn-md">
                     <i class="layui-icon layui-icon-refresh"></i>
                     重置
                 </button>
@@ -34,11 +35,11 @@
     </div>
 </div>
 </body>
-
+{% include 'system/common/footer.html' %}
 <script type="text/html" id="role-toolbar">
     {% if authorize("system:role:add") %}
-        <button class="pear-btn pear-btn-primary pear-btn-md" lay-event="add">
-            <i class="layui-icon layui-icon-add-1"></i>
+        <button class="layui-btn layui-btn-primary layui-btn-sm" lay-event="add">
+            <i class="pear-icon pear-icon-add"></i>
             新增
         </button>
     {% endif %}
@@ -46,17 +47,17 @@
 
 <script type="text/html" id="role-bar">
     {% if authorize("system:role:edit") %}
-        <button class="pear-btn pear-btn-primary pear-btn-sm" lay-event="edit"><i
+        <button class="layui-btn layui-btn-primary layui-btn-xs" lay-event="edit"><i
                 class="layui-icon layui-icon-edit"> 编辑</i>
         </button>
     {% endif %}
     {% if authorize("system:role:power") %}
-        <button class="pear-btn pear-btn-warming pear-btn-sm" lay-event="power"><i
+        <button class="layui-btn layui-btn-warming layui-btn-xs" lay-event="power"><i
                 class="layui-icon layui-icon-vercode"> 授权</i>
         </button>
     {% endif %}
     {% if authorize("system:role:remove") %}
-        <button class="pear-btn pear-btn-danger pear-btn-sm" lay-event="remove"><i
+        <button class="layui-btn layui-btn-danger layui-btn-xs" lay-event="remove"><i
                 class="layui-icon layui-icon-delete"> 删除</i>
         </button>
     {% endif %}
@@ -66,7 +67,7 @@
     <input type="checkbox" name="enable" value="{{ "{{d.id}}" }}" lay-skin="switch" lay-text="启用|禁用"
            lay-filter="role-enable" {{ "{{# if(d.enable==1){ }} checked {{# } }}" }}>
 </script>
-{% include 'system/common/footer.html' %}
+
 <script>
     layui.use(['table', 'form', 'jquery', 'popup', 'common'], function () {
         let table = layui.table
@@ -78,7 +79,7 @@
 
         let cols = [
             [
-                {title: 'id', field: 'id', align: 'center'},
+                {title: '编号', field: 'id', align: 'center'},
                 {title: '角色名', field: 'name', align: 'center', width: 100},
                 {title: 'Key值', field: 'code', align: 'center'},
                 {title: '描述', field: 'details', align: 'center'},

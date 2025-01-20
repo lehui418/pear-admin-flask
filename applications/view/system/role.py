@@ -45,21 +45,31 @@ def add():
 @authorize("system:role:add", log=True)
 def save():
     req = request.get_json(force=True)
-    details = str_escape(req.get("details"))
-    enable = str_escape(req.get("enable"))
-    roleCode = str_escape(req.get("roleCode"))
-    roleName = str_escape(req.get("roleName"))
-    sort = str_escape(req.get("sort"))
-    role = Role(
-        details=details,
-        enable=enable,
-        code=roleCode,
-        name=roleName,
-        sort=sort
-    )
+
+    data = {
+        "details": str_escape(req.get("details")),
+        "enable": str_escape(req.get("enable")),
+        "code": str_escape(req.get("roleCode")),  # 角色标识
+        "name": str_escape(req.get("roleName")),  # 角色名称
+        "sort": str_escape(req.get("sort"))
+    }
+
+    details = data.get('details')
+    del data['details']
+
+    if not all(data.values()):
+        return fail_api(msg="参数不足")
+
+    data['details'] = details
+
+    # 参数效验
+    if not data['sort'].isdigit():
+        return fail_api(msg="参数 sort 需为整数")
+
+    role = Role(**data)
     db.session.add(role)
     db.session.commit()
-    return success_api(msg="成功")
+    return success_api(msg="添加角色成功")
 
 
 # 角色授权
@@ -103,6 +113,9 @@ def save_role_power():
     role_id = req_form.get("roleId")
     role = Role.query.filter_by(id=role_id).first()
 
+    if not role:
+        return fail_api(msg="角色不存在")
+
     powers = Power.query.filter(Power.id.in_(power_list)).all()
     role.power = powers
 
@@ -124,6 +137,7 @@ def edit(id):
 def update():
     req_json = request.get_json(force=True)
     id = req_json.get("roleId")
+
     data = {
         "code": str_escape(req_json.get("roleCode")),
         "name": str_escape(req_json.get("roleName")),
@@ -131,10 +145,18 @@ def update():
         "enable": str_escape(req_json.get("enable")),
         "details": str_escape(req_json.get("details"))
     }
+
+    if not data['enable'].isdigit():
+        return fail_api(msg="参数 enable 需为整数")
+
+    if not data['sort'].isdigit():
+        return fail_api(msg="参数 sort 需为整数")
+
     role = Role.query.filter_by(id=id).update(data)
     db.session.commit()
     if not role:
         return fail_api(msg="更新角色失败")
+
     return success_api(msg="更新角色成功")
 
 
@@ -142,9 +164,9 @@ def update():
 @bp.put('/enable')
 @authorize("system:role:edit", log=True)
 def enable():
-    id = request.get_json(force=True).get('roleId')
-    if id:
-        res = enable_status(Role, id)
+    _id = request.get_json(force=True).get('roleId')
+    if _id:
+        res = enable_status(Role, _id)
         if not res:
             return fail_api(msg="出错啦")
         return success_api(msg="启动成功")
@@ -169,6 +191,10 @@ def dis_enable():
 @authorize("system:role:remove", log=True)
 def remove(id):
     role = Role.query.filter_by(id=id).first()
+
+    if not role:
+        return fail_api(msg="角色不存在")
+
     # 删除该角色的权限和用户
     role.power = []
     role.user = []

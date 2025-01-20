@@ -119,9 +119,6 @@ def menu():
                 # 当前节点添加子节点
                 _dict['children'] = copy.deepcopy(menu_dict[_dict['id']])
                 _dict['children'].sort(key=lambda item: item['sort'])
-                # 为每个子菜单添加 "openType": "_component"
-                for child in _dict['children']:
-                    child['openType'] = '_component'
                 # 删除子节点
                 del menu_dict[_dict['id']]
 
@@ -142,9 +139,6 @@ def menu():
                 # 当前节点添加子节点
                 _dict['children'] = copy.deepcopy(menu_dict[_dict['id']])
                 _dict['children'].sort(key=lambda item: item['sort'])
-                # 为每个子菜单添加 "openType": "_component"
-                for child in _dict['children']:
-                    child['openType'] = '_component'
                 # 删除子节点
                 del menu_dict[_dict['id']]
 

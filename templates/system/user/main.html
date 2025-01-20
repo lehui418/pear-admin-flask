@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>用户管理</title>
+    {% include 'system/common/header.html' %}
     <link rel="stylesheet" href="{{ url_for('static', filename='system/admin/css/other/user.css') }}"/>
 </head>
 <body class="pear-container">
@@ -9,7 +10,7 @@
 <div class="layui-card">
     <div class="layui-card-body">
         <form class="layui-form" action="" lay-filter="user-query-form">
-            <div class="layui-form-item">
+            <div class="layui-form-item" style="margin-bottom: unset;">
                 <label class="layui-form-label">用户</label>
                 <div class="layui-input-inline">
                     <input type="text" name="realname" placeholder="" class="layui-input">
@@ -50,6 +51,8 @@
     </div>
 </div>
 </body>
+
+{% include 'system/common/footer.html' %}
 {# 表格操作 #}
 <script type="text/html" id="user-toolbar">
     {% if authorize("system:user:add") %}
@@ -124,7 +127,6 @@
             page: true,
             cols: cols,
             skin: 'line',
-            height: 'full-148',
             toolbar: '#user-toolbar', /*工具栏*/
             text: {none: '暂无人员信息'},
             defaultToolbar: [{layEvent: 'refresh', icon: 'layui-icon-refresh'}, 'filter', 'print', 'exports'] /*默认工具栏*/
