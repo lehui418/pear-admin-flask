@@ -122,31 +122,58 @@
         render()
 
         form.on('submit(power-query)', function (data) {
-            var keyword = data.field.powerName
-            var $tds = $('#power-table').next('.treeTable').find('.layui-table-body tbody tr td')
+            var keyword = data.field.powerName;
+
             if (!keyword) {
-                $tds.css('background-color', 'transparent')
-                layer.msg('请输入关键字', {icon: 5})
-                return
+                layer.msg('搜索内容为空', {
+                    icon: 3,
+                    time: 1000
+                })
+                return false;
             }
-            var searchCount = 0
-            $tds.each(function () {
-                $(this).css('background-color', 'transparent')
-                if ($(this).text().indexOf(keyword) >= 0) {
-                    $(this).css('background-color', 'rgba(250,230,160,0.5)')
-                    if (searchCount === 0) {
-                        $('body,html').stop(true)
-                        $('body,html').animate({scrollTop: $(this).offset().top - 150}, 500)
+
+            treeTable.checkAllNodes('power-table', false);
+
+            var expandNotes = [];
+
+            treeTable.getNodesByFilter('power-table', function (item) {
+                if (item.name.indexOf(keyword) !== -1) {
+                    treeTable.setRowChecked('power-table', {index: item, checked: true});
+
+                    // 遍历其全部父元素
+                    var parent_id = item.parent_id;
+
+                    while (parent_id !== 0) {
+
+                        if (!expandNotes.includes(parent_id)) {
+                            expandNotes.push(item.LAY_DATA_INDEX);
+                        }
+
+                        item = treeTable.getNodeById('power-table', item.parent_id).data;
+                        parent_id = item.parent_id;
                     }
-                    searchCount++
+
+
+                    if (!expandNotes.includes(parent_id)) {
+                        expandNotes.push(item.LAY_DATA_INDEX);
+                    }
+
+                    return true;
                 }
+
+
             })
-            if (searchCount === 0) {
-                layer.msg('没有匹配结果', {icon: 5})
-            } else {
-                treeTable.expandAll('#power-table')
-            }
-            return false
+
+            treeTable.expandAll('power-table', false);
+
+            expandNotes.forEach(function (note_id) {
+                treeTable.expandNode('power-table', {
+                    index: note_id,
+                    expandFlag: true
+                });
+            })
+
+            return false;
         })
 
         treeTable.on('tool(power-table)', function (obj) {
