@@ -383,7 +383,7 @@ layui.define(['jquery', 'element', 'dropdown'], function (exports) {
 	 */
 	tabPage.prototype.refresh = function (time) {
 
-		var $iframe = $(".layui-tab[lay-filter='" + this.option.elem + "'] .layui-tab-content .layui-show > div[data-frameid]");
+		var $iframe = $(".layui-tab[lay-filter='" + this.option.elem + "'] .layui-tab-content .layui-show > div[data-frameid], iframe[data-frameid]");
 		var $iframeLoad;
 
 		if (time != false && time != 0) {
