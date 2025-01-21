@@ -167,6 +167,7 @@ def remove(id):
 
     r = Power.query.filter_by(id=id).delete()
     db.session.commit()
+
     if r:
         return success_api(msg="删除成功")
     else:

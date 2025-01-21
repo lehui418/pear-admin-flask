@@ -248,8 +248,7 @@
                         layer.close(loading)
                         if (result.success) {
                             popup.success(result.msg, function () {
-                                console.log(obj)
-                                obj.del()
+                                treeTable.removeNode('power-table', obj.data.LAY_DATA_INDEX)
                             })
                         } else {
                             popup.failure(result.msg)

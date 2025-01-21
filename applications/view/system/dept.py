@@ -11,8 +11,6 @@ from applications.schemas import DeptSchema
 
 bp = Blueprint('dept', __name__, url_prefix='/dept')
 
-# Todo: 部门管理后端
-
 @bp.get('/')
 @authorize("system:dept:main", log=True)
 def main():
@@ -79,7 +77,7 @@ def save():
     )
     r = db.session.add(dept)
     db.session.commit()
-    return success_api(msg="成功")
+    return success_api(msg="添加部门成功")
 
 
 @bp.get('/edit')
@@ -100,7 +98,7 @@ def enable():
         d = Dept.query.filter_by(id=id).update({"status": enable})
         if d:
             db.session.commit()
-            return success_api(msg="启用成功")
+            return success_api(msg="启用部门成功")
         return fail_api(msg="出错啦")
     return fail_api(msg="数据错误")
 
@@ -115,7 +113,7 @@ def dis_enable():
         d = Dept.query.filter_by(id=id).update({"status": enable})
         if d:
             db.session.commit()
-            return success_api(msg="禁用成功")
+            return success_api(msg="禁用部门成功")
         return fail_api(msg="出错啦")
     return fail_api(msg="数据错误")
 
@@ -137,20 +135,45 @@ def update():
     }
     d = Dept.query.filter_by(id=id).update(data)
     if not d:
-        return fail_api(msg="更新失败")
+        return fail_api(msg="更新部门失败")
     db.session.commit()
-    return success_api(msg="更新成功")
+    return success_api(msg="更新部门成功")
 
 
 @bp.delete('/remove/<int:_id>')
 @authorize("system:dept:remove", log=True)
 def remove(_id):
     d = Dept.query.filter_by(id=_id).delete()
+
     if not d:
-        return fail_api(msg="删除失败")
-    res = User.query.filter_by(dept_id=_id).update({"dept_id": None})
+        return fail_api(msg="删除部门失败")
+
+    User.query.filter_by(dept_id=_id).update({"dept_id": None})
     db.session.commit()
-    if res:
-        return success_api(msg="删除成功")
-    else:
-        return fail_api(msg="删除失败")
+
+    return success_api(msg="删除部门成功")
+
+# 批量删除
+@bp.delete('/batchRemove')
+@authorize("system:dept:remove", log=True)
+def batch_remove():
+    ids = request.form.getlist('ids[]')
+
+    if not ids:
+        return fail_api(msg="未提供删除 ID")
+
+    for id in ids:
+
+        if not id.isdigit():
+            db.session.rollback()
+            return fail_api(msg="参数提供错误")
+
+        d = Dept.query.filter_by(id=id).delete()
+
+        if not d:
+            return fail_api(msg="删除部门失败")
+
+        User.query.filter_by(dept_id=id).update({"dept_id": None})
+
+    db.session.commit()
+    return success_api(msg="删除部门成功")
