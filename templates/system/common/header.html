@@ -5,9 +5,27 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='system/component/pear/css/pear.css') }}"/>
 <link rel="stylesheet" href="{{ url_for('static', filename='system/admin/css/variables.css') }}"/>
 <link rel="stylesheet" href="{{ url_for('static', filename='system/admin/css/reset.css') }}"/>
+<link rel="stylesheet" href="{{ url_for('static', filename='system/admin/css/admin.css') }}"/>
+<link rel="stylesheet" href="{{ url_for('static', filename='system/admin/css/admin.dark.css') }}"/>
 
 <style>
     .layui-form-checked:hover > div {
         background-color: unset;
     }
 </style>
+
+<script>
+    // 自动切换夜间模式
+    if (window.self != window.top) {
+        requestAnimationFrame(function () {
+            try {
+                const admin = window.parent.PearAdmin;
+                let checked = admin.isdrak;
+                if (checked === true || checked === "true") {
+                    document.querySelector("body").classList.add("pear-admin-dark");
+                }
+            } catch (error) {
+            }
+        })
+    }
+</script>

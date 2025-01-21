@@ -11,6 +11,7 @@ from applications.schemas import DeptSchema
 
 bp = Blueprint('dept', __name__, url_prefix='/dept')
 
+# Todo: 部门管理后端
 
 @bp.get('/')
 @authorize("system:dept:main", log=True)
