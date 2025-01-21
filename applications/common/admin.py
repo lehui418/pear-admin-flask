@@ -2,7 +2,7 @@ from io import BytesIO
 
 from flask import session, make_response
 
-from applications.common.utils.gen_captcha import vieCode
+from applications.common.utils.captcha import vieCode
 
 
 # 生成验证码

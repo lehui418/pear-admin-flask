@@ -1,16 +1,15 @@
-{% from 'system/common/memory.html' import memory_format %}
 <!DOCTYPE html>
 <html>
 <head>
     <title>首页</title>
     {% include 'system/common/header.html' %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='system/admin/css/other/console2.css') }}"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='system/admin/css/other/monitor.css') }}"/>
 </head>
 <body class="pear-container">
 <div class="layui-row layui-col-space10">
     <div class="layui-col-md8">
         <div class="layui-row layui-col-space10">
-            <div class="layui-col-md6">
+            <div class="layui-col-md6" id="host-info-card">
                 <div class="layui-card">
                     <div class="layui-card-header">
                         主机信息
@@ -20,25 +19,25 @@
                             <div class="layui-col-md6 layui-col-sm6 layui-col-xs6">
                                 <div class="pear-card2">
                                     <div class="title">核心数</div>
-                                    <div class="count pear-text">{{ cpu_count }}</div>
+                                    <div class="count pear-text" id="cpu_count">-</div>
                                 </div>
                             </div>
                             <div class="layui-col-md6 layui-col-sm6 layui-col-xs6">
                                 <div class="pear-card2">
                                     <div class="title">空闲率</div>
-                                    <div class="count pear-text"></div>
+                                    <div class="count pear-text" id="cpu_idle_percent">-%</div>
                                 </div>
                             </div>
                             <div class="layui-col-md6 layui-col-sm6 layui-col-xs6">
                                 <div class="pear-card2">
                                     <div class="title">等待率</div>
-                                    <div class="count pear-text"></div>
+                                    <div class="count pear-text" id="cpu_wait_percent">-%</div>
                                 </div>
                             </div>
                             <div class="layui-col-md6 layui-col-sm6 layui-col-xs6">
                                 <div class="pear-card2">
                                     <div class="title">使用率</div>
-                                    <div class="count pear-text">{{ cpus_percent }}%</div>
+                                    <div class="count pear-text" id="cpus_percent">-%</div>
                                 </div>
                             </div>
                         </div>
@@ -55,25 +54,25 @@
                             <div class="layui-col-md6 layui-col-sm6 layui-col-xs6">
                                 <div class="pear-card2">
                                     <div class="title">空闲内存</div>
-                                    <div class="count pear-text">{{ memory_format(memory_free) }}</div>
+                                    <div class="count pear-text" id="memory_free">-</div>
                                 </div>
                             </div>
                             <div class="layui-col-md6 layui-col-sm6 layui-col-xs6">
                                 <div class="pear-card2">
                                     <div class="title">最大内存</div>
-                                    <div class="count pear-text">{{ memory_format(memory_total) }}</div>
+                                    <div class="count pear-text" id="memory_total">-</div>
                                 </div>
                             </div>
                             <div class="layui-col-md6 layui-col-sm6 layui-col-xs6">
                                 <div class="pear-card2">
                                     <div class="title">已用内存</div>
-                                    <div class="count pear-text">{{ memory_format(memory_used) }}</div>
+                                    <div class="count pear-text" id="memory_used">-</div>
                                 </div>
                             </div>
                             <div class="layui-col-md6 layui-col-sm6 layui-col-xs6">
                                 <div class="pear-card2">
                                     <div class="title">内存使用</div>
-                                    <div class="count pear-text">{{ memory_usage }}%</div>
+                                    <div class="count pear-text" id="memory_usage">-%</div>
                                 </div>
                             </div>
                         </div>
@@ -94,27 +93,6 @@
     </div>
     <div class="layui-col-md4">
         <div class="layui-card">
-            <div class="layui-card-header">磁盘信息</div>
-            <div class="layui-card-body">
-                <ul class="pear-card-status">
-                    {% for disk in disk_partitions_list %}
-                        <li>
-                            <p>{{ disk.device }}</p>
-                            <p>{{ disk.fstype }}</p>
-                            磁盘大小: <span>{{ memory_format(disk.total) }}</span>&nbsp;&nbsp;
-                            空闲大小: <span>{{ memory_format(disk.free) }}</span>&nbsp;&nbsp;
-                            <br/>
-                            <br/>
-                            已经使用: <span>{{ memory_format(disk.used) }}</span>&nbsp;&nbsp;
-                            使用率: <span>{{ disk.percent }}%</span>
-                            <br/>
-                            <a href="javascript:0" data-id="1" class="pear-btn pear-btn-xs pear-btn-primary pear-reply">详情</a>
-                        </li>
-                    {% endfor %}
-                </ul>
-            </div>
-        </div>
-        <div class="layui-card">
             <div class="layui-card-header">主机信息</div>
             <div class="layui-card-body">
                 <table class="layui-table" lay-skin="line">
@@ -127,46 +105,134 @@
                     <tbody>
                     <tr>
                         <td>名称</td>
-                        <td>{{ hostname }}</td>
+                        <td id="hostname">{{ hostname }}</td>
                     </tr>
 
                     <tr>
                         <td>系统</td>
-                        <td>{{ system_version }}</td>
+                        <td id="system_version">{{ system_version }}</td>
                     </tr>
                     <tr>
                         <td>开机时间</td>
-                        <td>{{ boot_time }}</td>
+                        <td id="boot_time">{{ boot_time }}</td>
                     </tr>
                     <tr>
                         <td>运行时长</td>
-                        <td>{{ up_time_format }}</td>
+                        <td id="up_time_format">{{ up_time_format }}</td>
                     </tr>
                     <tr>
-                        <td>python版本</td>
-                        <td>{{ python_version }}</td>
+                        <td>Python 版本</td>
+                        <td id="python_version">{{ python_version }}</td>
                     </tr>
                     <tr>
                         <td>程序操作</td>
                         <td>
                             <a href="javascript:kill();"
-                               class="pear-btn pear-btn-xs pear-btn-primary">关闭程序</a>
+                               class="layui-btn layui-btn-xs layui-btn-primary">关闭程序</a>
                         </td>
                     </tr>
                     </tbody>
                 </table>
             </div>
         </div>
+        <div class="layui-card">
+            <div class="layui-card-header">磁盘信息</div>
+            <div class="layui-card-body" id="disk-info-card">
+                加载中......
+            </div>
+        </div>
     </div>
 </div>
+
+<div id="tooltip" style="background-color: unset !important;">
+    <div class="layui-card" style="box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+        <div class="layui-card-body" style="text-align: center" id="tooltip-cpus">
+            加载中......
+        </div>
+    </div>
+</div>
+
+
 {% include 'system/common/footer.html' %}
 <script>
+    var systemInfo = null;  // 存储获取到的系统信息对象
+
+    function memoryFormat(memory) {
+        if (memory >= 1024 ** 4 * 2) {
+            return (memory / 1024 ** 4).toFixed(2) + 'TB';
+        } else if (memory >= 1024 ** 3 * 2) {
+            return (memory / 1024 ** 3).toFixed(2) + 'GB';
+        } else if (memory >= 1024 ** 2 * 2) {
+            return (memory / 1024 ** 2).toFixed(2) + 'MB';
+        } else if (memory >= 1024 ** 1 * 2) {
+            return (memory / 1024 ** 1).toFixed(2) + 'KB';
+        } else {
+            return memory + 'B';
+        }
+    }
+
+    function diskinfo(index) {
+        data = systemInfo.disk_partitions_list[index];
+
+        layui.laytpl(`
+                <ul>
+                    <li>分区类型: <%= d.fstype %></li>
+                    <li>磁盘大小: <%= memoryFormat(d.total) %></li>
+                    <li>空闲大小: <%= memoryFormat(d.free) %></li>
+                    <li>已经使用: <%= memoryFormat(d.used) %> (<%= d.percent %>%)</li>
+                </ul>
+            `, {
+            open: '<%',
+            close: '%>'
+        }).render(data, function (string) {
+            layui.layer.alert(string);
+        });
+    }
+
+    function kill() {
+        var success = true;
+        layui.$.ajax({
+            url: "/system/monitor/kill",
+            success: function (res) {
+                layui.popup.failure(res.msg);
+                success = false;
+            },
+            complete: function (xhr) {
+                if (success) layui.popup.success("已发送关闭命令。");
+            }
+        });
+    }
+
     layui.use(['layer', 'echarts', 'popup'], function () {
         var $ = layui.jquery,
             echarts = layui.echarts;
         let popup = layui.popup;
+        let laytpl = layui.laytpl;
 
         var echartsRecords = echarts.init(document.getElementById('echarts-records'), 'walden');
+
+
+        $('#host-info-card').hover(
+            function () {
+                $('#tooltip').addClass('show');
+
+                // 获取 #cpus_percent-card 的位置、尺寸和宽度
+                const card = $(this);
+                const cardOffset = card.offset(); // 元素相对于文档的偏移量
+                const cardHeight = card.outerHeight(); // 元素的高度
+                const cardWidth = card.outerWidth(); // 元素的宽度
+
+                // 设置悬浮提示框的宽度和位置
+                $('#tooltip').css({
+                    top: cardOffset.top + cardHeight + 2, // 放在元素下方 5px
+                    left: cardOffset.left - 5, // 与元素左对齐
+                    width: cardWidth - 10, // 宽度与元素一致
+                });
+            },
+            function () {
+                $('#tooltip').removeClass('show');
+            }
+        );
 
         $("body").on("click", "[data-url]", function () {
             parent.layui.tab.addTabOnlyByElem("content", {
@@ -188,20 +254,6 @@
             "#00CA69"
         ];
 
-        let echartData = [
-            {
-                name: "{{time_now}}",
-                cpu_percent: {{ cpus_percent }},
-                memory_percent: {{ memory_usage }}
-            },
-        ];
-
-        var xAxisData = echartData.map(v => v.name);
-        //  ["1", "2", "3", "4", "5", "6", "7", "8"]
-        var yAxisData1 = echartData.map(v => v.cpu_percent);
-        // [100, 138, 350, 173, 180, 150, 180, 230]
-        var yAxisData2 = echartData.map(v => v.memory_percent);
-        // [233, 233, 200, 180, 199, 233, 210, 180]
         const hexToRgba = (hex, opacity) => {
             let rgbaColor = "";
             let reg = /^#[\da-f]{6}$/i;
@@ -214,7 +266,9 @@
             return rgbaColor;
         }
 
-        option = {
+        let echartData = [];
+
+        var option = {
             backgroundColor: bgColor,
             color: color,
             legend: {
@@ -223,25 +277,9 @@
             },
             tooltip: {
                 trigger: "axis",
-                formatter: function (params) {
-                    let html = '';
-                    params.forEach(v => {
-                        html +=
-                            `<div style="color: #666;font-size: 14px;line-height: 24px">
-					                <span style="display:inline-block;margin-right:5px;border-radius:10px;width:10px;height:10px;background-color:${color[v.componentIndex]};"></span>
-					                ${v.seriesName}.${v.name}
-					                <span style="color:${color[v.componentIndex]};font-weight:700;font-size: 18px">${v.value}</span>
-					                %`;
-                    })
-
-
-                    return html
-                },
-                extraCssText: 'background: #fff; border-radius: 0;box-shadow: 0 0 3px rgba(0, 0, 0, 0.2);color: #333;',
                 axisPointer: {
                     type: 'shadow',
                     shadowStyle: {
-                        color: '#ffffff',
                         shadowColor: 'rgba(225,225,225,1)',
                         shadowBlur: 5
                     }
@@ -265,7 +303,7 @@
                         color: "#D9D9D9"
                     }
                 },
-                data: xAxisData
+                data: null
             }],
             yAxis: [{
                 type: "value",
@@ -329,7 +367,7 @@
                         shadowBlur: 10
                     }
                 },
-                data: yAxisData1
+                data: null
             }, {
                 name: '内存',
                 type: "line",
@@ -366,7 +404,7 @@
                         shadowBlur: 10
                     }
                 },
-                data: yAxisData2
+                data: null
             }]
         };
 
@@ -376,17 +414,96 @@
             echartsRecords.resize();
         };
 
-        setInterval(ajaxPolling, 1000 * 10);
+        ajaxPolling();
+        setInterval(ajaxPolling, 1000 * 5);
 
         function ajaxPolling() {
             $.ajax({
                 url: "/system/monitor/polling",
-                success: function (data) {
+                success: function (result) {
+                    data = result.data;
+                    systemInfo = data;
+
+
+                    // 更新使用率等信息
+                    document.querySelector("#cpu_count").innerText = data.cpu_count;
+                    document.querySelector("#cpus_percent").innerText = data.cpus_percent + "%";
+                    document.querySelector("#cpu_idle_percent").innerText = data.cpu_idle_percent + "%";
+                    document.querySelector("#cpu_wait_percent").innerText = data.cpu_wait_percent + "%";
+
+                    document.querySelector("#memory_used").innerText = memoryFormat(data.memory_used);
+                    document.querySelector("#memory_total").innerText = memoryFormat(data.memory_total);
+                    document.querySelector("#memory_free").innerText = memoryFormat(data.memory_free);
+                    document.querySelector("#memory_usage").innerText = data.memory_usage + "%";
+
+                    // 基本信息
+                    document.querySelector("#hostname").innerText = data.basic_info.hostname;
+                    document.querySelector("#system_version").innerText = data.basic_info.system_version;
+                    document.querySelector("#boot_time").innerText = data.basic_info.boot_time;
+                    document.querySelector("#up_time_format").innerText = data.basic_info.up_time_format;
+                    document.querySelector("#python_version").innerText = data.basic_info.python_version;
+
+
+                    // 更新每一个CPU使用率
+                    laytpl(`
+                      <ul>
+                        <%# layui.each(d, function(index, data){ %>
+                        <li>
+                            <span class="layui-badge layui-bg-blue">CPU <%= data[0] %>: <%= data[1] %>%</span>
+                        </li>
+                        <%#  }); %>
+                    </ul>
+                    `, {
+                        open: '<%',
+                        close: '%>'
+                    }).render(data.cpu_percent_per_core, function (string) {
+                        document.querySelector("#tooltip-cpus").innerHTML = string;
+                    });
+
+
+                    // 更新硬盘信息
+                    laytpl(`
+                    <fieldset class="layui-elem-field layui-field-title"></fieldset>
+                    <%# layui.each(d, function(index, data){ %>
+                    <div class="layui-row" style="display: flex; align-items: center;">
+                        <div class="progress-ring" style="margin-right: 50px;">
+                            <svg class="circle" width="120" height="120" viewBox="0 0 120 120">
+                                <circle class="circle-bg" cx="60" cy="60" r="54"/>
+                                <circle class="circle-progress" cx="60" cy="60" r="54" style="--progress: <%= data.percent %>"/>
+                            </svg>
+                            <div class="progress-text"><%= data.device %></div>
+                        </div>
+                        <div class="layui-col-space10" style="display: flex; align-items: center;">
+                            <ul>
+                                <li>分区类型: <%= data.fstype %></li>
+                                <li>磁盘大小: <%= memoryFormat(data.total) %></li>
+                                <li>空闲大小: <%= memoryFormat(data.free) %></li>
+                                <li>已经使用: <%= memoryFormat(data.used) %> (<%= data.percent %>%)</li>
+                                <li>
+                                    <a href="javascript:diskinfo(<%= index %>)" data-id="1"
+                                       class="layui-btn layui-btn-xs layui-btn-primary pear-reply">查看详情
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <fieldset class="layui-elem-field layui-field-title"></fieldset>
+                    <%# }) %>
+                    `, {
+                        open: '<%',
+                        close: '%>'
+                    }).render(data.disk_partitions_list, function (string) {
+                        document.querySelector("#disk-info-card").innerHTML = string;
+                    });
+
+
+                    // 更新图表
                     echartData.push({
                         name: data.time_now,
-                        cpu_percent: data.cups_percent,
-                        memory_percent: data.memory_used
+                        cpu_percent: data.cpus_percent,
+                        memory_percent: data.memory_usage
                     });
+
                     if (echartData.length > 8) {
                         echartData.shift();
                     }
@@ -403,7 +520,6 @@
 
                 },
                 error: function (xhr, type, errorThrown) {
-                    popup.failure("api错误");
                 }
             })
 
