@@ -12,7 +12,7 @@
             <div class="layui-col-md6" id="host-info-card">
                 <div class="layui-card">
                     <div class="layui-card-header">
-                        主机信息
+                        主机监控
                     </div>
                     <div class="layui-card-body">
                         <div class="layui-row layui-col-space10">
@@ -95,7 +95,7 @@
         <div class="layui-card">
             <div class="layui-card-header">主机信息</div>
             <div class="layui-card-body">
-                <table class="layui-table" lay-skin="line">
+                <table class="layui-table">
                     <thead>
                     <tr>
                         <th>属性</th>
@@ -244,7 +244,6 @@
         })
 
 
-        let bgColor = "#fff";
         let color = [
             "#0090FF",
             "#36CE9E",
@@ -269,7 +268,7 @@
         let echartData = [];
 
         var option = {
-            backgroundColor: bgColor,
+            backgroundColor: 'transparent',
             color: color,
             legend: {
                 right: 10,
@@ -286,6 +285,7 @@
                 }
             },
             grid: {
+                backgroundColor: 'transparent',
                 top: 100,
                 containLabel: true
             },

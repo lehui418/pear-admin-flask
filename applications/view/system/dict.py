@@ -33,6 +33,7 @@ def dict_type_data():
     dict_all = DictType.query.filter(mf.get_filter(DictType)).layui_paginate()
     count = dict_all.total
     data = curd.model_to_dicts(schema=DictTypeOutSchema, data=dict_all.items)
+
     return table_api(data=data, count=count)
 
 
@@ -46,13 +47,24 @@ def dict_type_add():
 @authorize("system:dict:add", log=True)
 def dict_type_save():
     req_json = request.get_json(force=True)
-    description = str_escape(req_json.get("description"))
-    enable = str_escape(req_json.get("enable"))
-    type_code = str_escape(req_json.get("typeCode"))
-    if type_code is None:
-        return fail_api(msg="标识必须填写")
-    type_name = str_escape(req_json.get("typeName"))
-    d = DictType(type_name=type_name, type_code=type_code, enable=enable, description=description)
+
+    data = {
+        'type_name': str_escape(req_json.get("typeName")),
+        'type_code': str_escape(req_json.get("typeCode")),
+        'enable': str_escape(req_json.get("enable")),
+        'description': str_escape(req_json.get("description"))
+    }
+
+    description = data['description']
+    del data['description']
+
+    if not all(data.values()):
+        return fail_api(msg="参数提供不足")
+
+    if description is not None:
+        data['description'] = description
+
+    d = DictType(**data)
     db.session.add(d)
     db.session.commit()
     if d.id is None:
@@ -75,16 +87,26 @@ def dict_type_edit():
 def dict_type_update():
     req_json = request.get_json(force=True)
     id = str_escape(req_json.get("id"))
-    description = str_escape(req_json.get("description"))
-    enable = str_escape(req_json.get("enable"))
-    type_code = str_escape(req_json.get("typeCode"))
-    type_name = str_escape(req_json.get("typeName"))
-    DictType.query.filter_by(id=id).update({
-        "description": description,
-        "enable": enable,
-        "type_code": type_code,
-        "type_name": type_name
-    })
+
+    data = {
+        "description": str_escape(req_json.get("description")),
+        "enable": str_escape(req_json.get("enable")),
+        "type_code": str_escape(req_json.get("typeCode")),
+        "type_name": str_escape(req_json.get("typeName"))
+    }
+
+    if id is None:
+        return fail_api(msg="字典类型不存在")
+
+    description = data['description']
+    del data['description']
+
+    if not all(data.values()):
+        return fail_api(msg="参数提供不足")
+
+    data['description'] = description
+
+    DictType.query.filter_by(id=id).update(data)
     db.session.commit()
     return success_api(msg="更新成功")
 
@@ -94,11 +116,11 @@ def dict_type_update():
 @authorize("system:dict:edit", log=True)
 def dict_type_enable():
     _id = request.get_json(force=True).get('id')
-    if id:
-        res = curd.enable_status(DictType,_id)
+    if _id:
+        res = curd.enable_status(DictType, _id)
         if not res:
             return fail_api(msg="出错啦")
-        return success_api("启动成功")
+        return success_api("启用成功")
     return fail_api(msg="数据错误")
 
 
@@ -107,8 +129,8 @@ def dict_type_enable():
 @authorize("system:dict:edit", log=True)
 def dict_type_dis_enable():
     _id = request.get_json(force=True).get('id')
-    if id:
-        res = curd.disable_status(DictType,_id)
+    if _id:
+        res = curd.disable_status(DictType, _id)
         if not res:
             return fail_api(msg="出错啦")
         return success_api("禁用成功")
@@ -119,9 +141,15 @@ def dict_type_dis_enable():
 @bp.delete('/dictType/remove/<int:_id>')
 @authorize("system:dict:remove", log=True)
 def dict_type_delete(_id):
-    res = curd.delete_one_by_id(DictType,_id)
+    DictData.query.filter_by(
+        type_code=DictType.query.filter_by(id=_id).first().type_code
+    ).all()
+    res = DictType.query.filter_by(id=_id).delete()
+
     if not res:
         return fail_api(msg="删除失败")
+
+    db.session.commit()
     return success_api(msg="删除成功")
 
 
@@ -148,11 +176,13 @@ def dict_data_add():
 @authorize("system:dict:add", log=True)
 def dict_data_save():
     req_json = request.get_json(force=True)
+
     data_label = str_escape(req_json.get("dataLabel"))
     data_value = str_escape(req_json.get("dataValue"))
     enable = str_escape(req_json.get("enable"))
     remark = str_escape(req_json.get("remark"))
     type_code = str_escape(req_json.get("typeCode"))
+
     d = DictData(data_label=data_label, data_value=data_value, enable=enable, remark=remark, type_code=type_code)
     db.session.add(d)
     db.session.commit()
@@ -213,11 +243,48 @@ def dict_data_disenable():
     return fail_api(msg="数据错误")
 
 
-# 删除字典类型
+# 删除字典数据
 @bp.delete('dictData/remove/<int:id>')
 @authorize("system:dict:remove", log=True)
 def dict_data_delete(id):
     res = curd.delete_one_by_id(model=DictData, id=id)
     if not res:
         return fail_api(msg="删除失败")
+    return success_api(msg="删除成功")
+
+
+# 批量删除字典
+@bp.delete('dictData/batchRemoveDictType')
+@authorize("system:dict:remove", log=True)
+def dict_type_batch_remove():
+    ids = request.form.getlist('ids[]')
+
+    for _id in ids:
+        DictData.query.filter_by(
+            type_code=DictType.query.filter_by(id=_id).first().type_code
+        ).all()
+
+        res = DictType.query.filter_by(id=_id).delete()
+
+        if res == 0:
+            db.session.rollback()
+            return fail_api(msg="删除失败，请重试")
+
+    db.session.commit()
+    return success_api(msg="删除成功")
+
+
+# 批量删除字典数据
+@bp.delete('dictData/batchRemoveDictData')
+@authorize("system:dict:remove", log=True)
+def dict_data_batch_remove():
+    ids = request.form.getlist('ids[]')
+    print(ids)
+    for _id in ids:
+        res = curd.delete_one_by_id(model=DictData, id=_id)
+        if not res:
+            db.session.rollback()
+            return fail_api(msg="删除失败，请重试")
+
+    db.session.commit()
     return success_api(msg="删除成功")

@@ -18,7 +18,12 @@ def authorize(power: str, log: bool = False):
         def wrapper(*args, **kwargs):
             # 定义管理员的id为1
             if current_user.username == current_app.config.get("SUPERADMIN"):
+
+                if log:
+                    admin_log(request=request, is_access=True)
+
                 return func(*args, **kwargs)
+
             if not power in session.get('permissions'):
                 if log:
                     admin_log(request=request, is_access=False)
@@ -26,8 +31,10 @@ def authorize(power: str, log: bool = False):
                     abort(403)
                 else:
                     return jsonify(success=False, msg="权限不足!")
+
             if log:
                 admin_log(request=request, is_access=True)
+
             return func(*args, **kwargs)
 
         return wrapper
