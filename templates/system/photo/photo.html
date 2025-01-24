@@ -13,13 +13,13 @@
 
 <script type="text/html" id="toolbar">
     {% if authorize("system:file:add") %}
-        <button class="pear-btn pear-btn-primary pear-btn-sm" lay-event="add">
+        <button class="layui-btn layui-btn-primary layui-btn-sm" lay-event="add">
             <i class="layui-icon layui-icon-add-1"></i>
             新增
         </button>
     {% endif %}
     {% if authorize("system:file:delete") %}
-        <button class="pear-btn pear-btn-sm" lay-event="batchRemove">
+        <button class="layui-btn layui-btn-sm" lay-event="batchRemove">
             <i class="layui-icon layui-icon-delete"></i>
             删除
         </button>
@@ -28,7 +28,7 @@
 
 <script type="text/html" id="user-bar">
     {% if authorize("system:file:delete") %}
-        <button class="pear-btn pear-btn-danger pear-btn-sm" lay-event="remove"><i
+        <button class="layui-btn layui-btn-danger layui-btn-sm" lay-event="remove"><i
                 class="layui-icon layui-icon-delete"></i></button>
     {% endif %}
 </script>

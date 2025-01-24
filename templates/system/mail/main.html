@@ -10,7 +10,7 @@
 <div class="layui-card">
     <div class="layui-card-body">
         <form class="layui-form" action="" lay-filter="mail-query-form">
-            <div class="layui-form-item">
+            <div class="layui-form-item" style="margin-bottom: unset;">
                 <label class="layui-form-label">收件人邮箱</label>
                 <div class="layui-input-inline">
                     <input type="text" name="receiver" placeholder="" class="layui-input">
@@ -23,11 +23,11 @@
                 <div class="layui-input-inline">
                     <input type="text" name="content" placeholder="" class="layui-input">
                 </div>
-                <button class="pear-btn pear-btn-md pear-btn-primary" lay-submit lay-filter="mail-query">
+                <button class="layui-btn layui-btn-md layui-btn-primary" lay-submit lay-filter="mail-query">
                     <i class="layui-icon layui-icon-search"></i>
                     查询
                 </button>
-                <button type="reset" class="pear-btn pear-btn-md">
+                <button type="reset" class="layui-btn layui-btn-md">
                     <i class="layui-icon layui-icon-refresh"></i>
                     重置
                 </button>
@@ -47,13 +47,13 @@
 {# 表格操作 #}
 <script type="text/html" id="mail-toolbar">
     {% if authorize("system:mail:add") %}
-        <button class="pear-btn pear-btn-primary pear-btn-md" lay-event="add">
+        <button class="layui-btn layui-btn-primary layui-btn-sm" lay-event="add">
             <i class="pear-icon pear-icon-add"></i>
             新增
         </button>
     {% endif %}
     {% if authorize("system:mail:remove") %}
-        <button class="pear-btn pear-btn-md" lay-event="batchRemove">
+        <button class="layui-btn layui-btn-sm" lay-event="batchRemove">
             <i class="pear-icon pear-icon-ashbin"></i>
             删除
         </button>
@@ -63,8 +63,8 @@
 {# 用户修改操作 #}
 <script type="text/html" id="mail-bar">
     {% if authorize("system:mail:remove") %}
-        <button class="pear-btn pear-btn-danger pear-btn-sm" lay-event="remove"><i
-                class="pear-icon pear-icon-ashbin"></i>
+        <button class="layui-btn layui-btn-danger layui-btn-xs" lay-event="remove"><i
+                class="layui-icon layui-icon-delete"> 删除</i>
         </button>
     {% endif %}
 </script>

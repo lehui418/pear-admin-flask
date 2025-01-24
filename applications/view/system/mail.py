@@ -20,7 +20,7 @@ def main():
     return render_template('system/mail/main.html')
 
 
-#   用户分页查询
+# 用户分页查询
 @bp.get('/data')
 @authorize("system:mail:main")
 def data():
