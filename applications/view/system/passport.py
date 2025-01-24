@@ -21,7 +21,7 @@ def get_captcha():
 @bp.get('/login')
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('system.index'))
+        return redirect(url_for('index.index'))
     return render_template('system/login.html')
 
 

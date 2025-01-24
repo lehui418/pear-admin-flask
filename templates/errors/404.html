@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <title></title>
-    <link href="{{ url_for('static', filename='system/component/pear/css/pear.css') }}" rel="stylesheet"/>
+    {% include 'system/common/header.html' %}
     <link href="{{ url_for('static', filename='system/admin/css/other/error.css') }}" rel="stylesheet"/>
 </head>
 <body>
@@ -12,7 +12,7 @@
     <div class="content-r">
         <h1>404</h1>
         <p>抱歉，你访问的页面不存在或仍在开发中</p>
-        <button class="pear-btn pear-btn-primary">返回首页</button>
+        <button class="layui-btn layui-btn-primary">返回首页</button>
     </div>
 </div>
 </body>
