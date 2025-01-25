@@ -1,18 +1,14 @@
 import logging
-from urllib.parse import quote_plus as urlquote
-
-from apscheduler.executors.pool import ThreadPoolExecutor
-from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
+from datetime import timedelta
 
 
 class BaseConfig:
-    DEBUG = True
-    HOST = '127.0.0.1'
-    PORT = 5000
+    # 超级管理员账号
+    SUPERADMIN = 'admin'
 
-    SUPERADMIN = 'system'
-
+    # 系统名称
     SYSTEM_NAME = 'Pear Admin'
+
     # 主题面板的链接列表配置
     SYSTEM_PANEL_LINKS = [
         {
@@ -32,61 +28,18 @@ class BaseConfig:
         }
     ]
 
+    # 上传图片目标文件夹
     UPLOADED_PHOTOS_DEST = 'static/upload'
-    UPLOADED_FILES_ALLOW = ['gif', 'jpg']
+    UPLOADED_FILES_ALLOW = ['gif', 'jpg', 'jpeg', 'png', 'webp']
     UPLOADS_AUTOSERVE = True
 
-    # JSON配置
+    # JSON 配置
     JSON_AS_ASCII = False
-
-    SECRET_KEY = "pear-system-flask"
-
-    # redis配置
-    REDIS_HOST = "127.0.0.1"
-    REDIS_PORT = 6379
-
-    # mysql 配置
-    MYSQL_USERNAME = "root"
-    MYSQL_PASSWORD = "123456"
-    MYSQL_HOST = "172.10.1.31"
-    MYSQL_PORT = 3306
-    MYSQL_DATABASE = "PearAdminFlask"
-
-    # mysql 数据库的配置信息
-    SQLALCHEMY_DATABASE_URI = f"mysql+pymysql://{MYSQL_USERNAME}:{urlquote(MYSQL_PASSWORD)}@{MYSQL_HOST}:{MYSQL_PORT}/{MYSQL_DATABASE}?charset=utf8mb4"
-
-    # 默认日志等级
-    LOG_LEVEL = logging.WARN
-    #
-    MAIL_SERVER = 'smtp.qq.com'
-    MAIL_USE_TLS = False
-    MAIL_USE_SSL = True
-    MAIL_PORT = 465
-    MAIL_USERNAME = '123@qq.com'
-    MAIL_PASSWORD = 'XXXXX'  # 生成的授权码
-    MAIL_DEFAULT_SENDER = MAIL_USERNAME
-
-    # 設置 APSCHEDULER 參數
-    SCHEDULER_API_ENABLED = False
-    SCHEDULER_JOBSTORES: dict = {
-        'default': SQLAlchemyJobStore(
-            url=f'mysql+pymysql://{MYSQL_USERNAME}:{MYSQL_PASSWORD}@{MYSQL_HOST}:{MYSQL_PORT}/{MYSQL_DATABASE}')
-    }
-    SCHEDULER_EXECUTORS: dict = {
-        'default': ThreadPoolExecutor(20)
-    }
-    SCHEDULER_JOB_DEFAULTS: dict = {
-        'coalesce': False,
-        'max_instances': 3
-    }
-
-    # 插件配置
-    PLUGIN_ENABLE_FOLDERS = ["helloworld"]
 
     # 配置多个数据库连接的连接串写法示例
     # HOSTNAME: 指数据库的IP地址、USERNAME：指数据库登录的用户名、PASSWORD：指数据库登录密码、PORT：指数据库开放的端口、DATABASE：指需要连接的数据库名称
     # MSSQL:    f"mssql+pymssql://{USERNAME}:{PASSWORD}@{HOSTNAME}:{PORT}/{DATABASE}?charset=cp936"
-    # MySQL:    f"mysql+pymysql://{USERNAME}:{PASSWORD}@{HOSTNAME}:{PORT}/{DATABASE}?charset=utf8"
+    # MySQL:    f"mysql+pymysql://{USERNAME}:{PASSWORD}@{HOSTNAME}:{PORT}/{DATABASE}?charset=utf8mb4"
     # Oracle:   f"oracle+cx_oracle://{USERNAME}:{PASSWORD}@{HOSTNAME}:{PORT}/{DATABASE}"
     # SQLite    "sqlite:/// database.db"
     # Postgres f"postgresql+psycopg2://{USERNAME}:{PASSWORD}@{HOSTNAME}:{PORT}/{DATABASE}"
@@ -103,3 +56,29 @@ class BaseConfig:
     #    'testSQLite': 'sqlite:///database.db
     # }
 
+    # 数据库的配置信息
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///../pear.db'
+
+    # 默认日志等级
+    LOG_LEVEL = logging.WARN
+
+    # 发信设置
+    MAIL_SERVER = 'smtp.qq.com'
+    MAIL_USE_TLS = False
+    MAIL_USE_SSL = True
+    MAIL_PORT = 465
+    MAIL_USERNAME = '123@qq.com'
+    MAIL_PASSWORD = 'XXXXX'  # 生成的授权码
+    MAIL_DEFAULT_SENDER = MAIL_USERNAME
+
+    # 插件配置，填写插件的文件名名称，默认不启用插件。
+    PLUGIN_ENABLE_FOLDERS = []
+
+    # Session 设置
+    PERMANENT_SESSION_LIFETIME = timedelta(days=7)
+
+    SESSION_TYPE = "filesystem"  # 默认使用文件系统来保存会话
+    SESSION_PERMANENT = False  # 会话是否持久化
+    SESSION_USE_SIGNER = True  # 是否对发送到浏览器上 session 的 cookie 值进行加密
+
+    SECRET_KEY = "pear-system-flask"
