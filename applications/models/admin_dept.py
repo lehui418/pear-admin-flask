@@ -15,4 +15,4 @@ class Dept(db.Model):
     remark = db.Column(db.Text, comment="备注")
     address = db.Column(db.String(255), comment="详细地址")
     create_at = db.Column(db.DateTime, default=datetime.datetime.now, comment='创建时间')
-    update_at = db.Column(db.DateTime, default=datetime.datetime.now, onupdate=datetime.datetime.now, comment='创建时间')
+    update_at = db.Column(db.DateTime, default=datetime.datetime.now, onupdate=datetime.datetime.now, comment='更新时间')
