@@ -279,7 +279,7 @@ def dict_type_batch_remove():
 @authorize("system:dict:remove", log=True)
 def dict_data_batch_remove():
     ids = request.form.getlist('ids[]')
-    print(ids)
+
     for _id in ids:
         res = curd.delete_one_by_id(model=DictData, id=_id)
         if not res:
