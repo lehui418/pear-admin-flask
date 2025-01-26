@@ -1,7 +1,5 @@
 # 构建的相关文件
 dockerdata
-docker-compose.yml
-Dockerfile.server
 README.md
 
 # Python 相关文件

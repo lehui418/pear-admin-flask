@@ -15,6 +15,9 @@ RUN echo "${TIME_ZONE}" > /etc/timezone \
 # 安装必备库
 RUN python3 -m pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple/
 
+# 安装
+RUN python3 -m pip install gunicorn -i https://pypi.tuna.tsinghua.edu.cn/simple/
+
 # 初始化数据库
 RUN flask db init
 RUN flask db migrate
