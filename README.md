@@ -15,7 +15,7 @@
         <img src="https://img.shields.io/badge/pear%20admin%20flask-1.0.0-green" alt="Pear Admin Layui Version">
     </a>
     <a href="#">
-        <img src="https://img.shields.io/badge/Python-3.6+-green.svg" alt="Python Version">
+        <img src="https://img.shields.io/badge/Python-3.8+-green.svg" alt="Python Version">
     </a>
       <a href="#">
         <img src="https://img.shields.io/badge/Mysql-5.3.2+-green.svg" alt="Mysql Version">
@@ -59,7 +59,7 @@ Pear Admin Flask 基于 Flask 的后台管理系统，拥抱应用广泛的pytho
 
 # 版本支持情况
 
-经过测试，此项目的（master分支）运行要求是 `>= Python 3.8` ，推荐使用 `Python 3.9`。
+经过测试，此项目的（master分支）运行要求是 `>= Python 3.8` ，推荐使用 `Python 3.11`。
 
 > **💡提示** 由于 Flask 中使用的 Werkzeug 模块更新，Flask 官方并未进行更新，所以可能会出现 ImportError 。
 > 此类情况的出现可以通过正确安装 `requirements.txt` 中的模块（以及其对应版本）解决。
@@ -69,19 +69,19 @@ Pear Admin Flask 基于 Flask 的后台管理系统，拥抱应用广泛的pytho
 ## 应用结构
 
 ```应用结构
-Pear Admin Flask
-├─applications  # 应用
-│  ├─extensions  # 注册插件
-│  ├─models  # 数据模型
-│  ├─static  # 静态资源文件
-│  ├─templates  # 静态模板文件
-│  └─views  # 视图部分
-│     ├─admin  # 后台管理视图模块
-│     └─index  # 前台视图模块
+Pear Admin Flask (master)
+├─applications  # 项目核心模块
+│  ├─common  # 公共模块（初始化数据库、公用函数）
+│  ├─extensions  # 注册项目插件
+│  ├─schemas  # 序列化模型
+│  ├─models  # 数据库模型
+│  ├─views  # 视图部分
+│  ├─config.py  # 项目配置
+│  └─__init__.py  # 项目初始化入口
 ├─docs  # 文档说明
-├─migrations  # 迁移文件记录
-├─requirement  # 依赖文件
-└─.env # 项目的配置文件
+├─static  # 静态资源文件
+├─templates  # 静态模板文件
+└─app.py  # 程序入口
 ```
 
 ## 资源结构
@@ -159,7 +159,7 @@ python -m venv venv
 # 进入虚拟环境下
 venv\Scripts\activate.bat  # Windows 提示命令符
 venv\Scripts\Activate.ps1  # Windows Powershell
-. venv/bin/activate  # Linux
+source venv/bin/activate  # Linux
 
 # 使用 pip 安装
 pip install -r requirements.txt
