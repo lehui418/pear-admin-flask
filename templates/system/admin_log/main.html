@@ -72,7 +72,7 @@
             elem: '#log-login-table',
             url: MODULE_PATH + 'loginLog',
             page: true,
-            cols: cols,
+            cols: JSON.parse(JSON.stringify(cols)),  // 复制对象
             skin: 'line',
             toolbar: false
         })

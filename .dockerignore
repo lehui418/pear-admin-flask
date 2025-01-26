@@ -1,8 +1,17 @@
-#build时候不会copy以下文件
+# 构建的相关文件
 dockerdata
 docker-compose.yml
 Dockerfile.server
 README.md
-!dockerdata/config.py
+
+# Python 相关文件
+migrations/
+instance/
+flask_session/
+venv/
+.idea/
+*.log
+*.db
+
+# 允许拷贝的文件
 !dockerdata/start.sh
-!dockerdata/gunicorn.conf.py
