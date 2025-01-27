@@ -1,7 +1,9 @@
+.. _权限验证模块:
+
 :mod:`rights` -- 权限验证模块
 ==================================
 
-:mod:`rights` 模块源代码在文件夹 `applications/common/utils/rights.py` 下，主要用于权限验证。
+:mod:`rights` 模块源代码在文件 `applications/common/utils/rights.py` 下，主要用于权限验证。
 
 .. module:: rights
 
@@ -22,6 +24,8 @@
     **修饰函数示例：**
 
     .. code-block:: python
+
+        from applications.common.utils.rights import authorize
 
         @app.route("/test")
         @authorize("system:power:remove", log=True)

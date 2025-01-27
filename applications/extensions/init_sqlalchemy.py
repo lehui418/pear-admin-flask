@@ -60,9 +60,13 @@ class Query(BaseQuery):
     def all_json(self, schema: Marshmallow().Schema):
         return schema(many=True).dump(self.all())
 
-    def layui_paginate(self):
-        return self.paginate(page=request.args.get('page', type=int),
-                             per_page=request.args.get('limit', type=int),
+    def layui_paginate(self, page=None, limit=None):
+        if page is None:
+            page = request.args.get('page', type=int)
+        if limit is None:
+            limit = request.args.get('limit', type=int)
+        return self.paginate(page=page,
+                             per_page=limit,
                              error_out=False)
 
     def layui_paginate_json(self, schema: Marshmallow().Schema):

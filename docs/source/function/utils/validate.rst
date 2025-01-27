@@ -1,7 +1,7 @@
 :mod:`validate` -- 效验模块
 ==================================
 
-:mod:`validate` 模块源代码在文件夹 `applications/common/utils/validate.py` 下，主要用于数据效验与过滤。
+:mod:`validate` 模块源代码在文件 `applications/common/utils/validate.py` 下，主要用于数据效验与过滤。
 
 .. module:: validate
 

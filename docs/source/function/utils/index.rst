@@ -3,7 +3,7 @@
 目录索引
 
 .. toctree::
-    :maxdepth: 1
+    :maxdepth: 2
 
     cache
     captcha

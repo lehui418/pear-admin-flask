@@ -21,3 +21,9 @@
 
     function/index
 
+.. toctree::
+    :maxdepth: 1
+    :caption: 最佳实践
+
+    practices/index
+

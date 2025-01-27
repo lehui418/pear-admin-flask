@@ -1,7 +1,11 @@
+.. _邮件模块:
+
 :mod:`mail` -- 邮件模块
 ==================================
 
-:mod:`mail` 模块源代码在文件夹 `applications/common/utils/mail.py` 下，主要用于邮件的发送。
+:mod:`mail` 模块源代码在文件 `applications/common/utils/mail.py` 下，主要用于邮件的发送。
+
+使用前，需要正确在 `applications/config.py` 中配置 SMTP 服务器。
 
 .. module:: mail
 
@@ -31,14 +35,23 @@
 
 .. function:: add(receiver, subject, content, user_id)
 
-   发送一封邮件，并将发送记录保存到数据库。 **该方法被邮件发送的视图函数调用。**
+    发送一封邮件，并将发送记录保存到数据库。 **该方法被邮件发送的视图函数调用。**
 
-   :param receiver: 接收者邮箱地址，多个邮箱用英文分号隔开。
-   :param subject: 邮件主题。
-   :param content: 邮件内容（HTML 格式）。
-   :param user_id: 发送者用户ID，表示谁发送了这封邮件。
+    :param receiver: 接收者邮箱地址，多个邮箱用英文分号隔开。
+    :param subject: 邮件主题。
+    :param content: 邮件内容（HTML 格式）。
+    :param user_id: 发送者用户ID，表示谁发送了这封邮件。
                   可以使用 `from flask_login import current_user; current_user.id` 获取当前登录用户的ID。
-   :return: 发送成功返回 True，失败报错。
+    :return: 发送成功返回 True，失败报错。
+
+    **示例**
+
+    .. code-block:: python
+
+        from flask_login import current_user
+        from applications.common.utils import mail
+
+        mail.add("test@test.com", "subject", "<h1>Hello</h1>", current_user.id)
 
 
 .. function:: delete(id)

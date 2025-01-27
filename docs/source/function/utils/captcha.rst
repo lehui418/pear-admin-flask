@@ -1,7 +1,7 @@
 :mod:`captcha` -- 验证码生成模块
 ==================================
 
-:mod:`captcha` 模块源代码在文件夹 `applications/common/utils/captcha.py` 下，主要用于生成验证码图片。
+:mod:`captcha` 模块源代码在文件 `applications/common/utils/captcha.py` 下，主要用于生成验证码图片。
 
 .. module:: captcha
 

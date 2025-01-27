@@ -1,7 +1,7 @@
 :mod:`cache` -- 应用缓存模块
 ================================
 
-:mod:`cache` 模块源代码在文件夹 `applications/common/utils/cache.py` 下，主要用于简单的程序数据缓存。
+:mod:`cache` 模块源代码在文件 `applications/common/utils/cache.py` 下，主要用于简单的程序数据缓存。
 
 目前此模块仅启用应用程序缓存，暂时没有联动 Redis 等数据库缓存的功能，后续有意向添加。您可以在自己的项目中添加相关的函数，当然也非常欢迎提交 PR ，一起完善项目。
 

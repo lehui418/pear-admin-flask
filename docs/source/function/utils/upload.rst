@@ -1,7 +1,7 @@
 :mod:`upload` -- 文件上传模块
 ==================================
 
-:mod:`upload` 模块源代码在文件夹 `applications/common/utils/upload.py` 下，主要用于文件上传，目前主要用于图片上传。
+:mod:`upload` 模块源代码在文件 `applications/common/utils/upload.py` 下，主要用于文件上传，目前主要用于图片上传。
 
 .. module:: upload
 

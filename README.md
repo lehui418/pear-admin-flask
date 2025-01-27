@@ -8,7 +8,7 @@
     开 箱 即 用 的 Flask 快 速 开 发 平 台
   </h4>
 
-  [预览](https://pear.lovepikachu.top/)   |   [官网](http://www.pearadmin.com/)   |   [群聊](docs/assets/qqgroup.jpg)   |   [文档](docs/detail.md)
+  [预览](https://pear.lovepikachu.top/)   |   [官网](http://www.pearadmin.com/)   |   [群聊](docs/source/_static/qqgroup.jpg)   |   [文档](docs/detail.md)
 
 <p align="center">
     <a href="#">
@@ -221,9 +221,9 @@ docker-compose -f dockercompose.yaml down
 
 |                        |                        |
 | ---------------------- | ---------------------- |
-| ![](docs/assets/1.jpg) | ![](docs/assets/2.jpg) |
-| ![](docs/assets/3.jpg) | ![](docs/assets/4.jpg) |
-| ![](docs/assets/5.jpg) | ![](docs/assets/6.jpg) |
+| ![](docs/source/_static/1.jpg) | ![](docs/source/_static/2.jpg) |
+| ![](docs/source/_static/3.jpg) | ![](docs/assets/4.jpg) |
+| ![](ddocs/source/_static/5.jpg) | ![](docs/source/_static/6.jpg) |
 
 
 # 其他说明

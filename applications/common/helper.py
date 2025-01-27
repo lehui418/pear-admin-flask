@@ -1,112 +1,131 @@
 from sqlalchemy import and_
-
 from applications.extensions import db
 
 
 class ModelFilter:
     """
-    orm多参数构造器
-    """
-    filter_field = {}
-    filter_list = []
+    ORM 多条件查询构造器，支持多种查询条件组合。
 
-    type_exact = "exact"
-    type_neq = "neq"
-    type_greater = "greater"
-    type_less = "less"
-    type_vague = "vague"
-    type_contains = "contains"
-    type_between = "between"
+    示例：
+        mf = ModelFilter()
+        mf.exact('name', 'John')
+        mf.vague('email', 'example.com')
+        query = User.query.filter(mf.get_filter(User))
+    """
+    filter_field = {}  # 存储字段过滤条件
+    filter_list = []   # 存储最终的过滤条件列表
+
+    # 查询类型常量
+    type_exact = "exact"      # 精确匹配
+    type_neq = "neq"          # 不等于
+    type_greater = "greater"  # 大于
+    type_less = "less"        # 小于
+    type_vague = "vague"      # 模糊匹配
+    type_contains = "contains"  # 包含
+    type_between = "between"  # 范围查询
 
     def __init__(self):
+        """初始化过滤条件存储字典和列表。"""
         self.filter_field = {}
         self.filter_list = []
 
     def exact(self, field_name, value):
         """
-        准确查询字段
-        :param field_name: 模型字段名称
-        :param value: 值
+        添加精确匹配条件。
+
+        :param field_name: 模型字段名称。
+        :param value: 匹配的值。
         """
         if value and value != '':
             self.filter_field[field_name] = {"data": value, "type": self.type_exact}
 
     def neq(self, field_name, value):
         """
-        不等于查询字段
-        :param field_name: 模型字段名称
-        :param value: 值
+        添加不等于条件。
+
+        :param field_name: 模型字段名称。
+        :param value: 不匹配的值。
         """
         if value and value != '':
             self.filter_field[field_name] = {"data": value, "type": self.type_neq}
 
     def greater(self, field_name, value):
         """
-        大于查询字段
-        :param field_name: 模型字段名称
-        :param value: 值
+        添加大于条件。
+
+        :param field_name: 模型字段名称。
+        :param value: 大于的值。
         """
         if value and value != '':
             self.filter_field[field_name] = {"data": value, "type": self.type_greater}
 
     def less(self, field_name, value):
         """
-        小于查询字段
-        :param field_name: 模型字段名称
-        :param value: 值
+        添加小于条件。
+
+        :param field_name: 模型字段名称。
+        :param value: 小于的值。
         """
         if value and value != '':
             self.filter_field[field_name] = {"data": value, "type": self.type_less}
 
     def vague(self, field_name, value: str):
         """
-        模糊查询字段
-        :param field_name: 模型字段名称
-        :param value: 值
+        添加模糊匹配条件（左右模糊）。
+
+        :param field_name: 模型字段名称。
+        :param value: 模糊匹配的值。
         """
         if value and value != '':
             self.filter_field[field_name] = {"data": ('%' + value + '%'), "type": self.type_vague}
 
     def left_vague(self, field_name, value: str):
         """
-        左模糊查询字段
-        :param field_name: 模型字段名称
-        :param value: 值
+        添加左模糊匹配条件。
+
+        :param field_name: 模型字段名称。
+        :param value: 左模糊匹配的值。
         """
         if value and value != '':
             self.filter_field[field_name] = {"data": ('%' + value), "type": self.type_vague}
 
     def right_vague(self, field_name, value: str):
         """
-        左模糊查询字段
-        :param field_name: 模型字段名称
-        :param value: 值
+        添加右模糊匹配条件。
+
+        :param field_name: 模型字段名称。
+        :param value: 右模糊匹配的值。
         """
         if value and value != '':
             self.filter_field[field_name] = {"data": (value + '%'), "type": self.type_vague}
 
     def contains(self, field_name, value: str):
         """
-        包含查询字段
-        :param field_name: 模型字段名称
-        :param value: 值
+        添加包含条件。
+
+        :param field_name: 模型字段名称。
+        :param value: 包含的值。
         """
         if value and value != '':
             self.filter_field[field_name] = {"data": value, "type": self.type_contains}
 
     def between(self, field_name, value1, value2):
         """
-        范围查询字段
-        :param field_name: 模型字段名称
-        :param value: 值
+        添加范围查询条件。
+
+        :param field_name: 模型字段名称。
+        :param value1: 范围起始值。
+        :param value2: 范围结束值。
         """
         if value1 and value2 and value1 != '' and value2 != '':
             self.filter_field[field_name] = {"data": [value1, value2], "type": self.type_between}
 
     def get_filter(self, model: db.Model):
         """
-        获取过滤条件
-        :param model: 模型字段名称
+        获取最终的 SQLAlchemy 过滤条件。
+
+        :param model: SQLAlchemy 模型类。
+        :return: 返回组合后的过滤条件。
         """
         for k, v in self.filter_field.items():
             if v.get("type") == self.type_vague:

@@ -9,6 +9,8 @@
     :maxdepth: 1
 
     admin
+    curd
+    helper
 
 辅助函数
 ------------
