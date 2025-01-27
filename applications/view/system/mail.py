@@ -10,7 +10,7 @@ from applications.extensions import db
 from applications.models import Mail
 from applications.schemas import MailOutSchema
 from applications.common.utils import mail
-from applications.common.admin_log import admin_log
+from applications.common.admin import admin_log
 
 bp = Blueprint('adminMail', __name__, url_prefix='/mail')
 

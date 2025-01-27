@@ -94,5 +94,20 @@
     你会注意到修改之后的 layui-btn-primary 属性添加在了 “重置” 按钮上，而不是 “查询” 按钮上，
     这是因为 layui-btn-primary 是默认白色的，而不加 layui-btn-primary 属性是跟随主题色的。这里需要特别注意一下。
 
+合并日志模块
+~~~~~~~~~~~~~~~~~~~~
+
+为了减少冗余，将 applications/common/admin_log.py 与 applications/common/admin.py 合并，仅留下 applications/common/admin.py 。
 
 
+例如：
+
+.. code-block:: python
+
+    from applications.common.admin_log import admin_log
+
+改为：
+
+.. code-block:: python
+
+    from applications.common.admin import admin_log

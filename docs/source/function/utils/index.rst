@@ -1,5 +1,3 @@
-.. module:: applications.common.utils
-
 .. title:: 辅助函数
 
 目录索引
