@@ -5,7 +5,9 @@ from applications.common.admin_log import admin_log
 
 
 def authorize(power: str, log: bool = False):
-    """用户权限判断，用于判断目前会话用户是否拥有访问权限
+    """
+    用户权限判断，用于判断目前会话用户是否拥有访问权限。
+    在模板中有与之对应的全局非修饰函数 authorize ，此函数定义位于 `applications/extensions/init_template_directives.py` 。
 
     :param power: 权限标识
     :type power: str

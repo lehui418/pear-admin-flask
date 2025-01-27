@@ -1,187 +1,240 @@
-# xss过滤
+# XSS 过滤
 import validators
 from markupsafe import escape
 from validators import validator
 
 
 def str_escape(s):
+    """
+    对字符串进行 XSS 过滤，返回转义后的安全字符串。
+
+    :param s: 需要转义的字符串。
+    :return: 返回转义后的字符串，如果输入为空则返回 None。
+    """
     if not s:
         return None
     return str(escape(s))
 
 
-between = validators.between
-"""
-验证数字是否介于最小值和/或最大值之间。
-这将适用于任何类似的类型，如浮点数、小数和日期，而不仅仅是整数。
-between(value, min=None, max=None)
+def between(*args, **kwargs):
+    """
+    验证数字是否介于最小值和最大值之间。
+    适用于整数、浮点数、小数和日期等类型。
 
-    min-数字的最小必需值。如果未提供，则不会检查最小值。
-    max-数字的最大值。如果未提供，将不检查最大值。
+    :param value: 需要验证的数字。
+    :param min: 数字的最小值（可选）。
+    :param max: 数字的最大值（可选）。
+    :return: 如果验证成功返回 True，否则返回 ValidationFailure。
 
-        >>> from datetime import datetime
-        
+    示例：
         >>> between(5, min=2)
         True
-        
+
         >>> between(13.2, min=13, max=14)
         True
-        
+
         >>> between(500, max=400)
         ValidationFailure(func=between, args=...)
-        
-        >>> between(
-        ...     datetime(2000, 11, 11),
-        ...     min=datetime(1999, 11, 11)
-        ... )
-        True
-"""
+    """
+    return validators.between(*args, **kwargs)
 
-domain = validators.domain
-"""
-返回给定值是否为有效域
-如果值是有效域名，则此函数返回 True ，否则返回 ValidationFailure
-domain(value)
-    value-要验证的属性域字符串
-    
+
+def domain(*args, **kwargs):
+    """
+    验证给定值是否为有效的域名。
+
+    :param value: 需要验证的域名字符串。
+    :return: 如果验证成功返回 True，否则返回 ValidationFailure。
+
+    示例：
         >>> domain('example.com')
         True
-        
+
         >>> domain('example.com/')
         ValidationFailure(func=domain, ...)
-"""
+    """
+    return validators.domain(*args, **kwargs)
 
-email = validators.email
-"""
- 验证电子邮件地址。验证成功时返回 True ，验证失败时返回
-     
-     >>> email('someone@example.com')
-    True
-    
-    >>> email('bogus@@')
-    ValidationFailure(func=email, ...)
-"""
 
-iban = validators.iban
-"""
-返回给定值是否为有效的IBAN代码。
-如果值是有效的IBAN，则此函数返回 True ，否则返回 ValidationFailure 。
+def email(*args, **kwargs):
+    """
+    验证给定值是否为有效的电子邮件地址。
 
-    >>> iban('DE29100500001061045672')
-    True
-    
-    >>> iban('123456')
-    ValidationFailure(func=iban, ...)
-"""
+    :param value: 需要验证的电子邮件地址。
+    :return: 如果验证成功返回 True，否则返回 ValidationFailure。
 
-ipv4 = validators.ipv4
-"""
-返回给定值是否为有效的IPv4地址。
+    示例：
+        >>> email('someone@example.com')
+        True
 
-    >>> ipv4('123.0.0.7')
-    True
-    
-    >>> ipv4('900.80.70.11')
-    ValidationFailure(func=ipv4, args={'value': '900.80.70.11'})
-"""
+        >>> email('bogus@@')
+        ValidationFailure(func=email, ...)
+    """
+    return validators.email(*args, **kwargs)
 
-ipv6 = validators.ipv6
-"""
-返回给定值是否为有效的IP版本6地址。
-    >>> ipv6('abcd:ef::42:1')
-    True
-    
-    >>> ipv6('abc.0.0.1')
-    ValidationFailure(func=ipv6, args={'value': 'abc.0.0.1'})
-"""
 
-length = validators.length
-"""
-返回给定字符串的长度是否在指定范围内。
-    >>> length('something', min=2)
-    True
-    
-    >>> length('something', min=9, max=9)
-    True
-    
-    >>> length('something', max=5)
-    ValidationFailure(func=length, ...)
-"""
+def iban(*args, **kwargs):
+    """
+    验证给定值是否为有效的 IBAN 代码。
 
-mac_address = validators.mac_address
-"""
-返回给定值是否为有效MAC地址。
-如果该值是有效的MAC地址，则此函数返回 True ，否则返回 ValidationFailure 。
+    :param value: 需要验证的 IBAN 代码。
+    :return: 如果验证成功返回 True，否则返回 ValidationFailure。
 
-    >>> mac_address('01:23:45:67:ab:CD')
-    True
-    
-    >>> mac_address('00:00:00:00:00')
-    ValidationFailure(func=mac_address, args={'value': '00:00:00:00:00'})
-"""
+    示例：
+        >>> iban('DE29100500001061045672')
+        True
 
-slug = validators.slug
-"""
-验证给定值是否为有效的块。
-有效的短信息只能包含字母数字字符、连字符和下划线。
-    >>> slug('my.slug')
-    ValidationFailure(func=slug, args={'value': 'my.slug'})
-    
-    >>> slug('my-slug-2134')
-    True
-"""
+        >>> iban('123456')
+        ValidationFailure(func=iban, ...)
+    """
+    return validators.iban(*args, **kwargs)
 
-#truthy = validators.truthy
-"""
-验证给定值不是错误值。
-"""
 
-url = validators.url
-"""
-返回给定值是否为有效URL。
-如果值是有效URL，则此函数返回 True ，否则返回 ValidationFailure 。
+def ipv4(*args, **kwargs):
+    """
+    验证给定值是否为有效的 IPv4 地址。
 
-    >>> url('http://foobar.dk')
-    True
-    
-    >>> url('http://10.0.0.1')
-    True
-    
-    >>> url('http://foobar.d')
-    ValidationFailure(func=url, ...)
-    
-    >>> url('http://10.0.0.1', public=True)
-    ValidationFailure(func=url, ...)
-"""
+    :param value: 需要验证的 IPv4 地址。
+    :return: 如果验证成功返回 True，否则返回 ValidationFailure。
 
-uuid = validators.uuid
-"""
-返回给定值是否为有效UUID。
-如果值是有效的UUID，则此函数返回 True ，否则返回 ValidationFailure 。
+    示例：
+        >>> ipv4('123.0.0.7')
+        True
 
-    >>> uuid('2bc1c94f-0deb-43e9-92a1-4775189ec9f8')
-    True
-    
-    >>> uuid('2bc1c94f 0deb-43e9-92a1-4775189ec9f8')
-    ValidationFailure(func=uuid, ...)
-"""
+        >>> ipv4('900.80.70.11')
+        ValidationFailure(func=ipv4, args={'value': '900.80.70.11'})
+    """
+    return validators.ipv4(*args, **kwargs)
+
+
+def ipv6(*args, **kwargs):
+    """
+    验证给定值是否为有效的 IPv6 地址。
+
+    :param value: 需要验证的 IPv6 地址。
+    :return: 如果验证成功返回 True，否则返回 ValidationFailure。
+
+    示例：
+        >>> ipv6('abcd:ef::42:1')
+        True
+
+        >>> ipv6('abc.0.0.1')
+        ValidationFailure(func=ipv6, args={'value': 'abc.0.0.1'})
+    """
+    return validators.ipv6(*args, **kwargs)
+
+
+def length(*args, **kwargs):
+    """
+    验证给定字符串的长度是否在指定范围内。
+
+    :param value: 需要验证的字符串。
+    :param min: 字符串的最小长度（可选）。
+    :param max: 字符串的最大长度（可选）。
+    :return: 如果验证成功返回 True，否则返回 ValidationFailure。
+
+    示例：
+        >>> length('something', min=2)
+        True
+
+        >>> length('something', min=9, max=9)
+        True
+
+        >>> length('something', max=5)
+        ValidationFailure(func=length, ...)
+    """
+    return validators.length(*args, **kwargs)
+
+
+def mac_address(*args, **kwargs):
+    """
+    验证给定值是否为有效的 MAC 地址。
+
+    :param value: 需要验证的 MAC 地址。
+    :return: 如果验证成功返回 True，否则返回 ValidationFailure。
+
+    示例：
+        >>> mac_address('01:23:45:67:ab:CD')
+        True
+
+        >>> mac_address('00:00:00:00:00')
+        ValidationFailure(func=mac_address, args={'value': '00:00:00:00:00'})
+    """
+    return validators.mac_address(*args, **kwargs)
+
+
+def slug(*args, **kwargs):
+    """
+    验证给定值是否为有效的 Slug 格式。
+    有效的 Slug 只能包含字母数字字符、连字符和下划线。
+
+    :param value: 需要验证的字符串。
+    :return: 如果验证成功返回 True，否则返回 ValidationFailure。
+
+    示例：
+        >>> slug('my.slug')
+        ValidationFailure(func=slug, args={'value': 'my.slug'})
+
+        >>> slug('my-slug-2134')
+        True
+    """
+    return validators.slug(*args, **kwargs)
+
+
+def url(*args, **kwargs):
+    """
+    验证给定值是否为有效的 URL。
+
+    :param value: 需要验证的 URL。
+    :param public: 是否仅允许公共 URL（可选）。
+    :return: 如果验证成功返回 True，否则返回 ValidationFailure。
+
+    示例：
+        >>> url('http://foobar.dk')
+        True
+
+        >>> url('http://10.0.0.1')
+        True
+
+        >>> url('http://foobar.d')
+        ValidationFailure(func=url, ...)
+
+        >>> url('http://10.0.0.1', public=True)
+        ValidationFailure(func=url, ...)
+    """
+    return validators.url(*args, **kwargs)
+
+
+def uuid(*args, **kwargs):
+    """
+    验证给定值是否为有效的 UUID。
+
+    :param value: 需要验证的 UUID。
+    :return: 如果验证成功返回 True，否则返回 ValidationFailure。
+
+    示例：
+        >>> uuid('2bc1c94f-0deb-43e9-92a1-4775189ec9f8')
+        True
+
+        >>> uuid('2bc1c94f 0deb-43e9-92a1-4775189ec9f8')
+        ValidationFailure(func=uuid, ...)
+    """
+    return validators.uuid(*args, **kwargs)
 
 
 @validator
 def even(value):
+    """
+    验证给定值是否为偶数。
+
+    :param value: 需要验证的数字。
+    :return: 如果是偶数返回 True，否则返回 ValidationFailure。
+
+    示例：
+        >>> even(4)
+        True
+
+        >>> even(5)
+        ValidationFailure(func=even, args={'value': 5})
+    """
     return not (value % 2)
-
-
-"""
-一个装饰器，它使给定的函数验证器
-每当给定函数被调用并返回 False 值时，这个装饰器返回 ValidationFailure 对象。
->>> @validator
-... def even(value):
-...     return not (value % 2)
-
->>> even(4)
-True
-
->>> even(5)
-ValidationFailure(func=even, args={'value': 5})
-"""

@@ -53,4 +53,3 @@ def cache_auto_internal(key, call, expired=5):
     cache_set_internal(key, data, expired)
 
     return data
-
