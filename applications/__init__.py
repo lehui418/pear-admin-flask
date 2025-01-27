@@ -8,6 +8,7 @@ from applications.view import init_bps
 
 def create_app():
     app = Flask(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
     # 引入配置
     app.config.from_object(BaseConfig)
 

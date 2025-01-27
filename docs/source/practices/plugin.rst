@@ -71,10 +71,10 @@
 
 这个 JSON 文件中，记录了基本的插件名称与插件版本，以及插件的介绍。**在更新之后，此文件可以不存在，插件的名称默认为文件夹名。**
 
-编写插件入口
+编写插件事件
 -------------------
 
-插件入口位于 `__init__.py` 中，请确保 `__init__.py` 文件一定包含 `event_init(app: Flask)` 函数，如下：
+插件入口位于 `__init__.py` 中，一般来说请确保 `__init__.py` 文件包含 `event_init(app: Flask)` 函数，如下：
 
 .. code-block:: python
 
@@ -122,9 +122,22 @@
 
 这样可以使目录架构更加清晰。
 
+另外，插件还有其他三个事件：
+
+.. code-block:: python
+
+    def event_begin(app: Flask):  # 在项目所有功能注册之前调用
+        pass
+
+    def event_finish(app: Flask):  # 在项目所有功能注册之后调用（插件已经加载完毕）
+        pass
+
+    def event_context(app: Flask):  # Flask 初始化完成，等待第一个请求之前，等同于 with app.app_context():
+        pass
+
 .. important::
 
-    注意不要直接在 `__init__.py` 的 `event_init` 函数外直接写存在阻塞的代码，不然项目 Flask 将不能初始化完成。
+    注意不要直接在 `__init__.py` 的函数外直接写存在阻塞的代码，不然项目 Flask 将不能初始化完成。
 
 .. note::
 
