@@ -18,9 +18,11 @@ def init_plugs(app: Flask) -> None:
     # 注册 Flask 功能
     init_login_manager(app)
     init_databases(app)
-    init_template_directives(app)
-    init_error_views(app)
     init_mail(app)
     init_upload(app)
     init_migrate(app)
     init_session(app)
+
+    # 系统蓝图相关
+    init_template_directives(app)
+    init_error_views(app)

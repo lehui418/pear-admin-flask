@@ -111,3 +111,20 @@
 .. code-block:: python
 
     from applications.common.admin import admin_log
+
+验证码生成路由修改
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+为了优化代码，将验证码生成路由改为了 system.passport.captcha 。这主要会影响前端模板渲染。
+
+例如：
+
+.. code-block:: html
+
+    url_for('system.passport.get_captcha')
+
+改为：
+
+.. code-block:: python
+
+    url_for('system.passport.captcha')

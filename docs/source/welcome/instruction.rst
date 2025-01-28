@@ -27,7 +27,7 @@
 
     <p align="center">
         <a href="#">
-            <img src="https://img.shields.io/badge/pear%20admin%20flask-1.0.0-green" alt="Pear Admin Layui Version">
+            <img src="https://img.shields.io/badge/pear%20admin%20flask-2.0.0-green" alt="Pear Admin Layui Version">
         </a>
         <a href="#">
             <img src="https://img.shields.io/badge/Python-3.8+-green.svg" alt="Python Version">

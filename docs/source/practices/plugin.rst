@@ -133,7 +133,12 @@
         pass
 
     def event_context(app: Flask):  # Flask 初始化完成，等待第一个请求之前，等同于 with app.app_context():
+        # 此时数据库已经初始化完成，尝试读取
         pass
+
+.. note::
+
+    事件的时机调用可以参考 :ref:`项目初始化逻辑` 章节。
 
 .. important::
 

@@ -40,6 +40,8 @@
 * 更正登录之后重定向由于路由更改从而设置错误的问题
 * 将 applications/common/admin_log.py 与 applications/common/admin.py 合并，仅留下 applications/common/admin.py
 * 优化代码结构，新增函数 `normal_log` 减少代码复用
+* 添加了新插件的事件
+* 修改了验证码生成路由
 
 已知问题以及解决方式
 ~~~~~~~~~~~~~~~~~~~~~~~
