@@ -40,10 +40,17 @@
 
 在 Pear Admin Flask 中，菜单的管理归属于 “权限管理” ，这样做的原因是为了使不同用户可以使用不同的访问控制。所以需要修改菜单，需要在 “权限管理” 页面编辑即可。
 
+配置后台站内消息
+-------------------
+
+后台站内消息是异步获取的，其路由在 `applications/view/system/rights.py` 的 `message` 函数中，后续会考虑写入数据库，并添加管理函数进行统一的管理。
+
 权限效验
 ------------
 
 在开发后台管理模板的过程中会涉及到权限效验，即访问控制。Pear Admin Flask 中提供了方便的函数用于进行权限效验。详情请查看 :ref:`权限验证模块` 章节。
+
+.. _Schema 序列化:
 
 Schema 序列化
 ---------------
@@ -79,6 +86,12 @@ Schema 序列化
             # fields= ["id","name"] # 启动的字段列表
             # exclude = ["id","name"] # 排除字段列表
 
+.. note::
+
+    更多参数可以参考官方文档对其的解释，链接如下：`SQLAlchemyAutoSchema <https://marshmallow-sqlalchemy.readthedocs.io/en/latest/api_reference.html>`_
+
+
+.. _与 layui 的数据格式同步:
 
 与 layui 的数据格式同步
 ------------------------------
@@ -133,6 +146,8 @@ Schema 序列化
 
       **需要注意的是，如果不提供 page 和 limit 则该函数必须在视图函数中使用，该函数会自动获取 GET 请求中的 limit 和 page 参数构成查询。**
 
+      :param page: 页码
+      :param limit: 页数据个数
       :return: 返回分页对象。
 
       **示例：**
@@ -144,25 +159,30 @@ Schema 序列化
           return model_to_dicts(schema=MailOutSchema, data=mail.items)
 
 
-   .. method:: layui_paginate_json(schema: Schema)
+   .. method:: layui_paginate_json(schema: Schema, page=None, limit=None)
 
-      分页查询并返回 JSON 格式数据，适用于 Layui 表格。
+      分页查询并通过 Marshmallow Schema 类 转化为 JSON，适用于 Layui 表格。
 
       :param schema: Marshmallow Schema 类。
+      :param page: 页码
+      :param limit: 页数据个数
       :return: 返回包含序列化数据、总数、当前页码和每页条数的元组。
 
 
-   .. method:: layui_paginate_db_json()
+   .. method:: layui_paginate_db_json(page=None, limit=None)
 
       分页查询并返回数据库原始数据的 JSON 格式，适用于 Layui 表格。
 
-      :return: 返回包含序列化数据和总数的元组。
+      :param page: 页码
+      :param limit: 页数据个数
+      :return: 返回包含序列化数据（列表）、总数、当前页码和每页条数的元组。
 
       **示例：**
 
       .. code-block:: python
 
-         db.query(User.name).layui_paginate_db_json()
+         >> db.session.query(Gift.id, Gift.key).layui_paginate_db_json()
+         ([{'id': 0, 'key': 'myTestCode'}, {'id': 1, 'key': 'DisableCode'}], 2, 1, 10)
 
 
 进行字段构造

@@ -26,3 +26,7 @@ language = 'zh_CN'
 
 html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
+
+suppress_warnings = [
+    'misc.highlighting_failure'  # 忽略代码块高亮失败警告
+]

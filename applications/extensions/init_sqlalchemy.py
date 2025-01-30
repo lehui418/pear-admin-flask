@@ -65,29 +65,47 @@ class Query(BaseQuery):
             page = request.args.get('page', type=int)
         if limit is None:
             limit = request.args.get('limit', type=int)
+
         return self.paginate(page=page,
                              per_page=limit,
-                             error_out=False)
+                             error_out=False
+                             )
 
-    def layui_paginate_json(self, schema: Marshmallow().Schema):
-        """
-        返回dict
-        """
+    def layui_paginate_json(self, schema, page=None, limit=None):
+        if page is None:
+            page = request.args.get('page', 1, type=int)  # 添加默认值
+        if limit is None:
+            limit = request.args.get('limit', 10, type=int)  # 添加默认值
+
         _res = self.paginate(
-            page=request.args.get('page', type=int),
-            per_page=request.args.get('limit', type=int),
+            page=page,
+            per_page=limit,
             error_out=False
         )
         return schema(many=True).dump(_res.items), _res.total, _res.page, _res.per_page
 
-    def layui_paginate_db_json(self):
-        """
-        db.query(A.name).layui_paginate_db_json()
-        """
-        _res = self.paginate(page=request.args.get('page', type=int),
-                             per_page=request.args.get('limit', type=int),
-                             error_out=False)
-        return [dict(i) for i in _res.items], _res.total
+    def layui_paginate_db_json(self, page=None, limit=None):
+        if page is None:
+            page = request.args.get('page', 1, type=int)  # 添加默认值
+        if limit is None:
+            limit = request.args.get('limit', 10, type=int)  # 添加默认值
+
+        _res = self.paginate(
+            page=page,
+            per_page=limit,
+            error_out=False
+        )
+
+        # 获取查询的列名列表
+        column_names = [col["name"] for col in self.column_descriptions]
+
+        # 将元组转换为字典（支持单列或多列）
+        data = [
+            dict(zip(column_names, row))
+            for row in _res.items
+        ]
+
+        return data, _res.total, _res.page, _res.per_page
 
 
 db = SQLAlchemy(query_class=Query)

@@ -39,6 +39,14 @@
 
       初始化过滤条件存储字典和列表。
 
+   .. method:: escape_like(value: str, escape_char: str = '\\')
+
+      转义LIKE查询中的特殊字符（%, _ 和转义字符本身）
+
+      :param value: 需要转义的原始字符串
+      :param escape_char: 转义字符（默认反斜杠）
+      :return: 转义后的安全字符串
+
 
    .. method:: exact(field_name, value)
 
