@@ -493,3 +493,8 @@
             return success_api(msg="编辑成功")
         except Exception as e:
             return fail_api(msg="编辑失败")
+
+.. note::
+
+    插件方式接入项目，请查看 :ref:`以插件的方式接入项目` 章节。
+
