@@ -8,7 +8,7 @@
     开 箱 即 用 的 Flask 快 速 开 发 平 台
   </h4>
 
-  [预览](https://pear.lovepikachu.top/)   |   [官网](http://www.pearadmin.com/)   |   [群聊](docs/source/_static/qqgroup.jpg)   |   [文档](docs/detail.md)
+  [预览](https://pear.lovepikachu.top/)   |   [官网](http://www.pearadmin.com/)   |   [群聊](docs/source/_static/qqgroup.jpg)   |   [文档](https://lab.lovepikachu.top/document/pear-admin-flask)
 
 <p align="center">
     <a href="#">
@@ -24,7 +24,7 @@
 </div>
 
 <div align="center">
-  <img  width="92%" style="border-radius:10px;margin-top:20px;margin-bottom:20px;box-shadow: 2px 0 6px gray;" src="https://images.gitee.com/uploads/images/2020/1019/104805_042b888c_4835367.png" />
+  <img  width="92%" style="border-radius:10px;margin-top:20px;margin-bottom:20px;box-shadow: 2px 0 6px gray;" src="docs/source/_static/feature.png" />
 </div>
 
 # 项目简介
