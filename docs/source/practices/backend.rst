@@ -20,7 +20,7 @@
 |
 
 .. image:: ../_static/Pear\ Admin\ Flask\ 启动流程图.png
-   :target: ../_static/Pear\ Admin\ Flask\ 启动流程图.png
+   :target: ../_images/Pear\ Admin\ Flask\ 启动流程图.png
    :align: center
 
 |

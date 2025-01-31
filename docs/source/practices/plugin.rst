@@ -3,7 +3,7 @@
 
 插件功能旨在最大限度不修改原框架的前提下添加新功能，并可以像程序原有框架一样进行流程注册，而且不需要修改任何程序框架原有代码（仅在配置文件中设置即可）。
 
-所有插件放置在 `plugins` 文件夹中，项目提供了三个示例插件，分别是 `helloworld` 、 `realip` 、 `replacePage` 和 `giftManager`，
+所有插件放置在 `plugins` 文件夹中，项目提供了四个示例插件，分别是 `helloworld` 、 `realip` 、 `replacePage` 和 `giftManager`，
 分别用于示例页面的注册、修改 Flask 上下文、页面替换和新功能接入。
 
 像项目自带的用户管理、部门管理等基本功能属于程序自身的“功能插件”，对于大多数衍生项目来说，多的是修改字符串和删除部分不需要的功能，
@@ -18,7 +18,7 @@
 
     PLUGIN_ENABLE_FOLDERS = []
 
-而在目录 `plugins` 中，你会发现存在 文件夹名称 为 `helloworld` 、 `realip` 、 `replacePage` 和 `giftManager` 三个插件。
+而在目录 `plugins` 中，你会发现存在 文件夹名称 为 `helloworld` 、 `realip` 、 `replacePage` 和 `giftManager` 四个插件。
 比如我们想要启用 `helloworld` 插件，仅需要做如下修改：
 
 .. code-block:: python

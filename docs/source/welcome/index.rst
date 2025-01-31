@@ -9,3 +9,4 @@
     update
     quickstart
     migration
+    docs

@@ -72,7 +72,7 @@ class BaseConfig:
     MAIL_DEFAULT_SENDER = MAIL_USERNAME
 
     # 插件配置，填写插件的文件名名称，默认不启用插件。
-    PLUGIN_ENABLE_FOLDERS = ["giftManager"]
+    PLUGIN_ENABLE_FOLDERS = []
 
     # Session 设置
     PERMANENT_SESSION_LIFETIME = timedelta(days=7)
