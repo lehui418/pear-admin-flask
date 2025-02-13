@@ -27,6 +27,8 @@
   <img  width="92%" style="border-radius:10px;margin-top:20px;margin-bottom:20px;box-shadow: 2px 0 6px gray;" src="docs/source/_static/feature.png" />
 </div>
 
+> **⚠️注意** Pear Admin Flask 已同步主项目 Pear Admin Layui 4.0，部分页面变化较大，如果是从旧的框架迁移，请查阅 [从旧项目迁移](https://lab.lovepikachu.top/document/pear-admin-flask/welcome/migration.html) 章节。另外，可以在此查看 [更新日志](https://lab.lovepikachu.top/document/pear-admin-flask/welcome/update.html#v2-0-0-4-0-5) 。
+
 # 项目简介
 
 Pear Admin Flask 基于 Flask 的后台管理系统，拥抱应用广泛的python语言，通过使用本系统，即可快速构建你的功能业务
