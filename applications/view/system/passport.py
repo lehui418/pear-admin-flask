@@ -1,8 +1,7 @@
 from flask import Blueprint, session, redirect, url_for, render_template, request
 from flask_login import current_user, login_user, login_required, logout_user
 
-from applications.common import admin as index_curd
-from applications.common.admin_log import login_log
+from applications.common.admin import get_captcha, login_log
 from applications.common.utils.http import fail_api, success_api
 from applications.models import User
 
@@ -11,8 +10,8 @@ bp = Blueprint('passport', __name__, url_prefix='/passport')
 
 # 获取验证码
 @bp.get('/getCaptcha')
-def get_captcha():
-    resp, code = index_curd.get_captcha()
+def captcha():
+    resp, code = get_captcha()
     session["code"] = code
     return resp
 
@@ -21,7 +20,7 @@ def get_captcha():
 @bp.get('/login')
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('system.index'))
+        return redirect(url_for('index.index'))
     return render_template('system/login.html')
 
 
@@ -75,6 +74,7 @@ def login_post():
         # session['role'] = [roles]
 
         return success_api(msg="登录成功")
+
     login_log(request, uid=user.id, is_access=False)
     return fail_api(msg="用户名或密码错误")
 
@@ -84,5 +84,8 @@ def login_post():
 @login_required
 def logout():
     logout_user()
-    session.pop('permissions')
+
+    if 'permissions' in session:
+        session.pop('permissions')
+
     return success_api(msg="注销成功")

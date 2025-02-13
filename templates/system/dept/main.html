@@ -8,16 +8,16 @@
 <div class="layui-card">
     <div class="layui-card-body">
         <form class="layui-form" action="">
-            <div class="layui-form-item">
+            <div class="layui-form-item" style="margin-bottom: unset;">
                 <label class="layui-form-label">部门名称</label>
                 <div class="layui-input-inline">
                     <input type="text" name="deptName" placeholder="" class="layui-input">
                 </div>
-                <button class="pear-btn pear-btn-md pear-btn-primary" lay-submit lay-filter="dept-query">
+                <button class="layui-btn layui-btn-md" lay-submit lay-filter="dept-query">
                     <i class="layui-icon layui-icon-search"></i>
                     查询
                 </button>
-                <button type="reset" class="pear-btn pear-btn-md">
+                <button type="reset" class="layui-btn layui-btn-primary layui-btn-md">
                     <i class="layui-icon layui-icon-refresh"></i>
                     重置
                 </button>
@@ -34,13 +34,13 @@
 
 <script type="text/html" id="dept-toolbar">
     {% if authorize("system:dept:edit") %}
-        <button class="pear-btn pear-btn-primary pear-btn-md" lay-event="add">
+        <button class="layui-btn layui-btn-primary layui-btn-sm" lay-event="add">
             <i class="layui-icon layui-icon-add-1"></i>
             新增
         </button>
     {% endif %}
     {% if authorize("system:dept:remove") %}
-        <button class="pear-btn pear-btn-md" lay-event="batchRemove">
+        <button class="layui-btn layui-btn-sm" lay-event="batchRemove">
             <i class="layui-icon layui-icon-delete"></i>
             删除
         </button>
@@ -49,13 +49,12 @@
 
 <script type="text/html" id="dept-bar">
     {% if authorize("system:dept:edit") %}
-        <button class="pear-btn pear-btn-primary pear-btn-sm" lay-event="edit"><i
-                class="layui-icon layui-icon-edit"></i>
+        <button class="layui-btn layui-btn-xs" lay-event="edit"><i class="pear-icon pear-icon-edit"> 编辑</i>
         </button>
     {% endif %}
     {% if authorize("system:dept:remove") %}
-        <button class="pear-btn pear-btn-danger pear-btn-sm" lay-event="remove"><i
-                class="layui-icon layui-icon-delete"></i>
+        <button class="layui-btn layui-btn-danger layui-btn-xs" lay-event="remove"><i
+                class="pear-icon pear-icon-ashbin"> 删除</i>
         </button>
     {% endif %}
 </script>
@@ -71,75 +70,103 @@
 {% include 'system/common/footer.html' %}
 
 <script>
-    layui.use(['table', 'form', 'jquery', 'treetable', 'popup'], function () {
-        let table = layui.table
+    layui.use(['form', 'jquery', 'popup', 'treeTable'], function () {
         let form = layui.form
         let $ = layui.jquery
-        let treetable = layui.treetable
+        let treeTable = layui.treeTable
         let popup = layui.popup
 
         let MODULE_PATH = '/system/dept/'
 
         window.render = function () {
-            treetable.render({
-                treeColIndex: 1,
-                treeSpid: 0,
-                treeIdName: 'id',
-                treePidName: 'parent_id',
+            treeTable.render({
                 skin: 'line',
                 method: 'post',
-                treeDefaultClose: false,
                 toolbar: '#dept-toolbar',
                 elem: '#dept-table',
-                url: '/system/dept/data',
+                url: MODULE_PATH + 'data',
                 page: false,
+                tree: {
+                    customName: {name: 'dept_name'}
+                },
                 cols: [
                     [
-                        {field: 'id', title: 'id'},
-                        {field: 'dept_name', minWidth: 200, title: '部门名称'},
-                        {field: 'leader', title: '负责人'},
+                        {type: 'checkbox', fixed: 'left'},
+                        {field: 'id', width: 100, title: '编号'},
+                        {field: 'dept_name', title: '部门名称', width: 200},
+                        {field: 'leader', title: '负责人', width: 100},
                         {field: 'phone', title: '联系方式'},
                         {field: 'email', title: '邮箱'},
                         {field: 'address', title: '详细地址'},
                         {field: 'status', title: '状态', templet: '#dept-status'},
-                        {field: 'sort', title: '排序', width: 100},
-                        {title: '操作', templet: '#dept-bar', width: 120, align: 'center'}
+                        {field: 'sort', title: '排序', width: 50},
+                        {title: '操作', templet: '#dept-bar', width: 150, align: 'center'}
                     ]
-                ]
+                ],
+                done: function (res, curr, count, origin) {
+                    treeTable.expandAll('dept-table', true)
+                }
             })
         }
 
         form.on('submit(dept-query)', function (data) {
-            var keyword = data.field.deptName
-            var $tds = $('#dept-table').next('.treeTable').find('.layui-table-body tbody tr td')
-            if (!keyword) {
-                $tds.css('background-color', 'transparent')
-                layer.msg('请输入关键字', {icon: 5})
-                return
+            var keyword = data.field.deptName;
+
+             if (!keyword) {
+                layer.msg('搜索内容为空', {
+                    icon: 3,
+                    time: 1000
+                })
+                return false;
             }
-            var searchCount = 0
-            $tds.each(function () {
-                $(this).css('background-color', 'transparent')
-                if ($(this).text().indexOf(keyword) >= 0) {
-                    $(this).css('background-color', 'rgba(250,230,160,0.5)')
-                    if (searchCount === 0) {
-                        $('body,html').stop(true)
-                        $('body,html').animate({scrollTop: $(this).offset().top - 150}, 500)
+
+            treeTable.checkAllNodes('dept-table', false);
+
+            var expandNotes = [];
+
+            treeTable.getNodesByFilter('dept-table', function (item) {
+                if (item.dept_name.indexOf(keyword) !== -1) {
+                    treeTable.setRowChecked('dept-table', {index: item, checked: true});
+
+                    // 遍历其全部父元素
+                    var parent_id = item.parent_id;
+
+                    while (parent_id !== 0) {
+
+                        if (!expandNotes.includes(parent_id)) {
+                            expandNotes.push(item.LAY_DATA_INDEX);
+                        }
+
+                        item = treeTable.getNodeById('dept-table', item.parent_id).data;
+                        parent_id = item.parent_id;
                     }
-                    searchCount++
+
+
+                    if (!expandNotes.includes(parent_id)) {
+                        expandNotes.push(item.LAY_DATA_INDEX);
+                    }
+
+                    return true;
                 }
+
+
             })
-            if (searchCount === 0) {
-                layer.msg('没有匹配结果', {icon: 5})
-            } else {
-                treetable.expandAll('#dept-table')
-            }
-            return false
+
+            treeTable.expandAll('dept-table', false);
+
+            expandNotes.forEach(function (note_id) {
+                treeTable.expandNode('dept-table', {
+                    index: note_id,
+                    expandFlag: true
+                });
+            })
+
+            return false;
         })
 
         render()
 
-        table.on('tool(dept-table)', function (obj) {
+        treeTable.on('tool(dept-table)', function (obj) {
             if (obj.event === 'remove') {
                 window.remove(obj)
             } else if (obj.event === 'edit') {
@@ -147,14 +174,13 @@
             }
         })
 
-        table.on('toolbar(dept-table)', function (obj) {
+        treeTable.on('toolbar(dept-table)', function (obj) {
             if (obj.event === 'add') {
                 window.add()
             } else if (obj.event === 'refresh') {
                 window.refresh()
             } else if (obj.event === 'batchRemove') {
-                {#window.batchRemove(obj)#}
-                console.log(table.checkStatus(obj.config.id).data)
+                window.batchRemove(obj)
             }
         })
 
@@ -199,7 +225,6 @@
                 title: '修改',
                 shade: 0.1,
                 area: ['450px', '500px'],
-                //content: MODULE_PATH + 'edit?deptId=' + obj.data['deptId']
                 content: MODULE_PATH + 'edit?deptId=' + obj.data['id']
             })
         }
@@ -216,7 +241,7 @@
                         layer.close(loading)
                         if (result.success) {
                             popup.success(result.msg, function () {
-                                obj.del()
+                                treeTable.removeNode('dept-table', obj.data.LAY_DATA_INDEX)
                             })
                         } else {
                             popup.failure(result.msg)
@@ -225,6 +250,49 @@
                 })
             })
         }
+
+        window.batchRemove = function (obj) {
+            let data = treeTable.checkStatus(obj.config.id).data
+            if (data.length === 0) {
+                layer.msg('未选中数据', {
+                    icon: 3,
+                    time: 1000
+                })
+                return false
+            }
+            var ids = []
+            var hasCheck = treeTable.checkStatus('dept-table')
+            var hasCheckData = hasCheck.data
+            if (hasCheckData.length > 0) {
+                $.each(hasCheckData, function (index, element) {
+                    ids.push(element.id)
+                })
+            }
+            layer.confirm('确定要删除选中部门', {
+                icon: 3,
+                title: '提示'
+            }, function (index) {
+                layer.close(index)
+                let loading = layer.load()
+                $.ajax({
+                    url: MODULE_PATH + 'batchRemove',
+                    data: {ids: ids},
+                    dataType: 'json',
+                    type: 'delete',
+                    success: function (result) {
+                        layer.close(loading)
+                        if (result.success) {
+                            popup.success(result.msg, function () {
+                                treeTable.reload('dept-table');
+                            })
+                        } else {
+                            popup.failure(result.msg)
+                        }
+                    }
+                })
+            })
+        }
+
     })
 </script>
 </html>

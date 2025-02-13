@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, request, jsonify
 
 from applications.common import curd
 from applications.common.utils import validate
-from applications.common.utils.http import success_api, fail_api
+from applications.common.utils.http import success_api, fail_api, table_api
 from applications.common.utils.rights import authorize
 from applications.common.utils.validate import str_escape
 from applications.extensions import db
@@ -10,7 +10,6 @@ from applications.models import Dept, User
 from applications.schemas import DeptSchema
 
 bp = Blueprint('dept', __name__, url_prefix='/dept')
-
 
 @bp.get('/')
 @authorize("system:dept:main", log=True)
@@ -21,11 +20,26 @@ def main():
 @bp.post('/data')
 @authorize("system:dept:main", log=True)
 def data():
-    data = Dept.query.order_by(Dept.sort).all()
-    res = {
-        "data": DeptSchema(many=True).dump(data)
-    }
-    return jsonify(res)
+    dept = Dept.query.order_by(Dept.sort).all()
+    data = DeptSchema(many=True).dump(dept)
+
+    # 创建一个字典，用于存储每个节点的子节点
+    tree = {}
+    for item in data:
+        item["children"] = []
+        tree[item["id"]] = item
+
+    # 构建树形结构
+    root_nodes = []
+    for item in data:
+        parent_id = item["parent_id"] if item["parent_id"] != 0 else None
+        if parent_id is None:
+            root_nodes.append(item)
+        else:
+            if parent_id in tree:
+                tree[parent_id]["children"].append(item)
+
+    return table_api(msg="请求成功", data=root_nodes)
 
 
 @bp.get('/add')
@@ -63,7 +77,7 @@ def save():
     )
     r = db.session.add(dept)
     db.session.commit()
-    return success_api(msg="成功")
+    return success_api(msg="添加部门成功")
 
 
 @bp.get('/edit')
@@ -84,7 +98,7 @@ def enable():
         d = Dept.query.filter_by(id=id).update({"status": enable})
         if d:
             db.session.commit()
-            return success_api(msg="启用成功")
+            return success_api(msg="启用部门成功")
         return fail_api(msg="出错啦")
     return fail_api(msg="数据错误")
 
@@ -99,7 +113,7 @@ def dis_enable():
         d = Dept.query.filter_by(id=id).update({"status": enable})
         if d:
             db.session.commit()
-            return success_api(msg="禁用成功")
+            return success_api(msg="禁用部门成功")
         return fail_api(msg="出错啦")
     return fail_api(msg="数据错误")
 
@@ -108,7 +122,7 @@ def dis_enable():
 @authorize("system:dept:edit", log=True)
 def update():
     json = request.get_json(force=True)
-    #id = json.get("deptId"),
+    # id = json.get("deptId"),
     id = str_escape(json.get("deptId"))
     data = {
         "dept_name": validate.str_escape(json.get("deptName")),
@@ -121,20 +135,45 @@ def update():
     }
     d = Dept.query.filter_by(id=id).update(data)
     if not d:
-        return fail_api(msg="更新失败")
+        return fail_api(msg="更新部门失败")
     db.session.commit()
-    return success_api(msg="更新成功")
+    return success_api(msg="更新部门成功")
 
 
 @bp.delete('/remove/<int:_id>')
 @authorize("system:dept:remove", log=True)
 def remove(_id):
     d = Dept.query.filter_by(id=_id).delete()
+
     if not d:
-        return fail_api(msg="删除失败")
-    res = User.query.filter_by(dept_id=_id).update({"dept_id": None})
+        return fail_api(msg="删除部门失败")
+
+    User.query.filter_by(dept_id=_id).update({"dept_id": None})
     db.session.commit()
-    if res:
-        return success_api(msg="删除成功")
-    else:
-        return fail_api(msg="删除失败")
+
+    return success_api(msg="删除部门成功")
+
+# 批量删除
+@bp.delete('/batchRemove')
+@authorize("system:dept:remove", log=True)
+def batch_remove():
+    ids = request.form.getlist('ids[]')
+
+    if not ids:
+        return fail_api(msg="未提供删除 ID")
+
+    for id in ids:
+
+        if not id.isdigit():
+            db.session.rollback()
+            return fail_api(msg="参数提供错误")
+
+        d = Dept.query.filter_by(id=id).delete()
+
+        if not d:
+            return fail_api(msg="删除部门失败")
+
+        User.query.filter_by(dept_id=id).update({"dept_id": None})
+
+    db.session.commit()
+    return success_api(msg="删除部门成功")

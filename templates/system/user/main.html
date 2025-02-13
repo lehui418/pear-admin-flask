@@ -10,7 +10,7 @@
 <div class="layui-card">
     <div class="layui-card-body">
         <form class="layui-form" action="" lay-filter="user-query-form">
-            <div class="layui-form-item">
+            <div class="layui-form-item" style="margin-bottom: unset;">
                 <label class="layui-form-label">用户</label>
                 <div class="layui-input-inline">
                     <input type="text" name="realname" placeholder="" class="layui-input">
@@ -19,11 +19,11 @@
                 <div class="layui-input-inline">
                     <input type="text" name="username" placeholder="" class="layui-input">
                 </div>
-                <button class="pear-btn pear-btn-md pear-btn-primary" lay-submit lay-filter="user-query">
+                <button class="layui-btn layui-btn-md" lay-submit lay-filter="user-query">
                     <i class="layui-icon layui-icon-search"></i>
                     查询
                 </button>
-                <button type="reset" class="pear-btn pear-btn-md">
+                <button type="reset" class="layui-btn layui-btn-primary layui-btn-md">
                     <i class="layui-icon layui-icon-refresh"></i>
                     重置
                 </button>
@@ -51,15 +51,17 @@
     </div>
 </div>
 </body>
+
+{% include 'system/common/footer.html' %}
 {# 表格操作 #}
 <script type="text/html" id="user-toolbar">
     {% if authorize("system:user:add") %}
-        <button class="pear-btn pear-btn-primary pear-btn-md" lay-event="add">
+        <button class="layui-btn layui-btn-primary layui-btn-sm" lay-event="add">
             <i class="pear-icon pear-icon-add"></i>
             新增
         </button>
     {% endif %}
-    <button class="pear-btn pear-btn-md" lay-event="collasped">
+    <button class="layui-btn layui-btn-sm" lay-event="collasped">
         <i class="pear-icon pear-icon-modular"></i>
         高级
     </button>
@@ -68,11 +70,11 @@
 {# 用户修改操作 #}
 <script type="text/html" id="user-bar">
     {% if authorize("system:user:edit") %}
-        <button class="pear-btn pear-btn-primary pear-btn-sm" lay-event="edit"><i class="pear-icon pear-icon-edit"> 编辑</i>
+        <button class="layui-btn layui-btn-xs" lay-event="edit"><i class="pear-icon pear-icon-edit"> 编辑</i>
         </button>
     {% endif %}
     {% if authorize("system:user:remove") %}
-        <button class="pear-btn pear-btn-danger pear-btn-sm" lay-event="remove"><i
+        <button class="layui-btn layui-btn-danger layui-btn-xs" lay-event="remove"><i
                 class="pear-icon pear-icon-ashbin"> 删除</i>
         </button>
     {% endif %}
@@ -94,7 +96,6 @@
 </script>
 {% endraw %}
 
-{% include 'system/common/footer.html' %}
 
 <script>
     layui.use(['table', 'dtree', 'form', 'jquery', 'popup', 'common'], function () {
@@ -108,7 +109,7 @@
         // 表格数据
         let cols = [
             [
-                {title: 'id', field: 'id', align: 'center'},
+                {title: '编号', field: 'id', align: 'center'},
                 {title: '姓名', field: 'realname', align: 'center', width: 110},
                 {title: '账号', field: 'username', align: 'center'},
                 {title: '部门', field: 'dept_name', align: 'center'},
@@ -126,7 +127,6 @@
             page: true,
             cols: cols,
             skin: 'line',
-            height: 'full-148',
             toolbar: '#user-toolbar', /*工具栏*/
             text: {none: '暂无人员信息'},
             defaultToolbar: [{layEvent: 'refresh', icon: 'layui-icon-refresh'}, 'filter', 'print', 'exports'] /*默认工具栏*/

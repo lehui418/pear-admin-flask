@@ -1,14 +1,16 @@
 from flask import Blueprint, render_template, request, current_app
 from flask_login import current_user
-from flask_mail import Message
+
 from applications.common.curd import model_to_dicts
 from applications.common.helper import ModelFilter
 from applications.common.utils.http import table_api, fail_api, success_api
 from applications.common.utils.rights import authorize
 from applications.common.utils.validate import str_escape
-from applications.extensions import db, flask_mail
+from applications.extensions import db
 from applications.models import Mail
 from applications.schemas import MailOutSchema
+from applications.common.utils import mail
+from applications.common.admin import admin_log
 
 bp = Blueprint('adminMail', __name__, url_prefix='/mail')
 
@@ -20,7 +22,7 @@ def main():
     return render_template('system/mail/main.html')
 
 
-#   用户分页查询
+# 用户分页查询
 @bp.get('/data')
 @authorize("system:mail:main")
 def data():
@@ -61,17 +63,13 @@ def save():
     user_id = current_user.id
 
     try:
-        msg = Message(subject=subject, recipients=receiver.split(";"), body=content)
-        flask_mail.send(msg)
+        if mail.add(receiver=receiver, subject=subject, content=content, user_id=user_id):
+            return success_api(msg="增加成功")
     except Exception as e:
         current_app.log_exception(e)
-        return fail_api(msg="发送失败，请检查邮件配置或发送人邮箱是否写错")
+        admin_log(request, False, desc="发送日志失败：" + str(e))
 
-    mail = Mail(receiver=receiver, subject=subject, content=content, user_id=user_id)
-
-    db.session.add(mail)
-    db.session.commit()
-    return success_api(msg="增加成功")
+    return success_api(msg="发送失败，请检查日志。")
 
 
 # 删除用户

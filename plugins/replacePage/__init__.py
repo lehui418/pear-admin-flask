@@ -20,7 +20,7 @@ def event_init(app: Flask):
             return render_template_string(f.read())
     
     # Index.index 是主页的视图函数对应的名称，原视图函数位于 applications/view/index/index.py
-    del app.view_functions['Index.index']  # 释放原视图函数
-    app.view_functions['Index.index'] = new_index  # 替换原视图函数
+    del app.view_functions['index.index']  # 释放原视图函数
+    app.view_functions['index.index'] = new_index  # 替换原视图函数
     
     

@@ -57,9 +57,7 @@ def data():
         } for user, dept in query.items],
         count=query.total)
 
-    # 用户增加
-
-
+# 用户增加
 @bp.get('/add')
 @authorize("system:user:add", log=True)
 def add():
@@ -75,6 +73,7 @@ def save():
     username = str_escape(req_json.get('username'))
     real_name = str_escape(req_json.get('realName'))
     password = str_escape(req_json.get('password'))
+    dept_id = str_escape(req_json.get('deptId'))
     role_ids = a.split(',')
 
     if not username or not real_name or not password:
@@ -82,12 +81,14 @@ def save():
 
     if bool(User.query.filter_by(username=username).count()):
         return fail_api(msg="用户已经存在")
-    user = User(username=username, realname=real_name,enable=1)
+
+    user = User(username=username, realname=real_name, enable=1, dept_id=dept_id)
     user.set_password(password)
     db.session.add(user)
     roles = Role.query.filter(Role.id.in_(role_ids)).all()
     for r in roles:
         user.role.append(r)
+
     db.session.commit()
     return success_api(msg="增加成功")
 
@@ -196,7 +197,7 @@ def edit_password_put():
     if res_json.get("newPassword") == '':
         return fail_api("新密码不得为空")
     if res_json.get("newPassword") != res_json.get("confirmPassword"):
-        return fail_api("俩次密码不一样")
+        return fail_api("两次密码不一样")
     user = current_user
     is_right = user.validate_password(res_json.get("oldPassword"))
     if not is_right:

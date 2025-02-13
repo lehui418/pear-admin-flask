@@ -174,7 +174,7 @@ powerdata = [
         name='角色管理',
         type='1',
         code='system:role:main',
-        url='/system/role',
+        url='/system/role/',
         open_type='_iframe',
         parent_id='1',
         icon='layui-icon layui-icon-username',
@@ -187,7 +187,7 @@ powerdata = [
         name='系统监控',
         type='1',
         code='system:monitor:main',
-        url='/system/monitor',
+        url='/system/monitor/',
         open_type='_iframe',
         parent_id='1',
         icon='layui-icon layui-icon-vercode',
@@ -200,7 +200,7 @@ powerdata = [
         name='日志管理',
         type='1',
         code='system:log:main',
-        url='/system/log',
+        url='/system/log/',
         open_type='_iframe',
         parent_id='1',
         icon='layui-icon layui-icon-read',
@@ -226,7 +226,7 @@ powerdata = [
         name='图片上传',
         type='1',
         code='system:file:main',
-        url='/system/file',
+        url='/system/file/',
         open_type='_iframe',
         parent_id='17',
         icon='layui-icon layui-icon-camera',
@@ -301,7 +301,7 @@ powerdata = [
 
     ), Power(
         id=26,
-        name='用户删除',
+        name='权限删除',
         type='2',
         code='system:power:remove',
         url='',
@@ -395,7 +395,7 @@ powerdata = [
         name='数据字典',
         type='1',
         code='system:dict:main',
-        url='/system/dict',
+        url='/system/dict/',
         open_type='_iframe',
         parent_id='1',
         icon='layui-icon layui-icon-console',
@@ -447,7 +447,7 @@ powerdata = [
         name='部门管理',
         type='1',
         code='system:dept:main',
-        url='/system/dept',
+        url='/system/dept/',
         open_type='_iframe',
         parent_id='1',
         icon='layui-icon layui-icon-group',
@@ -499,7 +499,7 @@ powerdata = [
         name='邮件管理',
         type='1',
         code='system:mail:main',
-        url='/system/mail',
+        url='/system/mail/',
         open_type='_iframe',
         parent_id='1',
         icon='layui-icon ',
@@ -572,4 +572,4 @@ def init_db():
     print("用户角色数据存入")
     add_role_power()
     print("角色权限数据存入")
-    print("数据初始化完成,请使用run脚本运行")
+    print("数据初始化完成，请使用run脚本运行")

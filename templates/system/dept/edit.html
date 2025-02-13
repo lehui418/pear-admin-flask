@@ -12,21 +12,22 @@
                 <div class="layui-form-item layui-hide">
                     <label class="layui-form-label">编号</label>
                     <div class="layui-input-block">
-                        <input type="text" value="{{ dept.id }}" name="deptId" lay-verify="title"
+                        <input type="text" value="{{ dept.id }}" name="deptId" lay-verify="required"
                                autocomplete="off" placeholder="请输入标题" class="layui-input">
                     </div>
                 </div>
                 <div class="layui-form-item">
                     <label class="layui-form-label">名称</label>
                     <div class="layui-input-block">
-                        <input type="text" value="{{ dept.dept_name }}" name="deptName" lay-verify="title"
+                        <input type="text" value="{{ dept.dept_name }}" name="deptName" lay-verify="required"
                                autocomplete="off" placeholder="请输入标题" class="layui-input">
                     </div>
                 </div>
                 <div class="layui-form-item">
                     <label class="layui-form-label">负责人</label>
                     <div class="layui-input-block">
-                        <input type="text" value="{{ dept.leader }}" name="leader" lay-verify="title" autocomplete="off"
+                        <input type="text" value="{{ dept.leader }}" name="leader" lay-verify="required"
+                               autocomplete="off"
                                placeholder="请输入负责人"
                                class="layui-input">
                     </div>
@@ -34,7 +35,8 @@
                 <div class="layui-form-item">
                     <label class="layui-form-label">邮箱</label>
                     <div class="layui-input-block">
-                        <input type="text" value="{{ dept.email }}" name="email" lay-verify="title" autocomplete="off"
+                        <input type="text" value="{{ dept.email }}" name="email" lay-verify="required"
+                               autocomplete="off"
                                placeholder="请输入邮箱"
                                class="layui-input">
                     </div>
@@ -42,7 +44,8 @@
                 <div class="layui-form-item">
                     <label class="layui-form-label">联系方式</label>
                     <div class="layui-input-block">
-                        <input type="text" value="{{ dept.phone }}" name="phone" lay-verify="title" autocomplete="off"
+                        <input type="text" value="{{ dept.phone }}" name="phone" lay-verify="required"
+                               autocomplete="off"
                                placeholder="请输入联系方式"
                                class="layui-input">
                     </div>
@@ -61,17 +64,16 @@
                 </div>
                 <div class="layui-form-item">
                     <label class="layui-form-label">排序</label>
-                    <div class="layui-input-block">
-                        <input type="text" name="sort" value="{{ dept.sort }}" lay-verify="title" autocomplete="off"
-                               placeholder="请输入排序"
-                               class="layui-input">
+                    <div class="layui-input-inline" style="width: 100px !important;">
+                        <input type="text" name="sort" value="{{ dept.sort }}" lay-verify="required" autocomplete="off"
+                               placeholder="排序" min="0" step="1" lay-affix="number" class="layui-input">
                     </div>
                 </div>
                 <div class="layui-form-item layui-form-text">
                     <label class="layui-form-label">地址</label>
                     <div class="layui-input-block">
                         <textarea placeholder="请输入详细地址" name="address"
-                                  class="layui-textarea">{{ dept.address }}</textarea>
+                                  class="layui-textarea">{% if dept.address %}{{ dept.address }}{% endif %}</textarea>
                     </div>
                 </div>
             </div>
@@ -79,12 +81,12 @@
     </div>
     <div class="bottom">
         <div class="button-container">
-            <button type="submit" class="pear-btn pear-btn-primary pear-btn-sm" lay-submit=""
+            <button type="submit" class="layui-btn layui-btn-sm" lay-submit=""
                     lay-filter="dept-update">
                 <i class="layui-icon layui-icon-ok"></i>
                 提交
             </button>
-            <button type="reset" class="pear-btn pear-btn-sm">
+            <button type="reset" class="layui-btn layui-btn-primary layui-btn-sm">
                 <i class="layui-icon layui-icon-refresh"></i>
                 重置
             </button>
@@ -93,31 +95,31 @@
 </form>
 {% include 'system/common/footer.html' %}
 <script>
-  layui.use(['form', 'jquery'], function () {
-    let form = layui.form
-    let $ = layui.jquery
+    layui.use(['form', 'jquery'], function () {
+        let form = layui.form
+        let $ = layui.jquery
 
-    form.on('submit(dept-update)', function (data) {
-      $.ajax({
-        url: '/system/dept/update',
-        data: JSON.stringify(data.field),
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'put',
-        success: function (result) {
-          if (result.success) {
-            layer.msg(result.msg, { icon: 1, time: 1000 }, function () {
-              parent.layer.close(parent.layer.getFrameIndex(window.name))//关闭当前页
-              parent.render()
+        form.on('submit(dept-update)', function (data) {
+            $.ajax({
+                url: '/system/dept/update',
+                data: JSON.stringify(data.field),
+                dataType: 'json',
+                contentType: 'application/json',
+                type: 'put',
+                success: function (result) {
+                    if (result.success) {
+                        layer.msg(result.msg, {icon: 1, time: 1000}, function () {
+                            parent.layer.close(parent.layer.getFrameIndex(window.name))//关闭当前页
+                            parent.render()
+                        })
+                    } else {
+                        layer.msg(result.msg, {icon: 2, time: 1000})
+                    }
+                }
             })
-          } else {
-            layer.msg(result.msg, { icon: 2, time: 1000 })
-          }
-        }
-      })
-      return false
+            return false
+        })
     })
-  })
 </script>
 <script>
 </script>

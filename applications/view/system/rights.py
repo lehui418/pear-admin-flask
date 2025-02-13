@@ -4,6 +4,7 @@ from collections import OrderedDict
 from flask import jsonify, current_app, Blueprint, render_template
 from flask_login import login_required, current_user
 
+from ...common.utils.http import table_api
 from ...models import Power
 from ...schemas import PowerOutSchema
 
@@ -43,6 +44,8 @@ def configs():
         "keepState": True,
         # 是否开启 Tab 记忆
         "session": True,
+        # 预加载
+        "preload": False,
         # 最大可打开的选项卡数量
         "max": 30,
         "index": {
@@ -83,8 +86,116 @@ def configs():
         "keepLoad": 0,
         # 布局顶部主题
         "autoHead": False
-    }, header=False)
+    }, header={
+        'message': '/system/rights/message'
+    })
     return jsonify(config)
+
+
+# 消息
+@bp.get('/message')
+@login_required
+def message():
+    return dict(code=200,
+                data=[
+                    {
+                        "id": 1,
+                        "title": "通知",
+                        "children": [
+                            {
+                                "id": 11,
+                                "avatar": "https://gw.alipayobjects.com/zos/rmsportal/ThXAXghbEsBCCSDihZxY.png",
+                                "title": "你收到了 14 份新周报",
+                                "context": "这是消息内容。",
+                                "form": "就眠仪式",
+                                "time": "刚刚"
+                            },
+                            {
+                                "id": 12,
+                                "avatar": "https://gw.alipayobjects.com/zos/rmsportal/OKJXDXrmkNshAMvwtvhu.png",
+                                "title": "曲妮妮 已通过第三轮面试",
+                                "context": "这是消息内容。",
+                                "form": "就眠仪式",
+                                "time": "刚刚"
+                            },
+                            {
+                                "id": 11,
+                                "avatar": "https://gw.alipayobjects.com/zos/rmsportal/kISTdvpyTAhtGxpovNWd.png",
+                                "title": "可以区分多种通知类型",
+                                "context": "这是消息内容。",
+                                "form": "就眠仪式",
+                                "time": "刚刚"
+                            },
+                            {
+                                "id": 12,
+                                "avatar": "https://gw.alipayobjects.com/zos/rmsportal/GvqBnKhFgObvnSGkDsje.png",
+                                "title": "左侧图标用于区分不同的类型",
+                                "context": "这是消息内容。",
+                                "form": "就眠仪式",
+                                "time": "刚刚"
+                            },
+                            {
+                                "id": 11,
+                                "avatar": "https://gw.alipayobjects.com/zos/rmsportal/ThXAXghbEsBCCSDihZxY.png",
+                                "title": "内容不要超过两行字",
+                                "context": "这是消息内容。",
+                                "form": "就眠仪式",
+                                "time": "刚刚"
+                            }
+                        ]
+                    },
+                    {
+                        "id": 2,
+                        "title": "消息",
+                        "children": [
+                            {
+                                "id": 11,
+                                "avatar": "https://gw.alipayobjects.com/zos/rmsportal/ThXAXghbEsBCCSDihZxY.png",
+                                "title": "你收到了 14 份新周报",
+                                "context": "这是消息内容。",
+                                "form": "就眠仪式",
+                                "time": "刚刚"
+                            },
+                            {
+                                "id": 12,
+                                "avatar": "https://gw.alipayobjects.com/zos/rmsportal/OKJXDXrmkNshAMvwtvhu.png",
+                                "title": "曲妮妮 已通过第三轮面试",
+                                "context": "这是消息内容。",
+                                "form": "就眠仪式",
+                                "time": "刚刚"
+                            },
+                            {
+                                "id": 11,
+                                "avatar": "https://gw.alipayobjects.com/zos/rmsportal/kISTdvpyTAhtGxpovNWd.png",
+                                "title": "可以区分多种通知类型",
+                                "context": "这是消息内容。",
+                                "form": "就眠仪式",
+                                "time": "刚刚"
+                            },
+                            {
+                                "id": 12,
+                                "avatar": "https://gw.alipayobjects.com/zos/rmsportal/GvqBnKhFgObvnSGkDsje.png",
+                                "title": "左侧图标用于区分不同的类型",
+                                "context": "这是消息内容。",
+                                "form": "就眠仪式",
+                                "time": "刚刚"
+                            },
+                            {
+                                "id": 11,
+                                "avatar": "https://gw.alipayobjects.com/zos/rmsportal/ThXAXghbEsBCCSDihZxY.png",
+                                "title": "内容不要超过两行字",
+                                "context": "这是消息内容。",
+                                "form": "就眠仪式",
+                                "time": "刚刚"
+                            }
+                        ]
+                    },
+                    {
+                        "id": 3,
+                        "title": "代办",
+                        "children": []
+                    }
+                ])
 
 
 # 菜单
@@ -121,7 +232,6 @@ def menu():
                 del menu_dict[_dict['id']]
 
             if _dict['parent_id'] not in menu_dict:
-
                 menu_dict[_dict['parent_id']] = [_dict]
             else:
                 menu_dict[_dict['parent_id']].append(_dict)
@@ -147,8 +257,9 @@ def menu():
                 menu_dict[_dict['parent_id']].append(_dict)
         return jsonify(sorted(menu_dict.get(0), key=lambda item: item['sort']))
 
+
 # 控制台页面
 @bp.get('/welcome')
 @login_required
 def welcome():
-    return render_template('system/console/console.html')
+    return render_template('system/analysis/main.html')
