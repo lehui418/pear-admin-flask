@@ -224,8 +224,7 @@ docker-compose -f dockercompose.yaml down
 |                        |                        |
 | ---------------------- | ---------------------- |
 | ![](docs/source/_static/1.jpg) | ![](docs/source/_static/2.jpg) |
-| ![](docs/source/_static/3.jpg) | ![](docs/assets/4.jpg) |
-| ![](ddocs/source/_static/5.jpg) | ![](docs/source/_static/6.jpg) |
+| ![](docs/source/_static/3.jpg) | ![](docs/source/_static/6.jpg) |
 
 
 # 其他说明
@@ -233,12 +232,5 @@ docker-compose -f dockercompose.yaml down
 ## 项目初始用户以及其密码
 
 默认用户为 `admin` ，密码默认为 `123456` 。
-
-## 其他开发说明链接
-
-+ Pear Admin Flask [目录结构](list.md) 章节     
-+ Pear Admin Flask [开发函数](function.md) 章节 
-+ Pear Admin Flask [插件开发](plugin.md) 章节   
-                                         
 
 
