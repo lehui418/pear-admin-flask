@@ -12,3 +12,15 @@ class LogOutSchema(ma.Schema):
     user_agent = fields.Str()
     success = fields.Bool()
     create_time = fields.DateTime()
+
+
+class OperationLogSchema(ma.Schema):
+    id = fields.Integer()
+    method = fields.Str()
+    uid = fields.Integer()
+    url = fields.Str()
+    desc = fields.Str()
+    ip = fields.Str()
+    user_agent = fields.Str()
+    content_type = fields.Str()
+    create_time = fields.DateTime()

@@ -18,7 +18,7 @@ class PowerSchema(SQLAlchemyAutoSchema):
 class PowerOutSchema(ma.Schema):
     id = fields.Integer()
     title = fields.Str(attribute="name")
-    type = fields.Str()
+    type = fields.Integer()  # 将权限类型转换为整数
     code = fields.Str()
     href = fields.Str(attribute="url")
     openType = fields.Str(attribute="open_type")

@@ -5,7 +5,7 @@ from flask_login import current_user
 from applications.common.utils.validate import str_escape
 from applications.common.utils.captcha import vieCode
 from applications.extensions import db
-from applications.models import AdminLog
+from applications.models import OperationLog
 
 
 def get_captcha():
@@ -46,7 +46,7 @@ def normal_log(method, url, ip, user_agent, desc, uid, is_access):
         'uid': uid,
         'success': int(is_access)
     }
-    log = AdminLog(
+    log = OperationLog(
         url=info.get('url'),
         ip=info.get('ip'),
         user_agent=info.get('user_agent'),
@@ -73,7 +73,14 @@ def login_log(request, uid, is_access):
     url = request.path
     ip = request.remote_addr
     user_agent = str_escape(request.headers.get('User-Agent'))
-    desc = str_escape(request.form.get('username'))
+    username = str_escape(request.form.get('username'))
+    
+    # 构建更详细的日志描述
+    if is_access:
+        desc = f"用户 [{username}] 登录成功"
+    else:
+        desc = f"用户 [{username}] 尝试登录失败"
+        
     return normal_log(method, url, ip, user_agent, desc, uid, is_access)
 
 

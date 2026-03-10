@@ -62,34 +62,10 @@
     </div>
 </form>
 {% include 'system/common/footer.html' %}
-<script>
-  layui.use(['form', 'jquery'], function () {
-    let form = layui.form
-    let $ = layui.jquery
 
-    form.on('submit(dict-data-save)', function (data) {
-      $.ajax({
-        url: '/system/dict/dictData/save',
-        data: JSON.stringify(data.field),
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'post',
-        success: function (result) {
-          if (result.success) {
-            layer.msg(result.msg, { icon: 1, time: 1000 }, function () {
-              parent.layer.close(parent.layer.getFrameIndex(window.name))//关闭当前页
-              parent.layui.table.reload('dict-data-table')
-            })
-          } else {
-            layer.msg(result.msg, { icon: 2, time: 1000 })
-          }
-        }
-      })
-      return false
-    })
-  })
-</script>
 <script>
+    var DICT_DICTDATA_SAVE = "{{url_for('system.dict.dict_data_save')}}"
 </script>
+<script src="{{ url_for('static',filename='js/dict/data/dict_data_add.js')}}"></script>
 </body>
 </html>

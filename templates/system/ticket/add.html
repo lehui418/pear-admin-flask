@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>新增工单</title>
+    {% include 'system/common/header.html' %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ticket/ticket_add.css')}}">
+</head>
+
+<body>
+    <div class="layui-card pear-container">
+        <div class="layui-card-body">
+            <form class="layui-form" action="" lay-filter="ticketForm">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">工单标题</label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="title" required lay-verify="required" placeholder="请输入工单标题"
+                            autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">优先级</label>
+                    <div class="layui-input-inline" style="position: relative;">
+                        <select name="priority" lay-verify="required" style="padding-right: 30px;">
+                            <option value=""></option>
+                            <option value="P1">P1 重大</option>
+                            <option value="P2">P2 主要</option>
+                            <option value="P3">P3 次要</option>
+                            <option value="P4" selected>P4 咨询</option>
+                        </select>
+                        <div id="priorityTooltip" class="priority-tooltip">
+                            <span class="layui-icon layui-icon-help"></span>
+                        </div>
+                    </div>
+                    <div id="priorityTooltipContent" class="priority-tooltip-content">
+                        <p>P1<span>（宕机/关键功能丧失，业务中断）</span></p>
+                        <p>P2<span>（关键功能不可用或频繁不稳，含重启/HA切换等风险）</span></p>
+                        <p>P3<span>（部分功能受限/间歇不稳，业务偶尔受影响）</span></p>
+                        <p>P4<span>（安装配置问题，业务无影响）</span></p>
+                    </div>
+                </div>
+
+                <div class="layui-form-item layui-form-text">
+                    <label class="layui-form-label">详细描述</label>
+                    <div class="layui-input-inline">
+                        <textarea name="description" placeholder="请输入详细描述（不少于5个字），支持Ctrl+V粘贴图片" class="layui-textarea"
+                            lay-verify="required|minLength" data-minlength="5"></textarea>
+                        <textarea id="hidden_image_references_description" name="image_references_str_description"
+                            style="display:none;"></textarea>
+                        <div id="description-image-container" style="margin-top: 10px;"></div>
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">工单状态</label>
+                    <div class="layui-input-inline">
+                        <select name="status" lay-verify="required">
+                            <option value="创建/提交" selected>创建/提交</option>
+                            <option value="待分配">待分配</option>
+                            <option value="处理中">处理中</option>
+                            <option value="待客户反馈">待客户反馈</option>
+                            <option value="待研发处理">待研发处理</option>
+                            <option value="已解决">已解决</option>
+                            <option value="已关闭">已关闭</option>
+                            <option value="已取消">已取消</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">负责人</label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="assignee_name" value="{{ current_user.username }}" readonly
+                            class="layui-input layui-disabled" style="background-color: #f2f2f2;">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <div class="layui-input-block" style="margin-left: 0; text-align: center;">
+                        <button class="layui-btn" lay-submit lay-filter="saveBtn">立即提交</button>
+                        <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% include 'system/common/footer.html' %}
+
+    <script src=" {{ url_for('static',filename='js/ticket/ticket_add.js')}}"></script>
+</body>
+
+</html>

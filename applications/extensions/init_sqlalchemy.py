@@ -77,12 +77,17 @@ class Query(BaseQuery):
         if limit is None:
             limit = request.args.get('limit', 10, type=int)  # 添加默认值
 
-        _res = self.paginate(
-            page=page,
-            per_page=limit,
-            error_out=False
-        )
-        return schema(many=True).dump(_res.items), _res.total, _res.page, _res.per_page
+        # 检查是否使用了 with_entities，如果是，则使用 layui_paginate_db_json
+        if hasattr(self, '_entities') and self._entities:
+            data, total, page, per_page = self.layui_paginate_db_json(page, limit)
+            return data, total, page, per_page
+        else:
+            _res = self.paginate(
+                page=page,
+                per_page=limit,
+                error_out=False
+            )
+            return schema(many=True).dump(_res.items), _res.total, _res.page, _res.per_page
 
     def layui_paginate_db_json(self, page=None, limit=None):
         if page is None:

@@ -8,4 +8,4 @@ migrate = Migrate()
 
 
 def init_migrate(app: Flask):
-    migrate.init_app(app, db)
+    migrate.init_app(app, db, render_as_batch=True)

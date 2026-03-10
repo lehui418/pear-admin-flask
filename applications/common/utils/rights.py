@@ -26,7 +26,17 @@ def authorize(power: str, log: bool = False):
 
                 return func(*args, **kwargs)
 
-            if not power in session.get('permissions'):
+            # 动态获取用户最新权限 修改点
+            user_roles = current_user.role
+            user_power = []
+            for role in user_roles:
+                if role.enable == 0:
+                    continue
+                for p in role.power:
+                    if p.enable == 0:
+                        continue
+                    user_power.append(p.code)
+            if not power in user_power:
                 if log:
                     admin_log(request=request, is_access=False)
                 if request.method == 'GET':

@@ -9,7 +9,7 @@ from applications.common.utils.rights import authorize
 from applications.common.utils.validate import str_escape
 from applications.extensions import db
 from applications.models import Role, Dept
-from applications.models import User, AdminLog
+from applications.models import User, OperationLog
 
 bp = Blueprint('user', __name__, url_prefix='/user')
 
@@ -145,8 +145,8 @@ def update():
 @login_required
 def center():
     user_info = current_user
-    user_logs = AdminLog.query.filter_by(url='/passport/login').filter_by(uid=current_user.id).order_by(
-        desc(AdminLog.create_time)).limit(10)
+    user_logs = OperationLog.query.filter_by(url='/passport/login').filter_by(uid=current_user.id).order_by(
+        desc(OperationLog.create_time)).limit(10)
     return render_template('system/user/center.html', user_info=user_info, user_logs=user_logs)
 
 

@@ -37,3 +37,36 @@
 	float: right;
 	right: 10px;
 }
+
+/* 优先级圆点样式 */
+.priority-dot {
+	display: inline-block;
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	flex-shrink: 0;
+}
+
+/* P1 优先级 - 红色 */
+.priority-dot-p1 {
+	background-color: #ff4d4f;
+	box-shadow: 0 0 6px rgba(255, 77, 79, 0.6);
+}
+
+/* P2 优先级 - 橙色 */
+.priority-dot-p2 {
+	background-color: #ff7a45;
+	box-shadow: 0 0 6px rgba(255, 122, 69, 0.6);
+}
+
+/* P1 整行高亮效果 */
+.message-item.priority-p1 {
+	background-color: rgba(255, 77, 79, 0.05);
+	border-left: 3px solid #ff4d4f;
+}
+
+/* P2 整行高亮效果 */
+.message-item.priority-p2 {
+	background-color: rgba(255, 122, 69, 0.05);
+	border-left: 3px solid #ff7a45;
+}

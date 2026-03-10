@@ -1,0 +1,52 @@
+
+            /* 优先级提示相关样式 */
+        .priority-tooltip {
+            display: inline-block;
+            width: 15px;
+            height: 15px;
+            border: 1px solid #666;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 12px;
+            color:  #666;
+            cursor: pointer;
+            margin-left: 8px;
+            position: absolute;
+            right: -25px;  /* 将问号移到选择框外部右侧 */
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .priority-tooltip-content {
+            display: none;
+            position: absolute;
+            background-color: #fff;
+            /* border: 1px solid #ff5722; */
+            padding: 1px;
+            border-radius: 4px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            width: 400px;
+            left: -190px;  /* 从原来的-100px修改为-150px，向左移动更多 */
+            color:  #fa0000;  /* 将字体设置为灰色 */
+            font-size: 11px;  /* 将字体稍微减小一点 */
+        }
+        .priority-tooltip-content p {
+            margin: 2px 0;  /* 减小段落之间的间距 */
+            line-height: 1.5;  /* 调整行高 */
+        }
+        .layui-form-item .layui-input-inline {
+            width: 300px; /* Adjust as needed */
+        }
+        .layui-form-label {
+            width: 100px; /* Adjust as needed */
+        }
+        body {
+            margin: 10px;
+        }
+        .pear-container {
+            background-color: white;
+        }
+        .layui-icon-help {
+            font-size: 12px;
+        }

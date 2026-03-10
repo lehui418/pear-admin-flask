@@ -9,7 +9,130 @@ layui.define(['jquery', 'element', 'table'], function (exports) {
         table = layui.table,
         element = layui.element;
 
+    // 全局配置
+    var config = {
+        type: "POST",
+        timeout: 10000,
+        dataType: "json",
+        contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+        beforeSend: function (request) {
+            var header = $("meta[name='_csrf_header']").attr("content");
+            var token = $("meta[name='_csrf']").attr("content");
+            if (header && token) {
+                request.setRequestHeader(header, token);
+            }
+        }
+    };
+
+    // 会话心跳检测
+    var sessionHeartbeat = {
+        interval: 5 * 60 * 1000, // 5分钟检测一次
+        timeout: 30 * 60 * 1000, // 30分钟无操作超时
+        warningTime: 5 * 60 * 1000, // 提前5分钟警告
+        lastActivity: Date.now(),
+        timer: null,
+        warningTimer: null,
+        
+        init: function() {
+            this.resetActivity();
+            this.start();
+            this.bindEvents();
+        },
+        
+        resetActivity: function() {
+            this.lastActivity = Date.now();
+        },
+        
+        bindEvents: function() {
+            var self = this;
+            $(document).on('click keydown scroll', function() {
+                self.resetActivity();
+            });
+        },
+        
+        start: function() {
+            var self = this;
+            this.timer = setInterval(function() {
+                self.check();
+            }, this.interval);
+        },
+        
+        stop: function() {
+            if (this.timer) {
+                clearInterval(this.timer);
+                this.timer = null;
+            }
+            if (this.warningTimer) {
+                clearTimeout(this.warningTimer);
+                this.warningTimer = null;
+            }
+        },
+        
+        check: function() {
+            var self = this;
+            var inactiveTime = Date.now() - this.lastActivity;
+            
+            // 如果超过警告时间但未到超时时间，发送心跳
+            if (inactiveTime >= this.warningTime && inactiveTime < this.timeout) {
+                this.sendHeartbeat();
+            }
+            // 如果超过超时时间，检查会话状态
+            else if (inactiveTime >= this.timeout) {
+                this.checkSession();
+            }
+        },
+        
+        sendHeartbeat: function() {
+            $.ajax({
+                url: '/passport/heartbeat',
+                type: 'GET',
+                success: function(res) {
+                    console.log('心跳检测：会话正常');
+                },
+                error: function(xhr) {
+                    console.log('心跳检测失败：', xhr.status);
+                }
+            });
+        },
+        
+        checkSession: function() {
+            var self = this;
+            $.ajax({
+                url: '/passport/check_session',
+                type: 'GET',
+                success: function(res) {
+                    console.log('会话检查：正常');
+                },
+                error: function(xhr) {
+                    if (xhr.status === 419) {
+                        layer.confirm('会话即将过期，是否继续保持登录？', {
+                            btn: ['保持登录', '重新登录'],
+                            time: 10000,
+                            anim: 6,
+                            success: function(layero) {
+                                self.warningTimer = setTimeout(function() {
+                                    layer.closeAll();
+                                    window.location.href = '/passport/login';
+                                }, 10000);
+                            }
+                        }, function() {
+                            clearTimeout(self.warningTimer);
+                            self.resetActivity();
+                            self.sendHeartbeat();
+                        }, function() {
+                            clearTimeout(self.warningTimer);
+                            window.location.href = '/passport/login';
+                        });
+                    }
+                }
+            });
+        }
+    };
+
     var common = new function () {
+
+        // 初始化会话心跳检测
+        sessionHeartbeat.init();
 
         /**
          * 获取当前表格选中字段
@@ -90,6 +213,8 @@ layui.define(['jquery', 'element', 'table'], function (exports) {
                         return;
                     }
                     if (xhr.status === 419) {
+                        // 先尝试通过心跳检测保持会话
+                        sessionHeartbeat.sendHeartbeat();
                         layer.msg('长时间未操作，自动刷新后重试！', {icon: 5});
                         setTimeout(function () {
                             window.location.reload();

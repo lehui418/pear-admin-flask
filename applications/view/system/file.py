@@ -81,3 +81,4 @@ def batch_remove():
         return success_api(msg="删除成功")
     else:
         return fail_api(msg="删除失败")
+

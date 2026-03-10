@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ECharts SafeSetOption 验证测试</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #fafafa;
+        }
+        .test-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        .test-button:hover {
+            background-color: #0056b3;
+        }
+        .console-output {
+            background-color: #000;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        .console-error {
+            color: #f00;
+        }
+        .console-warn {
+            color: #ff0;
+        }
+        .console-info {
+            color: #0ff;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .status.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+            background-color: #e9ecef;
+        }
+        .test-pass {
+            border-left: 4px solid #28a745;
+        }
+        .test-fail {
+            border-left: 4px solid #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛡️ ECharts SafeSetOption 验证测试</h1>
+        
+        <div class="test-section">
+            <h3>📋 测试说明</h3>
+            <p>这个页面用于验证我们实现的 <code>safeSetOption</code> 函数是否能正确处理各种错误情况，包括：</p>
+            <ul>
+                <li>图表配置不存在</li>
+                <li>图表实例不存在</li>
+                <li>无效的option参数</li>
+                <li>错误的series数据格式</li>
+                <li>setOption方法调用错误</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h3>🚀 自动化测试</h3>
+            <button class="test-button" onclick="runAllTests()">运行所有测试</button>
+            <button class="test-button" onclick="clearConsole()">清空控制台</button>
+            <div id="test-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🧪 手动测试</h3>
+            <button class="test-button" onclick="testValidOption()">测试有效配置</button>
+            <button class="test-button" onclick="testInvalidOption()">测试无效配置</button>
+            <button class="test-button" onclick="testNullChart()">测试空图表实例</button>
+            <button class="test-button" onclick="testErrorInSetOption()">测试setOption错误</button>
+        </div>
+
+        <div class="test-section">
+            <h3>📊 控制台输出</h3>
+            <div id="console-output" class="console-output"></div>
+        </div>
+    </div>
+
+    <script src="validation.js"></script>
+    <script>
+        // 重写console方法以在页面中显示输出
+        const consoleOutput = document.getElementById('console-output');
+        const originalConsole = {
+            log: console.log,
+            error: console.error,
+            warn: console.warn,
+            info: console.info
+        };
+
+        function addConsoleMessage(type, ...args) {
+            const timestamp = new Date().toLocaleTimeString();
+            const message = args.map(arg => {
+                if (typeof arg === 'object') {
+                    return JSON.stringify(arg, null, 2);
+                }
+                return String(arg);
+            }).join(' ');
+
+            const div = document.createElement('div');
+            div.className = `console-${type}`;
+            div.textContent = `[${timestamp}] ${message}`;
+            consoleOutput.appendChild(div);
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        }
+
+        console.log = function(...args) {
+            originalConsole.log.apply(console, args);
+            addConsoleMessage('log', ...args);
+        };
+
+        console.error = function(...args) {
+            originalConsole.error.apply(console, args);
+            addConsoleMessage('error', ...args);
+        };
+
+        console.warn = function(...args) {
+            originalConsole.warn.apply(console, args);
+            addConsoleMessage('warn', ...args);
+        };
+
+        console.info = function(...args) {
+            originalConsole.info.apply(console, args);
+            addConsoleMessage('info', ...args);
+        };
+
+        function clearConsole() {
+            consoleOutput.innerHTML = '';
+            console.log('控制台已清空');
+        }
+
+        function showTestResult(testName, passed, message = '') {
+            const resultsDiv = document.getElementById('test-results');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `test-result ${passed ? 'test-pass' : 'test-fail'}`;
+            resultDiv.innerHTML = `
+                <strong>${testName}:</strong> ${passed ? '✅ 通过' : '❌ 失败'}
+                ${message ? `<br><small>${message}</small>` : ''}
+            `;
+            resultsDiv.appendChild(resultDiv);
+        }
+
+        function runAllTests() {
+            document.getElementById('test-results').innerHTML = '';
+            console.log('=== 开始运行所有自动化测试 ===');
+            
+            // 运行 validation.js 中的测试
+            if (typeof runValidationTests === 'function') {
+                const allPassed = runValidationTests();
+                
+                if (allPassed) {
+                    showTestResult('自动化测试套件', true, '所有测试均通过');
+                } else {
+                    showTestResult('自动化测试套件', false, '部分测试失败，请查看控制台详情');
+                }
+            } else {
+                console.error('runValidationTests 函数未找到');
+                showTestResult('自动化测试套件', false, '测试函数未找到');
+            }
+        }
+
+        // 手动测试函数
+        function testValidOption() {
+            console.log('\n--- 手动测试: 有效配置 ---');
+            
+            // 创建模拟图表实例
+            mockCharts.testChart.instance = {
+                setOption: function(option, notMerge) {
+                    console.log('✅ 模拟 setOption 调用成功:', option);
+                }
+            };
+            
+            const validOption = {
+                title: { text: '测试图表' },
+                series: [{
+                    name: '数据',
+                    type: 'bar',
+                    data: [1, 2, 3, 4, 5]
+                }]
+            };
+            
+            const result = safeSetOption('testChart', validOption, true);
+            showTestResult('有效配置测试', result, result ? '配置成功应用' : '配置应用失败');
+        }
+
+        function testInvalidOption() {
+            console.log('\n--- 手动测试: 无效配置 ---');
+            
+            const result = safeSetOption('testChart', null, true);
+            showTestResult('无效配置测试', !result, result ? '错误配置被意外接受' : '错误配置被正确拒绝');
+        }
+
+        function testNullChart() {
+            console.log('\n--- 手动测试: 空图表实例 ---');
+            
+            // 设置图表实例为null
+            mockCharts.testChart.instance = null;
+            
+            const validOption = {
+                title: { text: '测试图表' },
+                series: [{
+                    name: '数据',
+                    type: 'bar',
+                    data: [1, 2, 3, 4, 5]
+                }]
+            };
+            
+            const result = safeSetOption('testChart', validOption, true);
+            showTestResult('空图表实例测试', !result, result ? '空实例被意外接受' : '空实例被正确拒绝');
+        }
+
+        function testErrorInSetOption() {
+            console.log('\n--- 手动测试: setOption错误 ---');
+            
+            // 创建会抛出错误的模拟图表实例
+            mockCharts.testChart.instance = {
+                setOption: function(option, notMerge) {
+                    throw new Error('模拟setOption错误: 数据格式不正确');
+                }
+            };
+            
+            const validOption = {
+                title: { text: '测试图表' },
+                series: [{
+                    name: '数据',
+                    type: 'bar',
+                    data: [1, 2, 3, 4, 5]
+                }]
+            };
+            
+            const result = safeSetOption('testChart', validOption, true);
+            showTestResult('setOption错误测试', !result, result ? '错误被意外忽略' : '错误被正确捕获');
+        }
+
+        // 页面加载完成后的初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🛡️ ECharts SafeSetOption 验证测试页面已加载');
+            console.log('点击上方按钮开始测试，或运行自动化测试套件');
+            
+            // 初始化 mockCharts 对象
+            window.mockCharts = {
+                testChart: { instance: null, loading: false, error: false }
+            };
+        });
+    </script>
+</body>
+</html>

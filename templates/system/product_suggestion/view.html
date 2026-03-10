@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>查看产品建议</title>
+    {% include 'system/common/header.html' %}
+</head>
+<body>
+<div class="layui-card">
+    <div class="layui-card-body" style="margin: 20px;">
+        <div class="layui-form">
+            <div class="layui-form-item">
+                <label class="layui-form-label">建议标题</label>
+                <div class="layui-input-block">
+                    <input type="text" value="{{ suggestion.title }}" class="layui-input" readonly>
+                </div>
+            </div>
+            
+            <div class="layui-form-item">
+                <label class="layui-form-label">优先级</label>
+                <div class="layui-input-block">
+                    <input type="text" value="{% if suggestion.priority == 'High' %}高{% elif suggestion.priority == 'Medium' %}中{% elif suggestion.priority == 'Low' %}低{% else %}{{ suggestion.priority }}{% endif %}" class="layui-input" readonly>
+                </div>
+            </div>
+            
+            <div class="layui-form-item">
+                <label class="layui-form-label">状态</label>
+                <div class="layui-input-block">
+                    <input type="text" value="{% if suggestion.status == 'Open' %}创建/新建{% elif suggestion.status == 'In Review' %}审核中{% elif suggestion.status == 'Accepted' %}已接受{% elif suggestion.status == 'Rejected' %}已拒绝{% elif suggestion.status == 'Implemented' %}已实现{% else %}{{ suggestion.status }}{% endif %}" class="layui-input" readonly>
+                </div>
+            </div>
+            
+            <div class="layui-form-item">
+                <label class="layui-form-label">产品类型</label>
+                <div class="layui-input-block">
+                    <input type="text" value="{{ suggestion.product_type_level1 }}" class="layui-input" readonly>
+                </div>
+            </div>
+            
+            <div class="layui-form-item">
+                <label class="layui-form-label">产品二级分类</label>
+                <div class="layui-input-block">
+                    <input type="text" value="{{ suggestion.product_type_level2 }}" class="layui-input" readonly>
+                </div>
+            </div>
+            
+            <div class="layui-form-item">
+                <label class="layui-form-label">创建者</label>
+                <div class="layui-input-block">
+                    <input type="text" value="{{ suggestion.creator_name }}" class="layui-input" readonly>
+                </div>
+            </div>
+            
+            <div class="layui-form-item">
+                <label class="layui-form-label">创建时间</label>
+                <div class="layui-input-block">
+                    <input type="text" value="{{ suggestion.formatted_create_time }}" class="layui-input" readonly>
+                </div>
+            </div>
+            
+            <div class="layui-form-item">
+                <label class="layui-form-label">更新时间</label>
+                <div class="layui-input-block">
+                    <input type="text" value="{{ suggestion.formatted_update_time }}" class="layui-input" readonly>
+                </div>
+            </div>
+            
+            <div class="layui-form-item layui-form-text">
+                <label class="layui-form-label">详细描述</label>
+                <div class="layui-input-block">
+                    <div id="description-content" style="padding: 10px; background-color: #f8f8f8; border: 1px solid #e6e6e6; border-radius: 2px; min-height: 120px;">
+                        {{ suggestion.description }}
+                    </div>
+                    <!-- 图片容器，与编辑页面保持一致 -->
+                    <div id="description-image-container" style="margin-top: 10px;"></div>
+                </div>
+            </div>
+            
+            <div class="layui-form-item">
+                <div class="layui-input-block">
+                    <button class="layui-btn" onclick="parent.layer.close(parent.layer.getFrameIndex(window.name))">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% include 'system/common/footer.html' %}
+<script>
+    layui.use(['jquery', 'layer'], function($) {
+        var basePath = '/';
+        
+        // 处理图片引用 - 与编辑模式保持一致，但图片不可编辑
+        function processImageReferences() {
+            var descriptionContent = $('#description-content').html();
+            
+            // 清除图片容器中的现有内容
+            $('#description-image-container').empty();
+            
+            // 查找图片引用标记 ![图片](url#id=photoId) - 使用更健壮的正则表达式
+            var imageRegex = /!\[图片\]\(([^#]+)#id=([^)]+)\)/g;
+            var matches = [];
+            var match;
+            
+            // 收集所有图片引用
+            while ((match = imageRegex.exec(descriptionContent)) !== null) {
+                matches.push({
+                    fullMatch: match[0],
+                    imageUrl: match[1],
+                    photoId: match[2]
+                });
+            }
+            
+            // 清除原始内容中的图片引用标记
+            var cleanContent = descriptionContent.replace(imageRegex, '').replace(/@@IMAGE_SEPARATOR@@/g, '').trim();
+            
+            // 更新描述内容（不包含图片）
+            $('#description-content').html(cleanContent);
+            
+            // 如果有图片，创建图片显示
+            if (matches.length > 0) {
+                var imageContainerHtml = '';
+                
+                matches.forEach(function(imageInfo) {
+                    var displayUrl = basePath + 'system/upload/image/' + imageInfo.photoId;
+                    imageContainerHtml += '<div class="pasted-image" style="display:inline-block; position:relative; margin:5px;">' +
+                                         '<img src="' + displayUrl + '" style="max-width:200px; max-height:200px; border:1px solid #ddd; padding:3px; cursor:pointer;" alt="图片" data-id="' + imageInfo.photoId + '">' +
+                                         '</div>';
+                });
+                
+                $('#description-image-container').html(imageContainerHtml);
+                
+                // 添加图片点击放大功能（查看模式下图片不可编辑）
+                $('#description-image-container').on('click', 'img', function() {
+                    var imgUrl = $(this).attr('src');
+                    var imgId = $(this).attr('data-id') || '';
+                    
+                    // 使用Layui的layer组件创建图片预览弹窗
+                    if (typeof layer !== 'undefined') {
+                        // 创建图片对象获取原始尺寸
+                        var img = new Image();
+                        img.onload = function() {
+                            var imgWidth = this.width;
+                            var imgHeight = this.height;
+                            var maxWidth = window.innerWidth * 0.9; // 90% 窗口宽度
+                            var maxHeight = window.innerHeight * 0.9; // 90% 窗口高度
+                            
+                            // 计算适应尺寸
+                            var width = imgWidth;
+                            var height = imgHeight;
+                            
+                            if (imgWidth > maxWidth) {
+                                width = maxWidth;
+                                height = (maxWidth / imgWidth) * imgHeight;
+                            }
+                            
+                            if (height > maxHeight) {
+                                height = maxHeight;
+                                width = (maxHeight / imgHeight) * imgWidth;
+                            }
+                            
+                            layer.open({
+                                type: 1,
+                                title: '图片预览',
+                                closeBtn: 1,
+                                area: [width + 'px', height + 'px'],
+                                shadeClose: true,
+                                maxmin: true, // 允许最大化
+                                resize: true, // 允许调整大小
+                                content: '<div style="text-align: center; padding: 10px; height: 100%; overflow: hidden;"><img src="' + imgUrl + '" style="max-width: 100%; max-height: 100%; width: auto; height: auto; display: block; margin: 0 auto;"></div>'
+                            });
+                        };
+                        img.src = imgUrl;
+                    } else {
+                        // 如果layer未加载，使用简单的window.open
+                        window.open(imgUrl, '_blank');
+                    }
+                });
+            }
+        }
+        
+        // 页面加载完成后处理图片
+        $(document).ready(function() {
+            processImageReferences();
+        });
+    });
+</script>
+</body>
+</html>

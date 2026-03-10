@@ -1,9 +1,9 @@
-import os
 import re
 import sys
 import time
 import psutil
 import platform
+import os
 
 from datetime import datetime
 

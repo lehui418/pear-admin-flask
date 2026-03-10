@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafeSetOption 函数测试</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-container { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .chart-container { width: 600px; height: 300px; margin: 10px 0; border: 1px solid #ccc; }
+        .success { background-color: #e8f5e8; border-color: #4caf50; }
+        .error { background-color: #ffe8e8; border-color: #f44336; }
+        .warning { background-color: #fff8e8; border-color: #ff9800; }
+        .log-output { background: #f5f5f5; padding: 10px; margin: 10px 0; font-family: monospace; font-size: 12px; max-height: 200px; overflow-y: auto; }
+        button { padding: 8px 16px; margin: 5px; cursor: pointer; }
+        .test-result { margin: 10px 0; padding: 8px; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <h1>SafeSetOption 错误处理测试</h1>
+    
+    <div class="test-container">
+        <h2>测试环境</h2>
+        <p>这个测试验证我们的 safeSetOption 函数是否能正确处理各种错误情况。</p>
+        <button onclick="runAllTests()">运行所有测试</button>
+        <button onclick="clearLogs()">清空日志</button>
+        <div id="testResults"></div>
+    </div>
+
+    <div class="test-container">
+        <h2>测试 1: 正常图表</h2>
+        <div id="chart1" class="chart-container"></div>
+        <div id="chart1-loading" style="color: blue;">等待测试...</div>
+        <div id="chart1-error" style="color: red; display: none;"></div>
+    </div>
+
+    <div class="test-container">
+        <h2>测试 2: 错误数据 (undefined series)</h2>
+        <div id="chart2" class="chart-container"></div>
+        <div id="chart2-loading" style="color: blue;">等待测试...</div>
+        <div id="chart2-error" style="color: red; display: none;"></div>
+    </div>
+
+    <div class="test-container">
+        <h2>测试 3: 空图表实例</h2>
+        <div id="chart3" class="chart-container"></div>
+        <div id="chart3-loading" style="color: blue;">等待测试...</div>
+        <div id="chart3-error" style="color: red; display: none;"></div>
+    </div>
+
+    <div class="test-container">
+        <h2>测试 4: 直接 setOption 调用 (对比测试)</h2>
+        <div id="chart4" class="chart-container"></div>
+        <div id="chart4-loading" style="color: blue;">等待测试...</div>
+        <div id="chart4-error" style="color: red; display: none;"></div>
+    </div>
+
+    <div class="log-output" id="consoleLog">
+        <strong>控制台输出:</strong><br>
+    </div>
+
+    <script>
+        // 重定向控制台输出到页面
+        const originalLog = console.log;
+        const originalError = console.error;
+        const logDiv = document.getElementById('consoleLog');
+        
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            logDiv.innerHTML += '<span style="color: green;">[LOG]</span> ' + args.join(' ') + '<br>';
+            logDiv.scrollTop = logDiv.scrollHeight;
+        };
+        
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            logDiv.innerHTML += '<span style="color: red;">[ERROR]</span> ' + args.join(' ') + '<br>';
+            logDiv.scrollTop = logDiv.scrollHeight;
+        };
+
+        // SafeSetOption 函数（从 main.html 复制）
+        function safeSetOption(chartId, option, notMerge) {
+            try {
+                console.log(`safeSetOption - 开始处理图表: ${chartId}`);
+                
+                // 检查图表配置是否存在
+                if (!charts || !charts[chartId]) {
+                    console.error(`safeSetOption - 图表配置不存在: ${chartId}`);
+                    showChartError(chartId, `图表配置不存在: ${chartId}`);
+                    return false;
+                }
+                
+                // 检查图表实例是否存在
+                if (!charts[chartId].instance) {
+                    console.error(`safeSetOption - 图表实例不存在: ${chartId}`);
+                    showChartError(chartId, `图表实例不存在，请检查DOM元素和初始化过程`);
+                    return false;
+                }
+                
+                // 检查实例是否有setOption方法
+                if (typeof charts[chartId].instance.setOption !== 'function') {
+                    console.error(`safeSetOption - 图表实例没有setOption方法: ${chartId}`);
+                    showChartError(chartId, `图表实例无效，缺少setOption方法`);
+                    return false;
+                }
+                
+                // 检查option参数
+                if (!option || typeof option !== 'object') {
+                    console.error(`safeSetOption - option参数无效: ${chartId}`, option);
+                    showChartError(chartId, `图表配置参数无效`);
+                    return false;
+                }
+                
+                // 检查series数据
+                if (option.series) {
+                    if (!Array.isArray(option.series)) {
+                        console.error(`safeSetOption - series不是数组: ${chartId}`);
+                        showChartError(chartId, `图表数据格式错误：series必须是数组`);
+                        return false;
+                    }
+                    
+                    if (option.series.length === 0) {
+                        console.warn(`safeSetOption - series数组为空: ${chartId}`);
+                    }
+                    
+                    for (let i = 0; i < option.series.length; i++) {
+                        const seriesItem = option.series[i];
+                        if (!seriesItem || typeof seriesItem !== 'object') {
+                            console.error(`safeSetOption - series[${i}]无效: ${chartId}`, seriesItem);
+                            showChartError(chartId, `图表数据错误：series[${i}]无效`);
+                            return false;
+                        }
+                        
+                        if (seriesItem.data !== undefined && !Array.isArray(seriesItem.data)) {
+                            console.error(`safeSetOption - series[${i}].data不是数组: ${chartId}`, seriesItem.data);
+                            showChartError(chartId, `图表数据错误：series[${i}].data必须是数组`);
+                            return false;
+                        }
+                    }
+                }
+                
+                console.log(`safeSetOption - 所有验证通过，调用setOption: ${chartId}`);
+                charts[chartId].instance.setOption(option, notMerge);
+                console.log(`safeSetOption - setOption调用成功: ${chartId}`);
+                return true;
+                
+            } catch (error) {
+                console.error(`safeSetOption - 调用setOption时发生错误: ${chartId}`, error);
+                console.error('错误堆栈:', error.stack);
+                showChartError(chartId, `图表渲染失败：${error.message}`);
+                return false;
+            }
+        }
+
+        // 图表错误显示函数
+        function showChartError(chartId, message) {
+            const errorElement = document.getElementById(chartId + '-error');
+            const loadingElement = document.getElementById(chartId + '-loading');
+            if (errorElement) {
+                errorElement.textContent = message;
+                errorElement.style.display = 'block';
+            }
+            if (loadingElement) {
+                loadingElement.style.display = 'none';
+            }
+        }
+
+        function hideChartLoadingAndError(chartId) {
+            const errorElement = document.getElementById(chartId + '-error');
+            const loadingElement = document.getElementById(chartId + '-loading');
+            if (errorElement) {
+                errorElement.style.display = 'none';
+            }
+            if (loadingElement) {
+                loadingElement.style.display = 'none';
+            }
+        }
+
+        // 图表配置对象
+        const charts = {
+            chart1: { instance: null, loading: false, error: false },
+            chart2: { instance: null, loading: false, error: false },
+            chart3: { instance: null, loading: false, error: false },
+            chart4: { instance: null, loading: false, error: false }
+        };
+
+        function addTestResult(testName, success, message) {
+            const resultsDiv = document.getElementById('testResults');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = 'test-result ' + (success ? 'success' : 'error');
+            resultDiv.innerHTML = `<strong>${testName}:</strong> ${success ? '✓ 通过' : '✗ 失败'} - ${message}`;
+            resultsDiv.appendChild(resultDiv);
+        }
+
+        function clearLogs() {
+            document.getElementById('consoleLog').innerHTML = '<strong>控制台输出:</strong><br>';
+            document.getElementById('testResults').innerHTML = '';
+            // 重置加载状态
+            for (let i = 1; i <= 4; i++) {
+                const loading = document.getElementById(`chart${i}-loading`);
+                const error = document.getElementById(`chart${i}-error`);
+                if (loading) loading.style.display = 'block';
+                if (error) error.style.display = 'none';
+            }
+        }
+
+        function runAllTests() {
+            clearLogs();
+            console.log('=== 开始运行 SafeSetOption 测试 ===');
+            
+            try {
+                // 测试1: 正常图表
+                console.log('\n--- 测试1: 正常图表 ---');
+                charts.chart1.instance = echarts.init(document.getElementById('chart1'));
+                
+                const normalOption = {
+                    title: { text: '正常图表测试', left: 'center' },
+                    tooltip: {},
+                    xAxis: { data: ['周一', '周二', '周三', '周四', '周五'] },
+                    yAxis: {},
+                    series: [{
+                        name: '销量',
+                        type: 'bar',
+                        data: [5, 20, 36, 10, 10]
+                    }]
+                };
+                
+                const success1 = safeSetOption('chart1', normalOption, true);
+                if (success1) {
+                    hideChartLoadingAndError('chart1');
+                    addTestResult('正常图表', true, '图表正常渲染，safeSetOption 正确返回 true');
+                } else {
+                    addTestResult('正常图表', false, 'safeSetOption 返回 false，但应该成功');
+                }
+                
+                // 测试2: 错误数据 (undefined series)
+                console.log('\n--- 测试2: 错误数据 (undefined series) ---');
+                charts.chart2.instance = echarts.init(document.getElementById('chart2'));
+                
+                const errorOption = {
+                    title: { text: '错误数据测试', left: 'center' },
+                    tooltip: {},
+                    xAxis: { data: ['周一', '周二', '周三'] },
+                    yAxis: {},
+                    series: undefined // 错误的数据
+                };
+                
+                const success2 = safeSetOption('chart2', errorOption, true);
+                addTestResult('错误数据检测', !success2, success2 ? '应该检测到错误但没有' : '正确检测到错误并返回 false');
+                
+                // 测试3: 空图表实例
+                console.log('\n--- 测试3: 空图表实例 ---');
+                // 不初始化实例，直接调用
+                const testOption = {
+                    title: { text: '空实例测试', left: 'center' },
+                    tooltip: {},
+                    xAxis: { data: ['周一', '周二'] },
+                    yAxis: {},
+                    series: [{
+                        name: '测试',
+                        type: 'line',
+                        data: [1, 2]
+                    }]
+                };
+                
+                const success3 = safeSetOption('chart3', testOption, true);
+                addTestResult('空实例检测', !success3, success3 ? '应该检测到空实例但没有' : '正确检测到空实例并返回 false');
+                
+                // 测试4: 直接调用 setOption（对比测试）
+                console.log('\n--- 测试4: 直接 setOption 调用（对比） ---');
+                charts.chart4.instance = echarts.init(document.getElementById('chart4'));
+                
+                try {
+                    // 使用错误的数据直接调用 setOption
+                    charts.chart4.instance.setOption({
+                        title: { text: '直接调用测试', left: 'center' },
+                        tooltip: {},
+                        xAxis: { data: ['周一', '周二'] },
+                        yAxis: {},
+                        series: undefined // 这会导致错误
+                    }, true);
+                    addTestResult('直接 setOption 错误', false, '应该抛出错误但没有');
+                } catch (e) {
+                    addTestResult('直接 setOption 错误', true, `正确抛出错误: ${e.message}`);
+                    console.error('直接 setOption 错误详情:', e);
+                }
+                
+                console.log('\n=== 测试完成 ===');
+                
+            } catch (e) {
+                console.error('测试执行过程错误:', e);
+                addTestResult('测试执行', false, `测试过程发生错误: ${e.message}`);
+            }
+        }
+
+        // 页面加载完成后的初始化
+        window.onload = function() {
+            console.log('测试页面加载完成');
+            console.log('ECharts 版本:', echarts.version);
+        };
+    </script>
+</body>
+</html>

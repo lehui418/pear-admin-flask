@@ -1,112 +1,72 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-    <title>日志</title>
+    <title>操作日志</title>
     {% include 'system/common/header.html' %}
 </head>
-<body class="pear-container">
 
-<div class="layui-card">
-    <div class="layui-card-body">
-        <div class="layui-tab layui-tab-card">
-            <ul class="layui-tab-title">
-                <li class="layui-this">登录日志</li>
-                <li>操作日志</li>
-            </ul>
-            <div class="layui-tab-content">
-                <div class="layui-tab-item layui-show">
-                    <table style="margin-top: 10px;" id="log-login-table" lay-filter="log-login-table"></table>
+<body class="pear-container">
+    <div class="layui-fluid">
+        <div class="layui-card">
+            <div class="layui-card-body">
+                <!-- 搜索表单 -->
+                <form class="layui-form layui-form-pane" lay-filter="searchForm">
+                    <div class="layui-form-item">
+                        <div class="layui-inline">
+                            <label class="layui-form-label">用户名称</label>
+                            <div class="layui-input-inline">
+                                <input type="text" name="username" autocomplete="off" class="layui-input"
+                                    placeholder="请输入用户名称">
+                            </div>
+                        </div>
+                        <div class="layui-inline">
+                            <label class="layui-form-label">URL</label>
+                            <div class="layui-input-inline">
+                                <input type="text" name="url" autocomplete="off" class="layui-input"
+                                    placeholder="请输入URL">
+                            </div>
+                        </div>
+                        <div class="layui-inline">
+                            <label class="layui-form-label">IP地址</label>
+                            <div class="layui-input-inline">
+                                <input type="text" name="ip" autocomplete="off" class="layui-input"
+                                    placeholder="请输入IP地址">
+                            </div>
+                        </div>
+                        <div class="layui-inline">
+                            <button class="pear-btn pear-btn-primary" lay-submit lay-filter="searchBtn">
+                                <i class="layui-icon layui-icon-search"></i>
+                                搜索
+                            </button>
+                            <button type="reset" class="pear-btn">
+                                <i class="layui-icon layui-icon-refresh"></i>
+                                重置
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                <!-- 日志类型切换按钮 -->
+                <div class="layui-btn-container">
+                    <button class="layui-btn layui-btn-normal" id="allLogBtn">所有日志</button>
+                    <button class="layui-btn" id="loginLogBtn">登录日志</button>
+                    <button class="layui-btn" id="operateLogBtn">操作日志</button>
                 </div>
-                <div class="layui-tab-item">
-                    <table style="margin-top: 10px;" id="log-operate-table" lay-filter="log-operate-table"></table>
-                </div>
+
+                <!-- 日志表格 -->
+                <table id="logTable" lay-filter="logTable"></table>
             </div>
         </div>
     </div>
-</div>
+
+    {% include 'system/common/footer.html' %}
+    <script>
+        var LOG_DATA_URL = '{{ url_for("system.log.data") }}'
+        var LOG_LOGIN_URL = '{{ url_for("system.log.login_log") }}'
+        var LOG_OPERATE_URL = '{{ url_for("system.log.operate_log") }}'
+    </script>
+    <script src="{{ url_for('static', filename='js/admin_log/admin_log_main.js') }}"></script>
 </body>
 
-
-<script type="text/html" id="log-createTime">
-    {{ '  {{layui.util.toDateString(d.create_time,  "yyyy-MM-dd HH:mm:ss")}' |safe }}}
-</script>
-<script type="text/html" id="log-status">
-    {{ '{{#if (d.success == true) { }}
-    <span style="color: green">成功</span>
-    {{# }else if(d.success == false){ }}
-    <span style="color: red">失败</span>
-    {{# } }}'|safe }}
-</script>
-{% include 'system/common/footer.html' %}
-<script>
-    layui.use(['table', 'form', 'jquery', 'element', 'util'], function () {
-        let table = layui.table
-        let form = layui.form
-
-        let MODULE_PATH = '/system/log/'
-
-        let cols = [
-            [
-                {title: '编号', field: 'id', align: 'center', width: 80},
-                {title: '请求方式', field: 'method', align: 'center', width: 100},
-                {title: '接口', field: 'url', align: 'center', width: 300},
-                {title: '浏览器', field: 'user_agent', align: 'center', width: 350},
-                {title: '操作地址', field: 'ip', align: 'center', width: 100},
-                {title: '访问时间', field: 'create_time', templet: '#log-createTime', align: 'center', width: 100},
-                {title: '操作人ID', field: 'uid', align: 'center', width: 100},
-                {title: '描述', field: 'desc', align: 'center', width: 150},
-                {title: '访问状态', templet: '#log-status', align: 'center', width: 100}
-            ]
-        ]
-
-        table.render({
-            elem: '#log-operate-table',
-            url: MODULE_PATH + 'operateLog',
-            page: true,
-            cols: cols,
-            skin: 'line',
-            toolbar: false
-        })
-
-        table.render({
-            elem: '#log-login-table',
-            url: MODULE_PATH + 'loginLog',
-            page: true,
-            cols: JSON.parse(JSON.stringify(cols)),  // 复制对象
-            skin: 'line',
-            toolbar: false
-        })
-
-        form.on('submit(dict-type-query)', function (data) {
-            table.reload('dict-type-table', {where: data.field})
-            return false
-        })
-
-        table.on('tool(log-operate-table)', function (obj) {
-            if (obj.event === 'details') {
-                window.info(obj)
-            }
-        })
-
-        table.on('tool(log-login-table)', function (obj) {
-            if (obj.event === 'details') {
-                window.info(obj)
-            }
-        })
-
-        window.info = function (obj) {
-            layer.open({
-                type: 2,
-                title: '详细信息',
-                shade: 0,
-                area: ['400px', '400px'],
-                content: MODULE_PATH + 'info',
-                success: function (layero) {
-                    let iframeWin = window[layero.find('iframe')[0]['name']]
-                    iframeWin.show(obj.data)
-                }
-            })
-        }
-    })
-</script>
 </html>

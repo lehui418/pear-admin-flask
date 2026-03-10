@@ -12,6 +12,11 @@ from applications.view.system.rights import bp as right_bp
 from applications.view.system.role import bp as role_bp
 from applications.view.system.user import bp as user_bp
 from applications.view.system.dept import bp as dept_bp
+from applications.view.system.ticket import bp as ticket_bp
+from applications.view.system.product_suggestion import bp as product_suggestion_bp
+from applications.view.system.upload import bp as upload_bp
+from applications.view.system.workboard import bp as workboard_bp
+from applications.view.system.sla_api import bp as sla_bp
 
 # 创建sys
 system_bp = Blueprint('system', __name__, url_prefix='/system')
@@ -30,5 +35,10 @@ def register_system_bps(app: Flask):
     system_bp.register_blueprint(passport_bp)
     system_bp.register_blueprint(right_bp)
     system_bp.register_blueprint(dept_bp)
+    system_bp.register_blueprint(ticket_bp)
+    system_bp.register_blueprint(product_suggestion_bp)
+    system_bp.register_blueprint(upload_bp)
+    system_bp.register_blueprint(workboard_bp)
+    system_bp.register_blueprint(sla_bp)
     app.register_blueprint(index_bp)
     app.register_blueprint(system_bp)

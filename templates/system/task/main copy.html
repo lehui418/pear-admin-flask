@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>高级搜索界面优化</title>
+    <link rel="stylesheet" href=" https://cdnjs.cloudflare.com/ajax/libs/font -awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(120deg, #1890ff 0%, #096dd9 100%);
+            color: white;
+            padding: 25px 30px;
+            position: relative;
+        }
+        
+        .header h1 {
+            font-weight: 600;
+            font-size: 24px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .header h1 i {
+            margin-right: 12px;
+            font-size: 28px;
+        }
+        
+        .header p {
+            font-size: 15px;
+            opacity: 0.9;
+            max-width: 600px;
+            line-height: 1.6;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .search-section {
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .section-title i {
+            color: #1890ff;
+            margin-right: 10px;
+            font-size: 20px;
+        }
+        
+        .condition-group {
+            background: #f9fbfd;
+            border-radius: 8px;
+            border: 1px solid #e8f4ff;
+            padding: 20px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        .condition-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .condition-title {
+            font-weight: 600;
+            color: #096dd9;
+            font-size: 16px;
+        }
+        
+        .remove-condition {
+            background: #fff1f0;
+            color: #f5222d;
+            border: 1px solid #ffccc7;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .remove-condition:hover {
+            background: #f5222d;
+            color: white;
+        }
+        
+        .condition-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .condition-row:last-child {
+            margin-bottom: 0;
+        }
+        
+        .input-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .input-group label {
+            display: block;
+            font-size: 14px;
+            color: #595959;
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+        
+        .input-with-icon {
+            position: relative;
+        }
+        
+        .input-with-icon input, 
+        .input-with-icon select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #d9d9d9;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.3s;
+            background: white;
+        }
+        
+        .input-with-icon input:focus, 
+        .input-with-icon select:focus {
+            outline: none;
+            border-color: #1890ff;
+            box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+        }
+        
+        .input-with-icon i {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #bfbfbf;
+            cursor: pointer;
+        }
+        
+        .input-with-icon i:hover {
+            color: #1890ff;
+        }
+        
+        .logic-group {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 80px;
+        }
+        
+        .logic-select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #d9d9d9;
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+        }
+        
+        .logic-select:focus {
+            outline: none;
+            border-color: #1890ff;
+        }
+        
+        .divider {
+            height: 1px;
+            background: linear-gradient(to right, transparent, #e8e8e8, transparent);
+            margin: 25px 0;
+        }
+        
+        .action-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .btn i {
+            margin-right: 8px;
+        }
+        
+        .btn-primary {
+            background: #1890ff;
+            color: white;
+            box-shadow: 0 2px 8px rgba(24, 144, 255, 0.3);
+        }
+        
+        .btn-primary:hover {
+            background: #096dd9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(24, 144, 255, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #595959;
+            border: 1px solid #d9d9d9;
+        }
+        
+        .btn-secondary:hover {
+            background: #e8e8e8;
+            border-color: #bfbfbf;
+        }
+        
+        .btn-add {
+            background: white;
+            color: #1890ff;
+            border: 1px dashed #1890ff;
+            padding: 10px 20px;
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        .btn-add:hover {
+            background: #f0f9ff;
+            border-style: solid;
+        }
+        
+        .hint-text {
+            font-size: 13px;
+            color: #8c8c8c;
+            margin-top: 6px;
+            line-height: 1.5;
+        }
+        
+        .responsive-hint {
+            display: none;
+            background: #e6f7ff;
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 25px;
+            font-size: 14px;
+            color: #0050b3;
+            border-left: 4px solid #1890ff;
+        }
+        
+        .responsive-hint i {
+            margin-right: 10px;
+            font-size: 18px;
+        }
+        
+        @media (max-width: 768px) {
+            .condition-row {
+                flex-direction: column;
+            }
+            
+            .logic-group {
+                width: 100%;
+                justify-content: flex-start;
+            }
+            
+            .responsive-hint {
+                display: flex;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .header {
+                padding: 20px;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-search"></i> 高级搜索</h1>
+            <p>使用多个条件组合进行精确搜索，支持"并且"、"或"、"非"等逻辑关系</p>
+        </div>
+        
+        <div class="content">
+            <div class="search-section">
+                <div class="section-title">
+                    <i class="fas fa-filter"></i> 搜索条件
+                </div>
+                
+                <div class="condition-group">
+                    <div class="condition-header">
+                        <div class="condition-title">条件组 1</div>
+                        <div class="remove-condition">
+                            <i class="fas fa-times"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="condition-row">
+                        <div class="input-group">
+                            <label>关键词</label>
+                            <div class="input-with-icon">
+                                <input type="text" placeholder="请输入关键字">
+                                <i class="fas fa-caret-down"></i>
+                            </div>
+                            <div class="hint-text">可输入产品名称、型号或ID</div>
+                        </div>
+                        
+                        <div class="logic-group">
+                            <select class="logic-select">
+                                <option>并且</option>
+                                <option>或</option>
+                                <option>非</option>
+                            </select>
+                        </div>
+                        
+                        <div class="input-group">
+                            <label>分类</label>
+                            <div class="input-with-icon">
+                                <select>
+                                    <option value="">选择分类</option>
+                                    <option value="electronics">电子产品</option>
+                                    <option value="clothing">服装</option>
+                                    <option value="books">图书</option>
+                                    <option value="home">家居用品</option>
+                                </select>
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="condition-group">
+                    <div class="condition-header">
+                        <div class="condition-title">条件组 2</div>
+                        <div class="remove-condition">
+                            <i class="fas fa-times"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="condition-row">
+                        <div class="input-group">
+                            <label>价格范围</label>
+                            <div class="input-with-icon">
+                                <input type="text" placeholder="最低价格">
+                            </div>
+                        </div>
+                        
+                        <div class="logic-group">
+                            <select class="logic-select">
+                                <option>并且</option>
+                                <option>或</option>
+                                <option>非</option>
+                            </select>
+                        </div>
+                        
+                        <div class="input-group">
+                            <label>&nbsp;</label>
+                            <div class="input-with-icon">
+                                <input type="text" placeholder="最高价格">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="divider"></div>
+                    
+                    <div class="condition-row">
+                        <div class="input-group">
+                            <label>日期范围</label>
+                            <div class="input-with-icon">
+                                <input type="date" placeholder="开始日期">
+                            </div>
+                        </div>
+                        
+                        <div class="logic-group">
+                            <select class="logic-select">
+                                <option>并且</option>
+                                <option>或</option>
+                                <option>非</option>
+                            </select>
+                        </div>
+                        
+                        <div class="input-group">
+                            <label>&nbsp;</label>
+                            <div class="input-with-icon">
+                                <input type="date" placeholder="结束日期">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <button class="btn btn-add">
+                    <i class="fas fa-plus"></i> 添加条件组
+                </button>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <div class="action-buttons">
+                <button class="btn btn-secondary">
+                    <i class="fas fa-redo"></i> 重置
+                </button>
+                <button class="btn btn-primary">
+                    <i class="fas fa-search"></i> 开始搜索
+                </button>
+            </div>
+            
+            <div class="responsive-hint">
+                <i class="fas fa-mobile-alt"></i>
+                在移动设备上，搜索条件会自动调整为垂直布局以获得最佳体验
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>新增产品建议</title>
+    {% include 'system/common/header.html' %}
+</head>
+
+<body>
+    <div class="layui-card">
+        <div class="layui-card-body">
+            <form class="layui-form" id="addForm" lay-filter="addForm" style="margin: 20px;" autocomplete="off">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">建议标题</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="title" required lay-verify="required" placeholder="请输入建议标题"
+                            autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">优先级</label>
+                    <div class="layui-input-block">
+                        <select name="priority" required lay-verify="required">
+                            <option value="">请选择优先级</option>
+                            <option value="High">高</option>
+                            <option value="Medium">中</option>
+                            <option value="Low">低</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">状态</label>
+                    <div class="layui-input-block">
+                        <select name="status" required lay-verify="required" autocomplete="off">
+                            <option value="">请选择状态</option>
+                            <option value="Open" selected>创建/新建</option>
+                            <option value="In Review">审核中</option>
+                            <option value="Accepted">已接受</option>
+                            <option value="Rejected">已拒绝</option>
+                            <option value="Implemented">已实现</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">产品类型</label>
+                    <div class="layui-input-block">
+                        <select name="product_type_level1" required lay-verify="required" lay-search="">
+                            <option value="">请选择产品类型</option>
+                            <option value="双向网闸">双向网闸</option>
+                            <option value="单向光闸">单向光闸</option>
+                            <option value="国产网闸">国产网闸</option>
+                            <option value="国产光闸">国产光闸</option>
+                            <option value="防火墙">防火墙</option>
+                            <option value="数据交换平台">数据交换平台</option>
+                            <option value="文件交换系统（山东源鲁）">文件交换系统（山东源鲁）</option>
+                            <option value="文档审计">文档审计</option>
+                            <option value="端设备">端设备</option>
+                            <option value="密件流转">密件流转</option>
+                            <option value="真物理隔离网闸">真物理隔离网闸</option>
+                            <option value="其他">其他安全设备</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">产品二级分类</label>
+                    <div class="layui-input-block">
+                        <select name="product_type_level2" required lay-verify="required">
+                            <option value="">请选择产品二级分类</option>
+                            <option value="国产">国产</option>
+                            <option value="标准">标准</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="layui-form-item layui-form-text">
+                    <label class="layui-form-label">详细描述</label>
+                    <div class="layui-input-block">
+                        <textarea name="description" placeholder="请输入详细描述，支持粘贴图片" class="layui-textarea"
+                            rows="6"></textarea>
+                        <div id="description-image-container" style="margin-top: 10px;"></div>
+                        <input type="hidden" name="image_references_str" id="image_references_str" value="">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <div class="layui-input-block">
+                        <button class="layui-btn" lay-submit lay-filter="addForm">立即提交</button>
+                        <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        var uploadUrl = "{{ url_for('system.adminUpload.upload_image') }}";
+        var saveUrl = "{{ url_for('system.product_suggestion.save') }}";
+        var tableUrl = "{{ url_for('system.product_suggestion.table_data') }}";
+    </script>
+    <script src="{{ url_for('static', filename='js/product_suggestion/product_suggestion_add.js') }}"></script>
+    {% include 'system/common/footer.html' %}
+</body>
+
+</html>

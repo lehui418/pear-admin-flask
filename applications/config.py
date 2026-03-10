@@ -1,4 +1,5 @@
 import logging
+import os
 from datetime import timedelta
 
 
@@ -7,7 +8,7 @@ class BaseConfig:
     SUPERADMIN = 'admin'
 
     # 系统名称
-    SYSTEM_NAME = 'Pear Admin'
+    SYSTEM_NAME = '利谱工单系统'
 
     # 主题面板的链接列表配置
     SYSTEM_PANEL_LINKS = [
@@ -56,11 +57,24 @@ class BaseConfig:
     #    'testSQLite': 'sqlite:///database.db
     # }
 
+    # 添加时区配置
+    TIME_ZONE = 'Asia/Shanghai'
+
     # 数据库的配置信息
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///../pear.db'
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///../pear01.db'
 
     # 默认日志等级
-    LOG_LEVEL = logging.WARN
+    LOG_LEVEL = logging.DEBUG
+
+    # 日志格式配置
+    LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    LOG_DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
+
+    # 日志文件配置
+    LOG_FILE = 'logs/pear-admin.log'
+    LOG_MAX_BYTES = 10 * 1024 * 1024  # 10MB
+    LOG_BACKUP_COUNT = 5
+    LOG_FILE_LEVEL = logging.INFO
 
     # 发信设置
     MAIL_SERVER = 'smtp.qq.com'
@@ -68,7 +82,7 @@ class BaseConfig:
     MAIL_USE_SSL = True
     MAIL_PORT = 465
     MAIL_USERNAME = '123@qq.com'
-    MAIL_PASSWORD = 'XXXXX'  # 生成的授权码
+    MAIL_PASSWORD = 'XXXXX'
     MAIL_DEFAULT_SENDER = MAIL_USERNAME
 
     # 插件配置，填写插件的文件名名称，默认不启用插件。
@@ -77,8 +91,8 @@ class BaseConfig:
     # Session 设置
     PERMANENT_SESSION_LIFETIME = timedelta(days=7)
 
-    SESSION_TYPE = "filesystem"  # 默认使用文件系统来保存会话
-    SESSION_PERMANENT = False  # 会话是否持久化
-    SESSION_USE_SIGNER = True  # 是否对发送到浏览器上 session 的 cookie 值进行加密
+    SESSION_TYPE = 'filesystem'
+    SESSION_PERMANENT = False
+    SESSION_USE_SIGNER = True
 
-    SECRET_KEY = "pear-system-flask"
+    SECRET_KEY = 'pear-system-flask'

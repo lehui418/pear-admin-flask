@@ -16,21 +16,32 @@ def get_photo(page, limit):
 
 
 def upload_one(photo, mime):
-    filename = photos.save(photo)
+    # 读取图片数据
+    image_data = photo.read()
+    # 生成唯一文件名
+    import uuid
+    filename = str(uuid.uuid4()) + '.' + photo.filename.split('.')[-1]
+    # 创建虚拟URL路径（实际不存在文件，但保持兼容性）
     file_url = '/_uploads/photos/' + filename
-    # file_url = photos.url(filename)
-    upload_url = current_app.config.get("UPLOADED_PHOTOS_DEST")
-    size = os.path.getsize(upload_url + '/' + filename)
-    photo = Photo(name=filename, href=file_url, mime=mime, size=size)
-    db.session.add(photo)
+    # 计算图片大小
+    size = len(image_data)
+    # 创建Photo对象，包含图片数据
+    photo_obj = Photo(name=filename, href=file_url, mime=mime, size=str(size), image_data=image_data)
+    db.session.add(photo_obj)
     db.session.commit()
-    return file_url
+    # 返回图片ID和URL
+    return file_url, photo_obj.id
 
 
 def delete_photo_by_id(_id):
-    photo_name = Photo.query.filter_by(id=_id).first().name
+    photo_obj = Photo.query.filter_by(id=_id).first()
+    if not photo_obj:
+        return None  # 图片不存在
+    photo_name = photo_obj.name
     photo = Photo.query.filter_by(id=_id).delete()
     db.session.commit()
     upload_url = current_app.config.get("UPLOADED_PHOTOS_DEST")
-    os.remove(upload_url + '/' + photo_name)
+    file_path = upload_url + '/' + photo_name
+    if os.path.exists(file_path):
+        os.remove(file_path)
     return photo

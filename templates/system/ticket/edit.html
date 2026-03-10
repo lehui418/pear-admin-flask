@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>网安工单编辑系统</title>
+    {% include 'system/common/header.html' %}
+    <link rel="stylesheet" href="{{ url_for('static' , filename='css/ticket/common-styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static' , filename='css/ticket/ticket_edit.css') }}">
+</head>
+
+<body>
+    <div class="layui-card">
+        <div class="layui-card-header">
+            <i class="layui-icon layui-icon-security" style="color: #1E9FFF; margin-right: 8px;"></i>
+            网络安全工单编辑系统
+            <span style="float: right; font-size: 12px; color: #999;">工单状态: <span id="timeout-status"
+                    style="font-weight: bold;">正常</span> <span id="timeout-duration"
+                    style="color: #FF5722; font-weight: bold;"></span></span>
+        </div>
+        <div class="layui-card-body">
+            <form class="layui-form" lay-filter="ticketConfigForm">
+                <input type="hidden" name="id" value="{{ ticket.id if ticket else '' }}">
+
+                <!-- 工单超时提醒横幅，默认隐藏 -->
+                <div id="timeout-banner"
+                    style="display:none; margin-bottom:20px; padding:15px; border:2px solid #FF5722; background-color:#FFF5F0; border-radius:5px;"
+                    class="timeout-alert">
+                    <div style="display:flex; align-items:center;">
+                        <i class="layui-icon layui-icon-time"
+                            style="font-size:28px; margin-right:15px; color:#FF5722;"></i>
+                        <div>
+                            <div style="font-size:18px; font-weight:bold; margin-bottom:8px;">工单已超时 <span
+                                    id="timeout-hours" style="color:#FF5722;">0</span> 小时</div>
+                            <div style="font-size:14px;">应完成时间：<span id="timeout-date"></span></div>
+                        </div>
+                        <button type="button" class="layui-btn layui-btn-danger layui-btn-sm"
+                            style="margin-left:auto; font-weight:bold;" id="handle-timeout-btn">立即处理</button>
+                    </div>
+                </div>
+
+                <!-- 基本信息 -->
+                <div class="form-section">
+                    <div class="form-section-title">基本信息</div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">工单标题</label>
+                        <div class="layui-input-inline">
+                            <input type="text" name="title" required lay-verify="required" placeholder="请输入工单标题"
+                                autocomplete="off" class="layui-input" value="{{ ticket.title if ticket else '' }}">
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">优先级</label>
+                        <div class="layui-input-inline">
+                            <select name="priority" lay-verify="required">
+                                <option value=""></option>
+                                <option value="P1" {{ 'selected' if ticket and (ticket.priority=='P1' or
+                                    ticket.priority=='High' ) else '' }}>P1 重大</option>
+                                <option value="P2" {{ 'selected' if ticket and ticket.priority=='P2' else '' }}>P2 主要
+                                </option>
+                                <option value="P3" {{ 'selected' if ticket and (ticket.priority=='P3' or
+                                    ticket.priority=='Medium' ) else '' }}>P3 次要</option>
+                                <option value="P4" {{ 'selected' if ticket and (ticket.priority=='P4' or
+                                    ticket.priority=='Low' ) else '' }}>P4 咨询</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item layui-form-text">
+                        <label class="layui-form-label">详细描述</label>
+                        <div class="layui-input-inline">
+                            <textarea name="description" placeholder="请输入详细描述，支持Markdown，支持Ctrl+V粘贴图片"
+                                class="layui-textarea">{{ ticket.description | safe }}</textarea>
+                            <textarea id="hidden_image_references_description" name="image_references_str_description"
+                                style="display:none;">{{ ticket.image_references_str_description if ticket and ticket.image_references_str_description else '' | safe }}</textarea>
+                            <textarea id="hidden_image_references_relatedinfo" name="image_references_str_relatedinfo"
+                                style="display:none;">{{ ticket.image_references_str_relatedinfo if ticket and ticket.image_references_str_relatedinfo else '' | safe }}</textarea>
+                            <textarea id="hidden_image_references_solution" name="image_references_str_solution"
+                                style="display:none;">{{ ticket.image_references_str_solution if ticket and ticket.image_references_str_solution else '' | safe }}</textarea>
+                            <div id="description-image-container" style="margin-top: 10px;"></div>
+                        </div>
+                    </div>
+
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">负责人</label>
+                        <div class="layui-input-inline">
+                            <input type="text" name="assignee_name" value="{{ ticket.assignee_name if ticket else '' }}"
+                                readonly class="layui-input layui-disabled" style="background-color: #f2f2f2;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 产品信息 -->
+                <div class="form-section">
+                    <div class="form-section-title">产品信息</div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">产品类型</label>
+                        <div class="layui-input-inline">
+                            <select name="product_type_level1" lay-verify="required">
+                                <option value="">请选择设备类型</option>
+                                <option value="双向网闸" {{ 'selected' if ticket and ticket.product_type_level1=='双向网闸'
+                                    else '' }}>双向网闸</option>
+                                <option value="单向光闸" {{ 'selected' if ticket and ticket.product_type_level1=='单向光闸'
+                                    else '' }}>单向光闸</option>
+                                <option value="国产网闸" {{ 'selected' if ticket and ticket.product_type_level1=='国产网闸'
+                                    else '' }}>国产网闸</option>
+                                <option value="国产光闸" {{ 'selected' if ticket and ticket.product_type_level1=='国产光闸'
+                                    else '' }}>国产光闸</option>
+                                <option value="防火墙" {{ 'selected' if ticket and ticket.product_type_level1=='防火墙'
+                                    else '' }}>防火墙</option>
+                                <option value="数据交换平台" {{ 'selected' if ticket and ticket.product_type_level1=='数据交换平台'
+                                    else '' }}>数据交换平台</option>
+                                <option value="文件交换系统（山东源鲁）" {{ 'selected' if ticket and
+                                    ticket.product_type_level1=='文件交换系统（山东源鲁）' else '' }}>文件交换系统（山东源鲁）</option>
+                                <option value="文档审计" {{ 'selected' if ticket and ticket.product_type_level1=='文档审计'
+                                    else '' }}>文档审计</option>
+                                <option value="端设备" {{ 'selected' if ticket and ticket.product_type_level1=='端设备'
+                                    else '' }}>端设备</option>
+                                <option value="密件流转" {{ 'selected' if ticket and ticket.product_type_level1=='密件流转'
+                                    else '' }}>密件流转</option>
+                                <option value="真物理隔离网闸" {{ 'selected' if ticket and
+                                    ticket.product_type_level1=='真物理隔离网闸' else '' }}>真物理隔离网闸</option>
+                                <option value="其他" {{ 'selected' if ticket and ticket.product_type_level1=='其他' else ''
+                                    }}>其他安全设备</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">产品二级分类</label>
+                        <div class="layui-input-inline">
+                            <select name="product_type_level2" lay-verify="required">
+                                <option value="">请选择</option>
+                                <option value="国产" {{ 'selected' if ticket and ticket.product_type_level2=='国产' else ''
+                                    }}>国产</option>
+                                <option value="标准" {{ 'selected' if ticket and ticket.product_type_level2=='标准' else ''
+                                    }}>标准</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">版本号</label>
+                        <div class="layui-input-inline">
+                            <select name="version_number" lay-verify="required">
+                                <option value="">请选择版本号</option>
+                                <option value="V3.4.10" {{ 'selected' if ticket and ticket.version_number=='V3.4.10'
+                                    else '' }}>V3.4.10</option>
+                                <option value="V3.4.9" {{ 'selected' if ticket and ticket.version_number=='V3.4.9'
+                                    else '' }}>V3.4.9</option>
+                                <option value="V3.4.7" {{ 'selected' if ticket and ticket.version_number=='V3.4.7'
+                                    else '' }}>V3.4.7</option>
+                                <option value="V3.4.6" {{ 'selected' if ticket and ticket.version_number=='V3.4.6'
+                                    else '' }}>V3.4.6</option>
+                                <option value="V3.4.5" {{ 'selected' if ticket and ticket.version_number=='V3.4.5'
+                                    else '' }}>V3.4.5</option>
+                                <option value="V3.4.4" {{ 'selected' if ticket and ticket.version_number=='V3.4.4'
+                                    else '' }}>V3.4.4</option>
+                                <option value="V3.4.3" {{ 'selected' if ticket and ticket.version_number=='V3.4.3'
+                                    else '' }}>V3.4.3</option>
+                                <option value="V3.4.2" {{ 'selected' if ticket and ticket.version_number=='V3.4.2'
+                                    else '' }}>V3.4.2</option>
+                                <option value="V3.4.1" {{ 'selected' if ticket and ticket.version_number=='V3.4.1'
+                                    else '' }}>V3.4.1</option>
+                                <option value="V3.4.0" {{ 'selected' if ticket and ticket.version_number=='V3.4.0'
+                                    else '' }}>V3.4.0</option>
+                                <option value="V3.3.5" {{ 'selected' if ticket and ticket.version_number=='V3.3.5'
+                                    else '' }}>V3.3.5</option>
+                                <option value="V3.3.4" {{ 'selected' if ticket and ticket.version_number=='V3.3.4'
+                                    else '' }}>V3.3.4</option>
+                                <option value="V3.3.3" {{ 'selected' if ticket and ticket.version_number=='V3.3.3'
+                                    else '' }}>V3.3.3</option>
+                                <option value="V3.3.1" {{ 'selected' if ticket and ticket.version_number=='V3.3.1'
+                                    else '' }}>V3.3.1</option>
+                                <option value="V3.2.0" {{ 'selected' if ticket and ticket.version_number=='V3.2.0'
+                                    else '' }}>V3.2.0</option>
+                                <option value="V3.1.5" {{ 'selected' if ticket and ticket.version_number=='V3.1.5'
+                                    else '' }}>V3.1.5</option>
+                                <option value="V3.1.4" {{ 'selected' if ticket and ticket.version_number=='V3.1.4'
+                                    else '' }}>V3.1.4</option>
+                                <option value="V3.1.3" {{ 'selected' if ticket and ticket.version_number=='V3.1.3'
+                                    else '' }}>V3.1.3</option>
+                                <option value="V3.1.2" {{ 'selected' if ticket and ticket.version_number=='V3.1.2'
+                                    else '' }}>V3.1.2</option>
+                                <option value="V2.4.0.5 及以前版本" {{ 'selected' if ticket and
+                                    ticket.version_number=='V2.4.0.5 及以前版本' else '' }}>V2.4.0.5 及以前版本</option>
+                                <option value="V3.0&V4.0防火墙" {{ 'selected' if ticket and
+                                    ticket.version_number=='V3.0&V4.0防火墙' else '' }}>V3.0&V4.0防火墙</option>
+                                <option value="V1.0" {{ 'selected' if ticket and ticket.version_number=='V1.0' else ''
+                                    }}>V1.0</option>
+                                <option value="V1.1" {{ 'selected' if ticket and ticket.version_number=='V1.1' else ''
+                                    }}>V1.1</option>
+                                <option value="国产V3.0" {{ 'selected' if ticket and ticket.version_number=='国产V3.0'
+                                    else '' }}>国产V3.0</option>
+                            </select>
+                            <!-- <input type="text" name="version_number" placeholder="请输入或搜索版本号" autocomplete="off" class="layui-input"> -->
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">序列号</label>
+                        <div class="layui-input-inline">
+                            <input type="text" name="serial_number" value="{{ ticket.serial_number or  ''}}"
+                                placeholder="请输入序列号" autocomplete="off" class="layui-input">
+                            <span class="erp-validation-status"></span>
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">是否过保</label>
+                        <div class="layui-input-inline">
+                            <input type="checkbox" name="is_out_of_warranty" lay-skin="switch" lay-text="是|否"
+                                {{ 'checked' if ticket and ticket.is_out_of_warranty else '' }}>
+                            <span id="warranty_status_text" class="help-text"></span>
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">客户/代理商名称（行业）</label>
+                        <div class="layui-input-inline">
+                            <input type="text" name="customer_agent_name" value="{{ ticket.customer_agent_name or ''}}"
+                                placeholder="请输入客户/代理商名称(行业),如山石(医院)" autocomplete="off" class="layui-input">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 服务与处理信息 -->
+                <div class="form-section">
+                    <div class="form-section-title">服务与处理信息</div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">响应方式</label>
+                        <div class="layui-input-block">
+                            <input type="radio" name="service_method" value="远程" title="远程" lay-filter="serviceMethod"
+                                {{ 'checked' if not ticket or (ticket and ticket.service_method=='远程' ) else '' }}>
+                            <input type="radio" name="service_method" value="电话" title="电话" lay-filter="serviceMethod"
+                                {{ 'checked' if ticket and ticket.service_method=='电话' else '' }}>
+                            <input type="radio" name="service_method" value="微信" title="微信" lay-filter="serviceMethod"
+                                {{ 'checked' if ticket and ticket.service_method=='微信' else '' }}>
+                            <input type="radio" name="service_method" value="现场/上门" title="现场/上门"
+                                lay-filter="serviceMethod" {{ 'checked' if ticket and ticket.service_method=='现场/上门'
+                                else '' }}>
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">影响范围</label>
+                        <div class="layui-input-inline">
+                            <select name="impact_scope">
+                                <option value="">请选择影响范围</option>
+                                <option value="单个用户" {{ 'selected' if ticket and ticket.impact_scope=='单个用户' else '' }}>
+                                    单个用户</option>
+                                <option value="部门级" {{ 'selected' if ticket and ticket.impact_scope=='部门级' else '' }}>
+                                    部门级</option>
+                                <option value="企业级" {{ 'selected' if ticket and ticket.impact_scope=='企业级' else '' }}>
+                                    企业级</option>
+                                <option value="跨组织" {{ 'selected' if ticket and ticket.impact_scope=='跨组织' else '' }}>
+                                    跨组织</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item conditional-field" id="appointment_time_field">
+                        <label class="layui-form-label">预约时间</label>
+                        <div class="layui-input-inline">
+                            <input type="text" name="appointment_time" id="appointment_time_picker"
+                                placeholder="请选择预约时间" autocomplete="off" class="layui-input"
+                                value="{{ ticket.appointment_time | format_datetime if ticket and ticket.appointment_time else '' }}">
+                        </div>
+                    </div>
+
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">接单时间</label>
+                        <div class="layui-input-inline">
+                            <input type="text" name="order_time" id="order_time_picker" required lay-verify="required"
+                                placeholder="请选择接单时间" autocomplete="off" class="layui-input"
+                                value="{{ ticket.order_time | format_datetime if ticket and ticket.order_time else '' }}">
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">完成时间</label>
+                        <div class="layui-input-inline">
+                            <input type="text" name="completion_time" id="completion_time_picker" placeholder="请选择完成时间"
+                                autocomplete="off" class="layui-input"
+                                value="{{ ticket.completion_time | format_datetime if ticket and ticket.completion_time else '' }}">
+                            <span id="completion_time_warning" class="time-warning"></span>
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">工单状态</label>
+                        <div class="layui-input-inline">
+                            <select name="status" lay-verify="required" lay-filter="statusSelect"
+                                class="problem-classification-select">
+                                <option value="创建/提交" {{ 'selected' if not ticket or (ticket and ticket.status=='创建/提交'
+                                    ) else '' }}>创建/提交</option>
+                                <option value="未完成-客户原因" {{ 'selected' if ticket and ticket.status=='未完成-客户原因' else ''
+                                    }}>未完成-客户原因</option>
+                                <option value="未完成-研发原因" {{ 'selected' if ticket and ticket.status=='未完成-研发原因' else ''
+                                    }}>未完成-研发原因</option>
+                                <option value="未完成-生产原因" {{ 'selected' if ticket and ticket.status=='未完成-生产原因' else ''
+                                    }}>未完成-生产原因</option>
+                                <option value="未完成-售后原因" {{ 'selected' if ticket and ticket.status=='未完成-售后原因' else ''
+                                    }}>未完成-售后原因</option>
+                                <option value="暂时规避" {{ 'selected' if ticket and ticket.status=='暂时规避' else '' }}>暂时规避
+                                </option>
+                                <option value="处理中" {{ 'selected' if ticket and ticket.status=='处理中' else '' }}>处理中
+                                </option>
+                                <option value="已解决" {{ 'selected' if ticket and ticket.status=='已解决' else '' }}>已解决
+                                </option>
+                                <option value="已关闭" {{ 'selected' if ticket and ticket.status=='已关闭' else '' }}>已关闭
+                                </option>
+                                <!-- <option value="已取消" {{ 'selected' if ticket and ticket.status == '已取消' else '' }}>已取消</option> -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- SLA时间信息显示区域 -->
+                    <div class="layui-form-item" id="sla-info-container" style="display: none;">
+                        <label class="layui-form-label">SLA时间</label>
+                        <div class="layui-input-block">
+                            <div class="sla-time-info">
+                                <div class="sla-item">
+                                    <span class="sla-label">响应时间：</span>
+                                    <span class="sla-value" id="response-time">--</span>
+                                    <span class="sla-status" id="response-status"></span>
+                                </div>
+                                <div class="sla-item">
+                                    <span class="sla-label">诊断时间：</span>
+                                    <span class="sla-value" id="diagnosis-time">--</span>
+                                    <span class="sla-status" id="diagnosis-status"></span>
+                                </div>
+                                <div class="sla-item">
+                                    <span class="sla-label">业务恢复时间：</span>
+                                    <span class="sla-value" id="recovery-time">--</span>
+                                    <span class="sla-status" id="recovery-status"></span>
+                                </div>
+                                <div class="sla-item">
+                                    <span class="sla-label">彻底修复时间：</span>
+                                    <span class="sla-value" id="fix-time">--</span>
+                                    <span class="sla-status" id="fix-status"></span>
+                                </div>
+                                <div class="sla-item">
+                                    <span class="sla-label">责任部门：</span>
+                                    <span class="sla-value" id="responsible-department">--</span>
+                                </div>
+                                <div class="sla-item">
+                                    <span class="sla-label">当前处理部门：</span>
+                                    <span class="sla-value" id="current-department">--</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 业务恢复时间按钮 -->
+                    <div class="layui-form-item" id="recovery-time-btn-container" style="display: none;">
+                        <label class="layui-form-label">操作</label>
+                        <div class="layui-input-inline">
+                            <button type="button" class="layui-btn layui-btn-normal layui-btn-sm"
+                                id="btn-record-recovery-time">
+                                <i class="layui-icon layui-icon-time"></i> 记录业务恢复时间
+                            </button>
+                            <button type="button" class="layui-btn layui-btn-warm layui-btn-sm" id="btn-record-fix-time"
+                                style="display: none;">
+                                <i class="layui-icon layui-icon-time"></i> 记录彻底修复时间
+                            </button>
+                        </div>
+                    </div>
+
+
+                </div>
+
+                <!-- 问题分析与处理过程 -->
+                <div class="form-section security-analysis">
+                    <div class="form-section-title">问题分析与处理过程</div>
+
+
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">问题分类</label>
+                        <div class="layui-input-inline">
+                            <select name="problem_classification_main" lay-verify="required">
+                                <option value="">请选择问题分类</option>
+                                <option value="产品配置类" {{ 'selected' if ticket and
+                                    ticket.problem_classification_main=='产品配置类' else '' }}>产品配置类</option>
+                                <option value="业务异常" {{ 'selected' if ticket and
+                                    ticket.problem_classification_main=='业务异常' else '' }}>业务异常</option>
+                                <option value="登录类" {{ 'selected' if ticket and
+                                    ticket.problem_classification_main=='登录类' else '' }}>登录类</option>
+                                <option value="环境类-客户环境问题" {{ 'selected' if ticket and
+                                    ticket.problem_classification_main=='环境类-客户环境问题' else '' }}>环境类-客户环境问题</option>
+                                <option value="死机问题" {{ 'selected' if ticket and
+                                    ticket.problem_classification_main=='死机问题' else '' }}>死机问题</option>
+                                <option value="软件bug-新bug需研发提供升级包" {{ 'selected' if ticket and
+                                    ticket.problem_classification_main=='软件bug-新bug需研发提供升级包' else '' }}>
+                                    软件bug-新bug需研发提供升级包</option>
+                                <option value="软件bug-已知有补丁包" {{ 'selected' if ticket and
+                                    ticket.problem_classification_main=='软件bug-已知有补丁包' else '' }}>软件bug-已知有补丁包</option>
+                                <option value="软件bug-需寄回升级包" {{ 'selected' if ticket and
+                                    ticket.problem_classification_main=='软件bug-需寄回升级包' else '' }}>软件bug-需寄回升级包</option>
+                                <option value="软件bug-临时补丁包" {{ 'selected' if ticket and
+                                    ticket.problem_classification_main=='软件bug-临时补丁包' else '' }}>软件bug-临时补丁包</option>
+                                <option value="软件bug-不需要升级包" {{ 'selected' if ticket and
+                                    ticket.problem_classification_main=='软件bug-不需要升级包' else '' }}>软件bug-不需要升级包</option>
+                                <option value="bug开发中" {{ 'selected' if ticket and
+                                    ticket.problem_classification_main=='bug开发中' else '' }}>bug开发中</option>
+                                <option value="硬件问题（需寄回）" {{ 'selected' if ticket and
+                                    ticket.problem_classification_main=='硬件问题（需寄回）' else '' }}>硬件问题（需寄回）</option>
+                                <option value="硬件问题（无需/暂不寄回）" {{ 'selected' if ticket and
+                                    ticket.problem_classification_main=='硬件问题（无需/暂不寄回）' else '' }}>硬件问题（无需/暂不寄回）
+                                </option>
+                                <option value="安全漏洞" {{ 'selected' if ticket and
+                                    ticket.problem_classification_main=='安全漏洞' else '' }}>安全漏洞</option>
+                                <option value="未排查出原因（临时解决）" {{ 'selected' if ticket and
+                                    ticket.problem_classification_main=='未排查出原因（临时解决）' else '' }}>未排查出原因（临时解决）</option>
+                                <option value="其他（检测咨询类）" {{ 'selected' if ticket and
+                                    ticket.problem_classification_main=='其他（检测咨询类）' else '' }}>其他（检测咨询类）</option>
+                                <option value="新需求" {{ 'selected' if ticket and
+                                    ticket.problem_classification_main=='新需求' else '' }}>新需求</option>
+                                <option value="版本升级" {{ 'selected' if ticket and
+                                    ticket.problem_classification_main=='版本升级' else '' }}>版本升级</option>
+                                <option value="其他" {{ 'selected' if ticket and ticket.problem_classification_main=='其他'
+                                    else '' }}>其他</option>
+                            </select>
+                        </div>
+                    </div>
+
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">模块标签</label>
+                        <div class="layui-input-inline">
+                            <input type="text" name="problem_tags" placeholder="模块标签 (逗号分隔)" class="layui-input"
+                                value="{{ ticket.problem_tags or '' }}">
+                        </div>
+                    </div>
+                    <div class="layui-form-item layui-form-text">
+                        <label class="layui-form-label" id="solution">处理记录</label>
+                        <div class="layui-input-block">
+                            <textarea name="relatedinfo" placeholder="相关日志、截图、链接等 (IP、域名、文件哈希等)" class="layui-textarea"
+                                style="height: 60px;">{{ticket.relatedinfo | safe if ticket and ticket.relatedinfo is not none else '' }}</textarea>
+                            <div id="relatedinfo-image-container" style="margin-top: 10px;"></div>
+
+                            <!-- <div id="solution-image-container2" style="margin-top: 10px;"></div> -->
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item layui-form-text">
+                        <label class="layui-form-label" id="solution">处置方案</label>
+                        <div class="layui-input-block">
+                            <textarea name="solution" placeholder="请详细描述处置方案和安全建议"
+                                class="layui-textarea">{{ ticket.solution | safe if ticket and ticket.solution is not none else '' }}</textarea>
+                            <div id="solution-image-container" style="margin-top: 10px;"></div>
+                        </div>
+                    </div>
+                </div>
+
+
+
+                <!-- 工单流程记录 -->
+                <div class="form-section wide-flow-section">
+                    <div class="form-section-title draggable-underline"
+                        style="cursor: pointer; display: flex; justify-content: space-between; align-items: center;"
+                        onclick="toggleFlowSection()">
+                        <span>工单流程记录</span>
+                        <span id="flow-toggle-text" style="font-size: 14px; color: #1E9FFF;">展开</span>
+                    </div>
+                    <div id="ticket-flow-container" style="display: none;">
+                        <div class="flow-timeline" id="flow-timeline">
+                            <!-- 流程记录将通过AJAX加载 -->
+                            <div class="flow-loading">
+                                <i
+                                    class="layui-icon layui-icon-loading layui-anim layui-anim-rotate layui-anim-loop"></i>
+                                正在加载流程记录...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 表单操作按钮 -->
+                <div class="form-actions">
+                    <button class="layui-btn" lay-submit lay-filter="saveConfigBtn" id="saveConfigBtn">
+                        <i class="layui-icon layui-icon-ok"></i> 立即保存
+                    </button>
+                    <button type="button" class="layui-btn layui-btn-normal" id="view-flow-btn">查看流程</button>
+                    <button type="button" class="layui-btn layui-btn-primary" onclick="closeDialog()">
+                        <i class="layui-icon layui-icon-close"></i> 取消
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% include 'system/common/footer.html' %}
+
+    <script>
+        var TICKET_DATA_JSON = {{ (ticket_data_json | tojson | safe) if ticket_data_json else '{}' }};
+        var ADD_FORM_DATA_JSON = {{ add_form_data | tojson | safe if add_form_data else '{}' }};
+        var IS_OVERDUE = {{ ticket.is_overdue | default ('false', true) | lower }};
+        var OVERDUE_HOURS = {{ ticket.overdue_hours | default (0, true) }};
+        var TICKET_STATUS = {{ ticket.status | tojson | default ('""', true) }};
+        var TICKET_PRIORITY = {{ ticket.priority | tojson | default ('"Low"', true) }};
+        var CREATE_TIME = {{ ticket.create_time | tojson | default ('""', true) }};
+    </script>
+    <script src="{{ url_for('static',filename='js/ticket/ticket_edit.js')}}"></script>
+</body>
+
+</html>

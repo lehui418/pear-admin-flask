@@ -1,8 +1,11 @@
 from flask import Blueprint, session, redirect, url_for, render_template, request
 from flask_login import current_user, login_user, login_required, logout_user
+import time
+from sqlalchemy.orm import joinedload
 
-from applications.common.admin import get_captcha, login_log
-from applications.common.utils.http import fail_api, success_api
+from applications.common.admin import get_captcha, login_log, normal_log
+from applications.common.script.admin import operation_log
+from applications.common.utils.http import fail_api, success_api, table_api
 from applications.models import User
 
 bp = Blueprint('passport', __name__, url_prefix='/passport')
@@ -16,11 +19,20 @@ def captcha():
     return resp
 
 
+# 调试验证码 - 仅用于开发环境
+@bp.get('/debug_captcha')
+def debug_captcha():
+    """调试验证码接口，仅用于开发环境"""
+    # 这里可以添加环境检查，确保只在开发环境可用
+    code = session.get("code", "")
+    return table_api(msg="当前验证码", data=code)
+
+
 # 登录
 @bp.get('/login')
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('index.index'))
+        return redirect(url_for('system.workboard.main'))
     return render_template('system/login.html')
 
 
@@ -31,7 +43,7 @@ def login_post():
     username = req.get('username')
     password = req.get('password')
     remember = bool(req.get('remember-me'))
-    code = req.get('captcha').__str__().lower()
+    code = req.get('captcha', '').lower()
 
     if not username or not password or not code:
         return fail_api(msg="用户名或密码没有输入")
@@ -73,19 +85,55 @@ def login_post():
         #     roles.append(role.id)
         # session['role'] = [roles]
 
+        # 记录登录时间，用于心跳检测
+        session['last_activity'] = int(time.time())
+
         return success_api(msg="登录成功")
 
     login_log(request, uid=user.id, is_access=False)
     return fail_api(msg="用户名或密码错误")
 
 
+# 心跳检测接口 - 用于保持会话活跃
+@bp.get('/heartbeat')
+@login_required
+def heartbeat():
+    """心跳检测接口，用于保持会话活跃"""
+    # 更新会话时间戳
+    session['last_activity'] = int(time.time())
+    return success_api(msg="心跳正常")
+
+
+# 检查会话状态
+@bp.get('/check_session')
+@login_required
+def check_session():
+    """检查会话状态"""
+    last_activity = session.get('last_activity', 0)
+    current_time = int(time.time())
+    
+    # 如果超过30分钟无活动，提示即将过期
+    if current_time - last_activity > 30 * 60:
+        return fail_api(msg="会话即将过期", code=419)
+    
+    return success_api(msg="会话正常")
+
+
 # 退出登录
 @bp.post('/logout')
 @login_required
 def logout():
+    # 手动记录登出日志
+    normal_log(
+        method=request.method,
+        url=request.path,
+        ip=request.remote_addr,
+        user_agent=request.headers.get('User-Agent'),
+        desc=f"用户 [{current_user.username}] 退出登录",
+        uid=current_user.id,
+        is_access=True
+    )
     logout_user()
-
     if 'permissions' in session:
         session.pop('permissions')
-
     return success_api(msg="注销成功")

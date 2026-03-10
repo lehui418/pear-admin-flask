@@ -1,9 +1,13 @@
 import datetime
+from functools import wraps
+from flask import request, g
+from flask_login import current_user
 
 from flask.cli import AppGroup
 
 from applications.extensions import db
 from applications.models import User, Role, Dept, Power
+from applications.models.admin_log import OperationLog
 
 admin_cli = AppGroup("admin")
 
@@ -533,6 +537,71 @@ powerdata = [
         create_time=now_time,
         enable=1,
 
+    ), Power(
+        id=60,
+        name='产品建议管理',
+        type='1',
+        code='system:product_suggestion:main',
+        url='/system/product_suggestion/',
+        open_type='_iframe',
+        parent_id='1',
+        icon='layui-icon layui-icon-edit',
+        sort=8,
+        create_time=now_time,
+        enable=1,
+
+    ), Power(
+        id=70,
+        name='产品建议新增',
+        type='2',
+        code='system:product_suggestion:add',
+        url='',
+        open_type='',
+        parent_id='60',
+        icon='',
+        sort=1,
+        create_time=now_time,
+        enable=1,
+
+    ), Power(
+        id=71,
+        name='产品建议编辑',
+        type='2',
+        code='system:product_suggestion:edit',
+        url='',
+        open_type='',
+        parent_id='60',
+        icon='',
+        sort=2,
+        create_time=now_time,
+        enable=1,
+
+    ), Power(
+        id=72,
+        name='产品建议删除',
+        type='2',
+        code='system:product_suggestion:delete',
+        url='',
+        open_type='',
+        parent_id='60',
+        icon='',
+        sort=3,
+        create_time=now_time,
+        enable=1,
+
+    ), Power(
+        id=61,
+        name='工单管理',
+        type='1',
+        code='system:ticket:main',
+        url='/system/ticket/',
+        open_type='_iframe',
+        parent_id='1',
+        icon='layui-icon layui-icon-file',
+        sort=9,
+        create_time=now_time,
+        enable=1,
+
     )
 
 ]
@@ -549,7 +618,7 @@ def add_user_role():
 
 
 def add_role_power():
-    admin_powers = Power.query.filter(Power.id.in_([1, 3, 4, 9, 12, 13, 17, 18, 44, 48])).all()
+    admin_powers = Power.query.filter(Power.id.in_([1, 3, 4, 9, 12, 13, 17, 18, 44, 48, 60, 61, 70, 71, 72])).all()
     admin_user = Role.query.filter_by(id=2).first()
     for i in admin_powers:
         admin_user.power.append(i)
@@ -573,3 +642,51 @@ def init_db():
     add_role_power()
     print("角色权限数据存入")
     print("数据初始化完成，请使用run脚本运行")
+
+def login_log(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        # 记录登录日志
+        # ...
+        return f(*args, **kwargs)
+    return decorated_function
+
+def operation_log(description=None):
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            # 先执行视图函数，以便在函数内部准备好动态描述所需的数据
+            response = f(*args, **kwargs)
+            
+            # 如果是重定向响应，通常不记录日志
+            if response.status_code in [301, 302]:
+                return response
+
+            # 动态生成描述
+            log_desc = ""
+            if callable(description):
+                # 如果描述是函数，调用它来获取动态描述
+                # 我们可以通过 g 对象在视图函数和装饰器之间传递数据
+                try:
+                    log_desc = description()
+                except Exception as e:
+                    log_desc = "动态生成日志描述失败"
+            else:
+                log_desc = description
+
+            # 记录操作日志
+            log = OperationLog(
+                uid=current_user.id,
+                url=request.path,
+                method=request.method,
+                ip=request.remote_addr,
+                user_agent=request.headers.get('User-Agent'),
+                content_type=request.content_type,
+                desc=log_desc
+            )
+            db.session.add(log)
+            db.session.commit()
+            
+            return response
+        return decorated_function
+    return decorator
