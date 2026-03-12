@@ -28,53 +28,12 @@
 </form>
 {% include 'system/common/footer.html' %}
 <script>
-    layui.use(['dtree', 'form', 'jquery'], function () {
-        let dtree = layui.dtree
-        let form = layui.form
-        let $ = layui.jquery
-
-        dtree.render({
-            elem: '#role-power',
-            method: 'get',
-            url: '/system/role/getRolePower/{{id}}',
-            dataFormat: 'list',
-            checkbar: true,
-            skin: 'layui',
-            initLevel: '1',
-            checkbarType: 'self',
-            response: {treeId: 'powerId', parentId: 'parentId', title: 'powerName'},
-        })
-
-        form.on('submit(power-save)', function (data) {
-            let param = dtree.getCheckbarNodesParam('role-power')
-            let ids = ''
-            for (let i = 0; i < param.length; i++) {
-                let id = param[i].nodeId
-                ids += id + ','
-            }
-            ids = ids.substr(0, ids.length - 1)
-            data.field.roleId = {{id}};
-            data.field.powerIds = ids
-
-            $.ajax({
-                url: '/system/role/saveRolePower',
-                data: data.field,
-                dataType: 'json',
-                type: 'put',
-                success: function (result) {
-                    if (result.success) {
-                        layer.msg(result.msg, {icon: 1, time: 1000}, function () {
-                            parent.layer.close(parent.layer.getFrameIndex(window.name))
-                        })
-                    } else {
-                        layer.msg(result.msg, {icon: 2, time: 1000})
-                    }
-                }
-            })
-            return false
-        })
-
-    })
+    // 角色ID，从后端传递
+    var ROLE_ID = {{ id | default(0) }};
+    // URL配置
+    var GET_ROLE_POWER_URL = "{{ url_for('system.role.get_role_power', id=id) }}";
+    var SAVE_ROLE_POWER_URL = "{{ url_for('system.role.save_role_power') }}";
 </script>
+<script src="{{ url_for('static', filename='js/role/role_power.js') }}"></script>
 </body>
 </html>

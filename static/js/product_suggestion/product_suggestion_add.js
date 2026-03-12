@@ -38,7 +38,7 @@ layui.use(['form', 'jquery', 'layer', 'upload'], function (form, $, layer, uploa
         container.empty();
 
         $.each(imageUrls, function (index, imageInfo) {
-            var displayUrl = basePath + uploadUrl + imageInfo.id;
+            var displayUrl = imageViewUrl + imageInfo.id;
             var imageDiv = $('<div class="pasted-image" style="display:inline-block; position:relative; margin:5px;">' +
                 '<img src="' + displayUrl + '" style="max-width:200px; max-height:200px; border:1px solid #ddd; padding:3px; cursor:pointer;" alt="图片" data-id="' + imageInfo.id + '">' +
                 '<button type="button" class="remove-image" data-index="' + index + '" style="position:absolute; top:-5px; right:-5px; background:#ff4444; color:white; border:none; border-radius:50%; width:20px; height:20px; cursor:pointer; font-size:12px;">×</button>' +
@@ -72,7 +72,7 @@ layui.use(['form', 'jquery', 'layer', 'upload'], function (form, $, layer, uploa
                 var loading = layer.load(2, { shade: [0.3, '#000'] });
 
                 $.ajax({
-                    url: basePath + uploadUrl,
+                    url: uploadUrl,
                     type: 'POST',
                     data: formData,
                     processData: false,
