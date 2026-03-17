@@ -10,6 +10,7 @@ from flask_login import login_required, current_user
 from ...common.utils.http import table_api
 from ...common.utils.rights import authorize
 from applications.common.utils.validate import str_escape
+from applications.common.utils.datetime_util import format_datetime
 from ...models import Power, Ticket
 from ...schemas import PowerOutSchema
 
@@ -244,7 +245,7 @@ def message():
                 "title": title,
                 "context": context,
                 "form": "工单系统",
-                "time": now.strftime('%Y-%m-%d %H:%M'),
+                "time": format_datetime(now, '%Y-%m-%d %H:%M'),
                 "is_handled": is_handled
             }
             
@@ -405,7 +406,7 @@ def rights_main():
             'title': ticket.title,
             'priority': ticket.priority,
             'status': ticket.status,
-            'create_time': ticket.create_time.strftime('%Y-%m-%d %H:%M:%S') if ticket.create_time else ''
+            'create_time': format_datetime(ticket.create_time)
         })
 
     return render_template('system/analysis/main.html', 
@@ -519,7 +520,7 @@ def get_pending_tickets_data():
             'title': ticket.title,
             'priority': ticket.priority,
             'status': ticket.status,
-            'create_time': ticket.create_time.strftime('%Y-%m-%d %H:%M:%S') if ticket.create_time else ''
+            'create_time': format_datetime(ticket.create_time)
         })
 
     return jsonify(code=0, msg="查询成功", count=count, data=tickets_data)

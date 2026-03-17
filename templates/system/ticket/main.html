@@ -5,437 +5,421 @@
     <title>工单记录</title>
     {% include 'system/common/header.html' %}
     <link rel="stylesheet" href="{{url_for('static',filename='css/ticket/ticket_main.css')}}">
+    <style>
+        /* 常用筛选区域样式 */
+        .common-search-area {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+        
+        .common-search-area .layui-form-item {
+            margin-bottom: 10px;
+        }
+        
+        .common-search-area .layui-form-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        /* 高级筛选按钮样式 */
+        .advanced-search-toggle {
+            text-align: center;
+            margin: 10px 0;
+            padding: 8px;
+            background-color: #e6e6e6;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .advanced-search-toggle:hover {
+            background-color: #d9d9d9;
+        }
+        
+        .advanced-search-toggle i {
+            margin-right: 5px;
+        }
+        
+        /* 高级筛选区域样式 */
+        #advancedSearchArea {
+            display: none;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px dashed #ccc;
+        }
+        
+        #advancedSearchArea.show {
+            display: block;
+        }
+        
+        /* 搜索区域默认隐藏 */
+        #searchArea {
+            display: none;
+        }
+        
+        #searchArea.show {
+            display: block;
+        }
+    </style>
 </head>
 
 <body class="pear-container">
     <div class="layui-card">
         <div class="layui-card-body">
-            <!-- 搜索区域控制按钮已隐藏 -->
-
-            <!-- 搜索区域 (默认隐藏) -->
-            <div class="layui-form layui-form-pane" id="searchArea" style="margin-bottom: 10px; display: none;">
-                <div class="layui-row layui-col-space15">
-                    <!-- 左侧搜索区域 -->
-                    <div class="layui-col-md6">
-                        <!-- 基本信息搜索区域 -->
-                        <div class="layui-card">
-                            <div class="layui-card-header"><strong>基本信息</strong></div>
-                            <div class="layui-card-body">
-                                <div class="layui-form-item">
-                                    <div class="layui-inline" style="width: 48%; margin-right: 2%;">
-                                        <label class="layui-form-label">工单标题/ID</label>
-                                        <div class="layui-input-block">
-                                            <input type="text" name="searchKeyword" id="searchKeyword"
-                                                placeholder="工单标题/ID" autocomplete="off" class="layui-input">
-                                        </div>
-                                    </div>
-                                    <div class="layui-inline" style="width: 48%;">
-                                        <label class="layui-form-label">优先级</label>
-                                        <div class="layui-input-block">
-                                            <select name="searchPriority" id="searchPriority">
-                                                <option value="">全部</option>
-                                                <option value="P1">P1 重大</option>
-                                                <option value="P2">P2 主要</option>
-                                                <option value="P3">P3 次要</option>
-                                                <option value="P4">P4 咨询</option>
-                                                <option value="High">P1 重大</option>
-                                                <option value="Medium">P3 次要</option>
-                                                <option value="Low">P4 咨询</option>
-                                                <!-- <option value="Urgent">紧急</option> -->
-                                            </select>
-                                        </div>
-                                    </div>
-
+            <!-- 搜索区域 -->
+            <div class="layui-form layui-form-pane" id="searchArea" style="margin-bottom: 10px;">
+                
+                <!-- 常用筛选区域 -->
+                <div class="common-search-area">
+                    <div class="layui-row layui-col-space15">
+                        <div class="layui-col-md2">
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">工单标题/ID</label>
+                                <div class="layui-input-block">
+                                    <input type="text" name="searchKeyword" id="searchKeyword"
+                                        placeholder="工单标题/ID" autocomplete="off" class="layui-input">
                                 </div>
-                                <div class="layui-form-item">
-                                    <div class="layui-inline" style="width: 48%; margin-right: 2%;">
-                                        <label class="layui-form-label">详细描述</label>
-                                        <div class="layui-input-block">
-                                            <input type="text" name="description" id="description" placeholder="详细描述"
-                                                autocomplete="off" class="layui-input">
-                                        </div>
-                                    </div>
-
-                                    <div class="layui-inline" style="width: 48%;">
-                                        <label class="layui-form-label">负责人</label>
-                                        <div class="layui-input-block">
-                                            <input type="text" name="searchAssignee" id="searchAssignee"
-                                                placeholder="负责人姓名" autocomplete="off" class="layui-input">
-                                        </div>
-                                    </div>
-                                </div>
-
                             </div>
                         </div>
-
-                        <!-- 产品信息搜索区域 -->
-                        <div class="layui-card" style="margin-top: 15px;">
-                            <div class="layui-card-header"><strong>产品信息</strong></div>
-                            <div class="layui-card-body">
-                                <div class="layui-form-item">
-                                    <div class="layui-inline" style="width: 48%; margin-right: 2%;">
-                                        <label class="layui-form-label">产品类型</label>
-                                        <div class="layui-input-block">
-                                            <select name="product_type_level1" id="product_type_level1" lay-search="">
-                                                <option value="">请选择设备类型</option>
-                                                <option value="双向网闸" {{ 'selected' if ticket and
-                                                    ticket.product_type_level1=='双向网闸' else '' }}>双向网闸</option>
-                                                <option value="单向光闸" {{ 'selected' if ticket and
-                                                    ticket.product_type_level1=='单向光闸' else '' }}>单向光闸</option>
-                                                <option value="国产网闸" {{ 'selected' if ticket and
-                                                    ticket.product_type_level1=='国产网闸' else '' }}>国产网闸</option>
-                                                <option value="国产光闸" {{ 'selected' if ticket and
-                                                    ticket.product_type_level1=='国产光闸' else '' }}>国产光闸</option>
-                                                <option value="防火墙" {{ 'selected' if ticket and
-                                                    ticket.product_type_level1=='防火墙' else '' }}>防火墙</option>
-                                                <option value="数据交换平台" {{ 'selected' if ticket and
-                                                    ticket.product_type_level1=='数据交换平台' else '' }}>数据交换平台</option>
-                                                <option value="文件交换系统（山东源鲁）" {{ 'selected' if ticket and
-                                                    ticket.product_type_level1=='文件交换系统（山东源鲁）' else '' }}>文件交换系统（山东源鲁）
-                                                </option>
-                                                <option value="文档审计" {{ 'selected' if ticket and
-                                                    ticket.product_type_level1=='文档审计' else '' }}>文档审计</option>
-                                                <option value="端设备" {{ 'selected' if ticket and
-                                                    ticket.product_type_level1=='端设备' else '' }}>端设备</option>
-                                                <option value="密件流转" {{ 'selected' if ticket and
-                                                    ticket.product_type_level1=='密件流转' else '' }}>密件流转</option>
-                                                <option value="真物理隔离网闸" {{ 'selected' if ticket and
-                                                    ticket.product_type_level1=='真物理隔离网闸' else '' }}>真物理隔离网闸</option>
-                                                <option value="其他" {{ 'selected' if ticket and
-                                                    ticket.product_type_level1=='其他' else '' }}>其他安全设备</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="layui-inline" style="width: 48%;">
-                                        <label class="layui-form-label">产品二级分类</label>
-                                        <div class="layui-input-block">
-                                            <select name="product_type_level2" id="product_type_level2"
-                                                lay-verify="required">
-                                                <option value="">请选择产品二级分类</option>
-                                                <option value="国产" {{ 'selected' if ticket and
-                                                    ticket.product_type_level2=='国产' else '' }}>国产</option>
-                                                <option value="标准" {{ 'selected' if ticket and
-                                                    ticket.product_type_level2=='标准' else '' }}>标准</option>
-                                            </select>
-                                        </div>
-                                    </div>
+                        <div class="layui-col-md2">
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">优先级</label>
+                                <div class="layui-input-block">
+                                    <select name="searchPriority" id="searchPriority">
+                                        <option value="">全部</option>
+                                        <option value="P1">P1 重大</option>
+                                        <option value="P2">P2 主要</option>
+                                        <option value="P3">P3 次要</option>
+                                        <option value="P4">P4 咨询</option>
+                                    </select>
                                 </div>
-                                <div class="layui-form-item">
-                                    <div class="layui-inline" style="width: 48%; margin-right: 2%;">
-                                        <label class="layui-form-label">版本号</label>
-                                        <div class="layui-input-block">
-                                            <select name="searchVersionNumber" lay-verify="required"
-                                                id="searchVersionNumber">
-                                                <option value="">请选择版本号</option>
-                                                <option value="V3.4.10" {{ 'selected' if ticket and
-                                                    ticket.version_number=='V3.4.10' else '' }}>V3.4.10</option>
-                                                <option value="V3.4.9" {{ 'selected' if ticket and
-                                                    ticket.version_number=='V3.4.9' else '' }}>V3.4.9</option>
-                                                <option value="V3.4.7" {{ 'selected' if ticket and
-                                                    ticket.version_number=='V3.4.7' else '' }}>V3.4.7</option>
-                                                <option value="V3.4.6" {{ 'selected' if ticket and
-                                                    ticket.version_number=='V3.4.6' else '' }}>V3.4.6</option>
-                                                <option value="V3.4.5" {{ 'selected' if ticket and
-                                                    ticket.version_number=='V3.4.5' else '' }}>V3.4.5</option>
-                                                <option value="V3.4.4" {{ 'selected' if ticket and
-                                                    ticket.version_number=='V3.4.4' else '' }}>V3.4.4</option>
-                                                <option value="V3.4.3" {{ 'selected' if ticket and
-                                                    ticket.version_number=='V3.4.3' else '' }}>V3.4.3</option>
-                                                <option value="V3.4.2" {{ 'selected' if ticket and
-                                                    ticket.version_number=='V3.4.2' else '' }}>V3.4.2</option>
-                                                <option value="V3.4.1" {{ 'selected' if ticket and
-                                                    ticket.version_number=='V3.4.1' else '' }}>V3.4.1</option>
-                                                <option value="V3.4.0" {{ 'selected' if ticket and
-                                                    ticket.version_number=='V3.4.0' else '' }}>V3.4.0</option>
-                                                <option value="V3.3.5" {{ 'selected' if ticket and
-                                                    ticket.version_number=='V3.3.5' else '' }}>V3.3.5</option>
-                                                <option value="V3.3.4" {{ 'selected' if ticket and
-                                                    ticket.version_number=='V3.3.4' else '' }}>V3.3.4</option>
-                                                <option value="V3.3.3" {{ 'selected' if ticket and
-                                                    ticket.version_number=='V3.3.3' else '' }}>V3.3.3</option>
-                                                <option value="V3.3.1" {{ 'selected' if ticket and
-                                                    ticket.version_number=='V3.3.1' else '' }}>V3.3.1</option>
-                                                <option value="V3.2.0" {{ 'selected' if ticket and
-                                                    ticket.version_number=='V3.2.0' else '' }}>V3.2.0</option>
-                                                <option value="V3.1.5" {{ 'selected' if ticket and
-                                                    ticket.version_number=='V3.1.5' else '' }}>V3.1.5</option>
-                                                <option value="V3.1.4" {{ 'selected' if ticket and
-                                                    ticket.version_number=='V3.1.4' else '' }}>V3.1.4</option>
-                                                <option value="V3.1.3" {{ 'selected' if ticket and
-                                                    ticket.version_number=='V3.1.3' else '' }}>V3.1.3</option>
-                                                <option value="V3.1.2" {{ 'selected' if ticket and
-                                                    ticket.version_number=='V3.1.2' else '' }}>V3.1.2</option>
-                                                <option value="V2.4.0.5 及以前版本" {{ 'selected' if ticket and
-                                                    ticket.version_number=='V2.4.0.5 及以前版本' else '' }}>V2.4.0.5 及以前版本
-                                                </option>
-                                                <option value="V3.0&V4.0防火墙" {{ 'selected' if ticket and
-                                                    ticket.version_number=='V3.0&V4.0防火墙' else '' }}>V3.0&V4.0防火墙
-                                                </option>
-                                                <option value="V1.0" {{ 'selected' if ticket and
-                                                    ticket.version_number=='V1.0' else '' }}>V1.0</option>
-                                                <option value="V1.1" {{ 'selected' if ticket and
-                                                    ticket.version_number=='V1.1' else '' }}>V1.1</option>
-                                                <option value="国产V3.0" {{ 'selected' if ticket and
-                                                    ticket.version_number=='国产V3.0' else '' }}>国产V3.0</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="layui-inline" style="width: 48%;">
-                                        <label class="layui-form-label">序列号</label>
-                                        <div class="layui-input-block">
-                                            <input type="text" name="searchSerialNumber" id="searchSerialNumber"
-                                                placeholder="序列号" autocomplete="off" class="layui-input">
-                                        </div>
-                                    </div>
+                            </div>
+                        </div>
+                        <div class="layui-col-md2">
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">序列号</label>
+                                <div class="layui-input-block">
+                                    <input type="text" name="searchSerialNumber" id="searchSerialNumber"
+                                        placeholder="序列号" autocomplete="off" class="layui-input">
                                 </div>
-                                <div class="layui-form-item">
-                                    <div class="layui-inline" style="width: 48%; margin-right: 2%;">
-                                        <label class="layui-form-label">是否过保</label>
-                                        <div class="layui-input-block">
-                                            <select name="searchWarranty" id="searchWarranty">
-                                                <option value="">全部</option>
-                                                <option value="true">是</option>
-                                                <option value="false">否</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="layui-inline" style="width: 48%;">
-                                        <label class="layui-form-label">客户/代理商名称（行业）</label>
-                                        <div class="layui-input-block">
-                                            <input type="text" name="customer_agent_name" id="customer_agent_name"
-                                                placeholder="请输入客户/代理商名称(行业)" autocomplete="off" class="layui-input">
-                                        </div>
-                                    </div>
+                            </div>
+                        </div>
+                        <div class="layui-col-md2">
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">负责人</label>
+                                <div class="layui-input-block">
+                                    <input type="text" name="searchAssignee" id="searchAssignee"
+                                        placeholder="负责人姓名" autocomplete="off" class="layui-input">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-col-md2">
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">客户/代理商</label>
+                                <div class="layui-input-block">
+                                    <input type="text" name="customer_agent_name" id="customer_agent_name"
+                                        placeholder="客户/代理商名称" autocomplete="off" class="layui-input">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-col-md2">
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">工单状态</label>
+                                <div class="layui-input-block">
+                                    <select name="searchStatus" id="searchStatus">
+                                        <option value="">全部</option>
+                                        <option value="创建/提交">创建/提交</option>
+                                        <option value="未完成-客户原因">未完成-客户原因</option>
+                                        <option value="未完成-研发原因">未完成-研发原因</option>
+                                        <option value="未完成-生产原因">未完成-生产原因</option>
+                                        <option value="未完成-售后原因">未完成-售后原因</option>
+                                        <option value="暂时规避">暂时规避</option>
+                                        <option value="处理中">处理中</option>
+                                        <option value="已解决">已解决</option>
+                                        <option value="已关闭">已关闭</option>
+                                    </select>
                                 </div>
                             </div>
                         </div>
                     </div>
-
-                    <!-- 右侧搜索区域 -->
-                    <div class="layui-col-md6">
-                        <!-- 问题分类搜索区域 -->
-                        <div class="layui-card">
-                            <div class="layui-card-header"><strong>服务与处理信息</strong></div>
-                            <div class="layui-card-body">
-                                <div class="layui-form-item">
-                                    <div class="layui-inline" style="width: 48%; margin-right: 2%;">
-                                        <label class="layui-form-label">响应方式</label>
-                                        <div class="layui-input-block">
-                                            <select name="searchServiceMethod" id="searchServiceMethod">
-                                                <option value="">全部</option>
-                                                <option value="远程">远程</option>
-                                                <option value="电话">电话</option>
-                                                <option value="微信">微信</option>
-                                                <option value="现场/上门">现场/上门处理</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="layui-inline" style="width: 48%;">
-                                        <label class="layui-form-label">影响范围</label>
-                                        <div class="layui-input-block">
-                                            <select name="impact_scope" id="impact_scope" lay-verify="required">
-                                                <option value="">全部</option>
-                                                <option value="单个用户">单个用户</option>
-                                                <option value="部门级">部门级</option>
-                                                <option value="企业级">企业级</option>
-                                                <option value="跨组织">跨组织</option>
-                                            </select>
-                                            <!-- <input type="text" name="impact_scope" id="impact_scope" placeholder="影响范围" autocomplete="off" class="layui-input"> -->
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="layui-form-item">
-                                    <div class="layui-inline" style="width: 48%; margin-right: 2%;">
-                                        <label class="layui-form-label">接单时间</label>
-                                        <div class="layui-input-block">
-                                            <input type="date" name="create_time" id="create_time" placeholder="接单时间"
-                                                autocomplete="off" class="layui-input">
-                                        </div>
-                                    </div>
-                                    <div class="layui-inline" style="width: 48%;">
-                                        <label class="layui-form-label">完成时间</label>
-                                        <div class="layui-input-block">
-                                            <input type="date" name="order_time" id="order_time" placeholder="完成时间"
-                                                autocomplete="off" class="layui-input">
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="layui-form-item">
-                                    <div class="layui-inline" style="width: 48%; margin-right: 2%;">
-                                        <label class="layui-form-label">工单状态</label>
-                                        <div class="layui-input-block">
-                                            <select name="searchStatus" id="searchStatus">
-                                                <option value="">全部</option>
-                                                <option value="创建/提交">创建/提交</option>
-                                                <option value="未完成-客户原因">未完成-客户原因</option>
-                                                <option value="未完成-研发原因">未完成-研发原因</option>
-                                                <option value="未完成-生产原因">未完成-生产原因</option>
-                                                <option value="未完成-售后原因">未完成-售后原因</option>
-                                                <option value="暂时规避">暂时规避</option>
-                                                <option value="处理中">处理中</option>
-                                                <option value="已解决">已解决</option>
-                                                <option value="已关闭">已关闭</option>
-                                                <!-- <option value="已取消" {{ 'selected' if ticket and ticket.status == '已取消' else '' }}>已取消</option> -->
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 安全信息搜索区域 -->
-                        <div class="layui-card" style="margin-top: 15px;">
-                            <div class="layui-card-header"><strong>问题分析与处理过程</strong></div>
-                            <div class="layui-card-body">
-                                <div class="layui-form-item">
-                                    <div class="layui-input-inline" style="width: 48%; margin-right: 2%;">
-                                        <label class="layui-form-label">问题分类</label>
-                                        <div class="layui-input-block">
-                                            <select name="problem_classification_main" id="problem_classification_main"
-                                                lay-verify="required">
-                                                <option value="">请选择问题分类</option>
-                                                <option value="产品配置类" {{ 'selected' if ticket and
-                                                    ticket.problem_classification_main=='产品配置类' else '' }}>产品配置类
-                                                </option>
-                                                <option value="业务异常" {{ 'selected' if ticket and
-                                                    ticket.problem_classification_main=='业务异常' else '' }}>业务异常</option>
-                                                <option value="登录类" {{ 'selected' if ticket and
-                                                    ticket.problem_classification_main=='登录类' else '' }}>登录类</option>
-                                                <option value="环境类-客户环境问题" {{ 'selected' if ticket and
-                                                    ticket.problem_classification_main=='环境类-客户环境问题' else '' }}>
-                                                    环境类-客户环境问题</option>
-                                                <option value="死机问题" {{ 'selected' if ticket and
-                                                    ticket.problem_classification_main=='死机问题' else '' }}>死机问题</option>
-                                                <option value="软件bug-新bug需研发提供升级包" {{ 'selected' if ticket and
-                                                    ticket.problem_classification_main=='软件bug-新bug需研发提供升级包' else '' }}>
-                                                    软件bug-新bug需研发提供升级包</option>
-                                                <option value="软件bug-已知有补丁包" {{ 'selected' if ticket and
-                                                    ticket.problem_classification_main=='软件bug-已知有补丁包' else '' }}>
-                                                    软件bug-已知有补丁包</option>
-                                                <option value="软件bug-需寄回升级包" {{ 'selected' if ticket and
-                                                    ticket.problem_classification_main=='软件bug-需寄回升级包' else '' }}>
-                                                    软件bug-需寄回升级包</option>
-                                                <option value="软件bug-临时补丁包" {{ 'selected' if ticket and
-                                                    ticket.problem_classification_main=='软件bug-临时补丁包' else '' }}>
-                                                    软件bug-临时补丁包</option>
-                                                <option value="软件bug-不需要升级包" {{ 'selected' if ticket and
-                                                    ticket.problem_classification_main=='软件bug-不需要升级包' else '' }}>
-                                                    软件bug-不需要升级包</option>
-                                                <option value="bug开发中" {{ 'selected' if ticket and
-                                                    ticket.problem_classification_main=='bug开发中' else '' }}>bug开发中
-                                                </option>
-                                                <option value="硬件问题（需寄回）" {{ 'selected' if ticket and
-                                                    ticket.problem_classification_main=='硬件问题（需寄回）' else '' }}>硬件问题（需寄回）
-                                                </option>
-                                                <option value="硬件问题（无需/暂不寄回）" {{ 'selected' if ticket and
-                                                    ticket.problem_classification_main=='硬件问题（无需/暂不寄回）' else '' }}>
-                                                    硬件问题（无需/暂不寄回）</option>
-                                                <option value="安全漏洞" {{ 'selected' if ticket and
-                                                    ticket.problem_classification_main=='安全漏洞' else '' }}>安全漏洞</option>
-                                                <option value="未排查出原因（临时解决）" {{ 'selected' if ticket and
-                                                    ticket.problem_classification_main=='未排查出原因（临时解决）' else '' }}>
-                                                    未排查出原因（临时解决）</option>
-                                                <option value="其他（检测咨询类）" {{ 'selected' if ticket and
-                                                    ticket.problem_classification_main=='其他（检测咨询类）' else '' }}>其他（检测咨询类）
-                                                </option>
-                                                <option value="新需求" {{ 'selected' if ticket and
-                                                    ticket.problem_classification_main=='新需求' else '' }}>新需求</option>
-                                                <option value="版本升级" {{ 'selected' if ticket and
-                                                    ticket.problem_classification_main=='版本升级' else '' }}>版本升级</option>
-                                                <option value="其他" {{ 'selected' if ticket and
-                                                    ticket.problem_classification_main=='其他' else '' }}>其他</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="layui-inline" style="width: 48%;">
-                                        <label class="layui-form-label">模块标签</label>
-                                        <div class="layui-input-block">
-                                            <input type="text" name="problem_tags" id="problem_tags" placeholder="模块标签"
-                                                autocomplete="off" class="layui-input">
-                                        </div>
-                                        <!-- <label class="layui-form-label">处理记录</label>
-                                <div class="layui-input-block">
-                                    <input type="text" name="relatedinfo" id="relatedinfo" placeholder="处理记录" autocomplete="off" class="layui-input">
-                                </div> -->
-                                    </div>
-                                </div>
-                                <div class="layui-form-item">
-                                    <div class="layui-inline" style="width: 48%; margin-right: 2%;">
-                                        <label class="layui-form-label">处理记录</label>
-                                        <div class="layui-input-block">
-                                            <input type="text" name="relatedinfo" id="relatedinfo" placeholder="处理记录"
-                                                autocomplete="off" class="layui-input">
-                                        </div>
-                                        <!-- <label class="layui-form-label">模块标签</label>
-                                    <div class="layui-input-block">
-                                       <input type="text" name="problem_tags" id="problem_tags" placeholder="模块标签" autocomplete="off" class="layui-input">
-                                    </div> -->
-                                    </div>
-                                    <div class="layui-inline" style="width: 48%;">
-                                        <label class="layui-form-label">处置方案</label>
-                                        <div class="layui-input-block">
-                                            <input type="text" name="solution" id="solution" placeholder="处置方案"
-                                                autocomplete="off" class="layui-input">
-                                        </div>
-                                    </div>
-                                </div>
-
-
-
-                                <div class="layui-form-item">
-
-                                </div>
-                            </div>
+                    
+                    <!-- 常用筛选操作按钮 -->
+                    <div class="layui-row">
+                        <div class="layui-col-md12" style="text-align: center; margin-top: 10px;">
+                            <button class="layui-btn layui-btn-normal layui-btn-sm" id="searchBtn" data-type="reload">
+                                <i class="layui-icon layui-icon-search"></i>搜索
+                            </button>
+                            <button class="layui-btn layui-btn-primary layui-btn-sm" id="resetBtn">
+                                <i class="layui-icon layui-icon-refresh"></i>重置
+                            </button>
                         </div>
                     </div>
                 </div>
+                
+                <!-- 高级筛选展开/收起按钮 -->
+                <div class="advanced-search-toggle" id="toggleAdvancedSearch">
+                    <i class="layui-icon layui-icon-down"></i>
+                    <span>高级筛选</span>
+                </div>
+                
+                <!-- 高级筛选区域 -->
+                <div id="advancedSearchArea">
+                    <div class="layui-row layui-col-space15">
+                        <!-- 左侧高级筛选 -->
+                        <div class="layui-col-md6">
+                            <!-- 产品信息 -->
+                            <div class="layui-card">
+                                <div class="layui-card-header"><strong>产品信息</strong></div>
+                                <div class="layui-card-body">
+                                    <div class="layui-form-item">
+                                        <div class="layui-inline" style="width: 48%; margin-right: 2%;">
+                                            <label class="layui-form-label">产品类型</label>
+                                            <div class="layui-input-block">
+                                                <select name="product_type_level1" id="product_type_level1" lay-search="">
+                                                    <option value="">请选择设备类型</option>
+                                                    <option value="双向网闸">双向网闸</option>
+                                                    <option value="单向光闸">单向光闸</option>
+                                                    <option value="国产网闸">国产网闸</option>
+                                                    <option value="国产光闸">国产光闸</option>
+                                                    <option value="防火墙">防火墙</option>
+                                                    <option value="数据交换平台">数据交换平台</option>
+                                                    <option value="文件交换系统（山东源鲁）">文件交换系统（山东源鲁）</option>
+                                                    <option value="文档审计">文档审计</option>
+                                                    <option value="端设备">端设备</option>
+                                                    <option value="密件流转">密件流转</option>
+                                                    <option value="真物理隔离网闸">真物理隔离网闸</option>
+                                                    <option value="其他">其他安全设备</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="layui-inline" style="width: 48%;">
+                                            <label class="layui-form-label">产品二级分类</label>
+                                            <div class="layui-input-block">
+                                                <select name="product_type_level2" id="product_type_level2">
+                                                    <option value="">请选择产品二级分类</option>
+                                                    <option value="国产">国产</option>
+                                                    <option value="标准">标准</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="layui-form-item">
+                                        <div class="layui-inline" style="width: 48%; margin-right: 2%;">
+                                            <label class="layui-form-label">版本号</label>
+                                            <div class="layui-input-block">
+                                                <select name="searchVersionNumber" id="searchVersionNumber">
+                                                    <option value="">请选择版本号</option>
+                                                    <option value="V3.4.10">V3.4.10</option>
+                                                    <option value="V3.4.9">V3.4.9</option>
+                                                    <option value="V3.4.7">V3.4.7</option>
+                                                    <option value="V3.4.6">V3.4.6</option>
+                                                    <option value="V3.4.5">V3.4.5</option>
+                                                    <option value="V3.4.4">V3.4.4</option>
+                                                    <option value="V3.4.3">V3.4.3</option>
+                                                    <option value="V3.4.2">V3.4.2</option>
+                                                    <option value="V3.4.1">V3.4.1</option>
+                                                    <option value="V3.4.0">V3.4.0</option>
+                                                    <option value="V3.3.5">V3.3.5</option>
+                                                    <option value="V3.3.4">V3.3.4</option>
+                                                    <option value="V3.3.3">V3.3.3</option>
+                                                    <option value="V3.3.1">V3.3.1</option>
+                                                    <option value="V3.2.0">V3.2.0</option>
+                                                    <option value="V3.1.5">V3.1.5</option>
+                                                    <option value="V3.1.4">V3.1.4</option>
+                                                    <option value="V3.1.3">V3.1.3</option>
+                                                    <option value="V3.1.2">V3.1.2</option>
+                                                    <option value="V2.4.0.5 及以前版本">V2.4.0.5 及以前版本</option>
+                                                    <option value="V3.0&V4.0防火墙">V3.0&V4.0防火墙</option>
+                                                    <option value="V1.0">V1.0</option>
+                                                    <option value="V1.1">V1.1</option>
+                                                    <option value="国产V3.0">国产V3.0</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="layui-inline" style="width: 48%;">
+                                            <label class="layui-form-label">是否过保</label>
+                                            <div class="layui-input-block">
+                                                <select name="searchWarranty" id="searchWarranty">
+                                                    <option value="">全部</option>
+                                                    <option value="true">是</option>
+                                                    <option value="false">否</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 基本信息（其他） -->
+                            <div class="layui-card" style="margin-top: 15px;">
+                                <div class="layui-card-header"><strong>其他信息</strong></div>
+                                <div class="layui-card-body">
+                                    <div class="layui-form-item">
+                                        <div class="layui-inline" style="width: 48%; margin-right: 2%;">
+                                            <label class="layui-form-label">详细描述</label>
+                                            <div class="layui-input-block">
+                                                <input type="text" name="description" id="description" placeholder="详细描述"
+                                                    autocomplete="off" class="layui-input">
+                                            </div>
+                                        </div>
+                                        <div class="layui-inline" style="width: 48%;">
+                                            <label class="layui-form-label">工程师工号</label>
+                                            <div class="layui-input-block">
+                                                <input type="text" name="searchEngineerId" id="searchEngineerId"
+                                                    placeholder="工程师工号" autocomplete="off" class="layui-input">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-                <!-- 操作按钮 -->
-                <div class="layui-form-item" style="margin-top: 20px; text-align: center;">
-                    <button class="layui-btn layui-btn-normal" id="searchBtn" data-type="reload">
-                        <i class="layui-icon layui-icon-search"></i>搜索
-                    </button>
-                    <button class="layui-btn layui-btn-primary" id="resetBtn">
-                        <i class="layui-icon layui-icon-refresh"></i>重置
-                    </button>
+                        <!-- 右侧高级筛选 -->
+                        <div class="layui-col-md6">
+                            <!-- 服务与处理信息 -->
+                            <div class="layui-card">
+                                <div class="layui-card-header"><strong>服务与处理信息</strong></div>
+                                <div class="layui-card-body">
+                                    <div class="layui-form-item">
+                                        <div class="layui-inline" style="width: 48%; margin-right: 2%;">
+                                            <label class="layui-form-label">响应方式</label>
+                                            <div class="layui-input-block">
+                                                <select name="searchServiceMethod" id="searchServiceMethod">
+                                                    <option value="">全部</option>
+                                                    <option value="远程">远程</option>
+                                                    <option value="电话">电话</option>
+                                                    <option value="微信">微信</option>
+                                                    <option value="现场/上门">现场/上门处理</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="layui-inline" style="width: 48%;">
+                                            <label class="layui-form-label">影响范围</label>
+                                            <div class="layui-input-block">
+                                                <select name="impact_scope" id="impact_scope">
+                                                    <option value="">全部</option>
+                                                    <option value="单个用户">单个用户</option>
+                                                    <option value="部门级">部门级</option>
+                                                    <option value="企业级">企业级</option>
+                                                    <option value="跨组织">跨组织</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="layui-form-item">
+                                        <div class="layui-inline" style="width: 48%; margin-right: 2%;">
+                                            <label class="layui-form-label">接单时间</label>
+                                            <div class="layui-input-block">
+                                                <input type="date" name="create_time" id="create_time" placeholder="接单时间"
+                                                    autocomplete="off" class="layui-input">
+                                            </div>
+                                        </div>
+                                        <div class="layui-inline" style="width: 48%;">
+                                            <label class="layui-form-label">完成时间</label>
+                                            <div class="layui-input-block">
+                                                <input type="date" name="order_time" id="order_time" placeholder="完成时间"
+                                                    autocomplete="off" class="layui-input">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 问题分析与处理过程 -->
+                            <div class="layui-card" style="margin-top: 15px;">
+                                <div class="layui-card-header"><strong>问题分析与处理过程</strong></div>
+                                <div class="layui-card-body">
+                                    <div class="layui-form-item">
+                                        <div class="layui-inline" style="width: 48%; margin-right: 2%;">
+                                            <label class="layui-form-label">问题分类</label>
+                                            <div class="layui-input-block">
+                                                <select name="problem_classification_main" id="problem_classification_main">
+                                                    <option value="">请选择问题分类</option>
+                                                    <option value="产品配置类">产品配置类</option>
+                                                    <option value="业务异常">业务异常</option>
+                                                    <option value="登录类">登录类</option>
+                                                    <option value="环境类-客户环境问题">环境类-客户环境问题</option>
+                                                    <option value="死机问题">死机问题</option>
+                                                    <option value="软件bug-新bug需研发提供升级包">软件bug-新bug需研发提供升级包</option>
+                                                    <option value="软件bug-已知有补丁包">软件bug-已知有补丁包</option>
+                                                    <option value="软件bug-需寄回升级包">软件bug-需寄回升级包</option>
+                                                    <option value="软件bug-临时补丁包">软件bug-临时补丁包</option>
+                                                    <option value="软件bug-不需要升级包">软件bug-不需要升级包</option>
+                                                    <option value="bug开发中">bug开发中</option>
+                                                    <option value="硬件问题（需寄回）">硬件问题（需寄回）</option>
+                                                    <option value="硬件问题（无需/暂不寄回）">硬件问题（无需/暂不寄回）</option>
+                                                    <option value="安全漏洞">安全漏洞</option>
+                                                    <option value="未排查出原因（临时解决）">未排查出原因（临时解决）</option>
+                                                    <option value="其他（检测咨询类）">其他（检测咨询类）</option>
+                                                    <option value="新需求">新需求</option>
+                                                    <option value="版本升级">版本升级</option>
+                                                    <option value="其他">其他</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="layui-inline" style="width: 48%;">
+                                            <label class="layui-form-label">模块标签</label>
+                                            <div class="layui-input-block">
+                                                <input type="text" name="problem_tags" id="problem_tags" placeholder="模块标签"
+                                                    autocomplete="off" class="layui-input">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="layui-form-item">
+                                        <div class="layui-inline" style="width: 48%; margin-right: 2%;">
+                                            <label class="layui-form-label">处理记录</label>
+                                            <div class="layui-input-block">
+                                                <input type="text" name="relatedinfo" id="relatedinfo" placeholder="处理记录"
+                                                    autocomplete="off" class="layui-input">
+                                            </div>
+                                        </div>
+                                        <div class="layui-inline" style="width: 48%;">
+                                            <label class="layui-form-label">处置方案</label>
+                                            <div class="layui-input-block">
+                                                <input type="text" name="solution" id="solution" placeholder="处置方案"
+                                                    autocomplete="off" class="layui-input">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
+            
             <table id="dataTable" lay-filter="dataTable"></table>
         </div>
     </div>
 
-
-
     <script type="text/html" id="toolbar">
-    <button class="layui-btn layui-btn-primary layui-btn-sm" lay-event="add">
-        <i class="layui-icon layui-icon-add-1"></i>
-        新增工单
-    </button>
-    <button class="layui-btn layui-btn-normal layui-btn-sm" lay-event="exportAll">
-        <i class="layui-icon layui-icon-export"></i>
-        导出所有
-    </button>
-    {% if authorize("system:ticket:delete") %}  {# Changed permission #}
+        <button class="layui-btn layui-btn-primary layui-btn-sm" lay-event="add">
+            <i class="layui-icon layui-icon-add-1"></i>
+            新增工单
+        </button>
+        <button class="layui-btn layui-btn-normal layui-btn-sm" lay-event="exportAll">
+            <i class="layui-icon layui-icon-export"></i>
+            导出所有
+        </button>
         <button class="layui-btn layui-btn-sm layui-btn-danger" lay-event="batchRemove" disabled>
             <i class="layui-icon layui-icon-delete"></i>
             删除选中
         </button>
-    {% endif %}
-</script>
+    </script>
 
     <script type="text/html" id="user-bar">
-    <div class="layui-btn-group">
-        <button class="layui-btn layui-btn-primary layui-btn-sm" lay-event="view"><i class="layui-icon layui-icon-read"></i></button>
-        {{ '{{# var hasQualityPermission = IS_QUALITY_MEMBER && (d.status == \'未完成-生产原因\' || (d.problem_classification_main && ((d.problem_classification_main+\'\').indexOf(\'软件bug-需寄回升级包\') > -1 || (d.problem_classification_main+\'\').indexOf(\'硬件\') > -1))); }}' | safe }}
-        {{ '{{# if(HAS_EDIT_PERMISSION && (IS_ADMIN || (d.user_id && d.user_id == CURRENT_USER_ID) || (d.assignee_name && d.assignee_name == CURRENT_USERNAME) || (IS_RD_MEMBER && d.status == \'未完成-研发原因\') || hasQualityPermission)) { }}' | safe }}
-        <button class="layui-btn layui-btn-normal layui-btn-sm" lay-event="edit"><i class="layui-icon layui-icon-edit"></i></button>
-        {{ '{{# } }}' | safe }}
-        {{ '{{# if(HAS_DELETE_PERMISSION && (IS_ADMIN || (d.user_id && d.user_id == CURRENT_USER_ID) || (d.assignee_name && d.assignee_name == CURRENT_USERNAME))) { }}' | safe }}
-        <button class="layui-btn layui-btn-danger layui-btn-sm" lay-event="remove"><i class="layui-icon layui-icon-delete"></i></button>
-        {{ '{{# } }}' | safe }}
-    </div>
-</script>
+        <div class="layui-btn-group">
+            <button class="layui-btn layui-btn-primary layui-btn-sm" lay-event="view"><i class="layui-icon layui-icon-read"></i></button>
+            {{ '{{# var hasQualityPermission = IS_QUALITY_MEMBER && (d.status == \'未完成-生产原因\' || (d.problem_classification_main && ((d.problem_classification_main+\'\').indexOf(\'软件bug-需寄回升级包\') > -1 || (d.problem_classification_main+\'\').indexOf(\'硬件\') > -1))); }}' | safe }}
+            {{ '{{# if(HAS_EDIT_PERMISSION && (IS_ADMIN || (d.user_id && d.user_id == CURRENT_USER_ID) || (d.assignee_name && d.assignee_name == CURRENT_USERNAME) || (IS_RD_MEMBER && d.status == \'未完成-研发原因\') || hasQualityPermission)) { }}' | safe }}
+            <button class="layui-btn layui-btn-normal layui-btn-sm" lay-event="edit"><i class="layui-icon layui-icon-edit"></i></button>
+            {{ '{{# } }}' | safe }}
+            {{ '{{# if(HAS_DELETE_PERMISSION && (IS_ADMIN || (d.user_id && d.user_id == CURRENT_USER_ID) || (d.assignee_name && d.assignee_name == CURRENT_USERNAME))) { }}' | safe }}
+            <button class="layui-btn layui-btn-danger layui-btn-sm" lay-event="remove"><i class="layui-icon layui-icon-delete"></i></button>
+            {{ '{{# } }}' | safe }}
+        </div>
+    </script>
 
     <script>
         // 存储当前用户信息供 JavaScript 使用
@@ -448,11 +432,7 @@
         var IS_QUALITY_MEMBER = {{ is_quality_dept_member | tojson }};
     </script>
 
-    <script type="text/html" id="file-uploadTime">
-    {{ '{{layui.util.toDateString(d.create_time, "yyyy-MM-dd HH:mm:ss")}}' | safe }}
-</script>
-
-    <!-- 引入工单页面JavaScript -->
     <script src="{{ url_for('static', filename='js/ticket/ticket_main.js') }}"></script>
+</body>
 
-    {% include 'system/common/footer.html' %}
+</html>
