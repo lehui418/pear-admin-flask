@@ -1,0 +1,92 @@
+{% extends "mobile/base.html" %}
+
+{% block title %}产品建议{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/mobile/product-suggestion-main.css') }}">
+{% endblock %}
+
+{% block content %}
+<!-- 页面头部 -->
+<div class="mobile-header">
+    <button class="home-btn" onclick="goToHome()">
+        <i class="fa fa-home"></i> 首页
+    </button>
+    <span class="title">产品建议</span>
+    <a href="javascript:void(0)" class="add-btn" onclick="addSuggestion()">
+        <i class="fa fa-plus"></i> 新增建议
+    </a>
+</div>
+
+<div class="suggestion-container">
+    <!-- 搜索栏 -->
+    <div class="search-bar">
+        <input type="text" class="search-input" id="searchInput" placeholder="搜索建议标题...">
+        <button class="search-btn" onclick="searchSuggestions()">搜索</button>
+    </div>
+    
+    <!-- 筛选栏 -->
+    <div class="filter-bar">
+        <button class="filter-btn active" data-status="">全部</button>
+        <button class="filter-btn" data-status="Open">新建</button>
+        <button class="filter-btn" data-status="In Review">审核中</button>
+        <button class="filter-btn" data-status="Accepted">已接受</button>
+        <button class="filter-btn" data-status="Implemented">已实现</button>
+    </div>
+    
+    <!-- 建议列表 -->
+    <div class="suggestion-list" id="suggestionList">
+    </div>
+    
+    <!-- 加载更多 -->
+    <div class="load-more" id="loadMore" onclick="loadMore()">
+        点击加载更多
+    </div>
+</div>
+
+<!-- 底部导航 -->
+<div class="bottom-nav">
+    <div class="nav-item" onclick="goToWorkboard()">
+        <span class="nav-icon">📊</span>
+        <span>看板</span>
+    </div>
+    <div class="nav-item" onclick="goToTicketList()">
+        <span class="nav-icon">📝</span>
+        <span>工单</span>
+    </div>
+    <div class="nav-item" onclick="goToCustomerTickets()">
+        <span class="nav-icon">📋</span>
+        <span>客户</span>
+    </div>
+    <div class="nav-item active" onclick="goToProductSuggestion()">
+        <span class="nav-icon">💡</span>
+        <span>建议</span>
+    </div>
+</div>
+
+<!-- 删除确认弹窗 -->
+<div class="delete-modal" id="deleteModal">
+    <div class="delete-modal-content">
+        <div class="delete-modal-icon">🗑️</div>
+        <div class="delete-modal-title">确认删除</div>
+        <div class="delete-modal-desc">删除后将无法恢复，是否继续？</div>
+        <div class="delete-modal-actions">
+            <button class="delete-modal-btn cancel" onclick="hideDeleteModal()">取消</button>
+            <button class="delete-modal-btn confirm" onclick="confirmDelete()">删除</button>
+        </div>
+    </div>
+</div>
+
+<!-- 加载提示 -->
+<div class="loading-toast" id="loadingToast">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">加载中...</div>
+</div>
+
+<!-- Toast提示 -->
+<div class="toast" id="toast"></div>
+{% endblock %}
+
+{% block js %}
+<script src="{{ url_for('static', filename='js/mobile/product-suggestion-main.js') }}"></script>
+{% endblock %}

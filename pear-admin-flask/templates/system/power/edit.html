@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>权限编辑</title>
+    {% include 'system/common/header.html' %}
+</head>
+<body>
+<form class="layui-form" action="">
+    <div class="mainBox">
+        <div class="main-container">
+            <div class="main-container">
+                <div class="layui-form-item layui-hide">
+                    <label class="layui-form-label">编号</label>
+                    <div class="layui-input-block">
+                        <input type="text" value="{{ power.id }}" name="powerId" lay-verify="required"
+                               autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">父级</label>
+                    <div class="layui-input-block">
+                        <ul id="selectParent" name="parentId" class="dtree" data-id="-1"></ul>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">名称</label>
+                    <div class="layui-input-block">
+                        <input type="text" value="{{ power.name }}" name="powerName" lay-verify="required"
+                               autocomplete="off" placeholder="权限名称" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item" id="powerCodeItem">
+                    <label class="layui-form-label">标识</label>
+                    <div class="layui-input-block">
+                        <input type="text" id="powerCode" value="{{ power.code }}" name="powerCode"
+                               autocomplete="off" placeholder="权限标识" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">状态</label>
+                    <div class="layui-input-block">
+                        <input type="radio" lay-filter="powerType" {% if power.type == "0" %} checked{% endif %}
+                               name="powerType" value="0" title="目录">
+                        <input type="radio" lay-filter="powerType"  {% if power.type == "1" %} checked{% endif %}
+                               name="powerType" value="1" title="菜单">
+                        <input type="radio" lay-filter="powerType"  {% if power.type == "2" %} checked{% endif %}
+                               name="powerType" value="2" title="按钮">
+                    </div>
+                </div>
+                <div class="layui-form-item" id="powerUrlItem">
+                    <label class="layui-form-label">路径</label>
+                    <div class="layui-input-block">
+                        <input type="text" id="powerUrl" value="{{ power.url }}" name="powerUrl"
+                               autocomplete="off" placeholder="菜单路径" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item" id="openTypeItem">
+                    <label class="layui-form-label">打开</label>
+                    <div class="layui-input-block">
+                        <select name="openType" id="openType">
+                            <option value=""></option>
+                            <option value="_iframe"
+                                    {% if power.open_type == "_iframe" %} selected{% endif %}>框架
+                            </option>
+                            <option value="_component"
+                                    {% if power.open_type == "_component" %} selected{% endif %}>内置
+                            </option>
+                            <option value="_blank"
+                                    {% if power.open_type == "_blank" %} selected{% endif %}>签页
+                            </option>
+
+                        </select>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">图标</label>
+                    <div class="layui-input-block">
+                        <input type="text" id="icon" value="{{ power.icon }}" name="icon" lay-filter="icon"
+                               class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">排序</label>
+                    <div class="layui-input-inline" style="width: 100px !important;">
+                        <input type="text" name="sort" value="{{ power.sort }}" lay-verify="required" autocomplete="off"
+                               placeholder="排序" min="0" step="1" lay-affix="number" class="layui-input">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="bottom">
+        <div class="button-container">
+            <button type="submit" class="layui-btn layui-btn-sm" lay-submit="" lay-filter="power-save">
+                <i class="layui-icon layui-icon-ok"></i>
+                提交
+            </button>
+            <button type="reset" class="layui-btn layui-btn-primary layui-btn-sm">
+                <i class="layui-icon layui-icon-refresh"></i>
+                重置
+            </button>
+        </div>
+    </div>
+</form>
+{% include 'system/common/footer.html' %}
+
+<script>
+    var POWER_UPDATE_URL = "{{ url_for('system.power.update') }}";
+    var POWER_SELECT_PARENT_URL = "{{ url_for('system.power.select_parent') }}";
+    var POWER_PARENT_ID = "{{ power.parent_id }}";
+    var POWER_TYPE = "{{ power.type }}";
+</script>
+<script src="{{ url_for('static', filename='js/power/power_edit.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>工单提交</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 16px;
+            padding: 30px 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        
+        .header p {
+            font-size: 14px;
+            color: #999;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .form-label .required {
+            color: #ff6b6b;
+            margin-left: 4px;
+        }
+        
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: all 0.3s;
+            background: #fafafa;
+        }
+        
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .form-textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        .captcha-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .captcha-input {
+            flex: 1;
+        }
+        
+        .captcha-img {
+            width: 120px;
+            height: 44px;
+            border-radius: 8px;
+            cursor: pointer;
+            object-fit: cover;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .upload-area {
+            border: 2px dashed #ddd;
+            border-radius: 10px;
+            padding: 30px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .upload-area:hover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.02);
+        }
+        
+        .upload-area i {
+            font-size: 40px;
+            color: #ccc;
+            margin-bottom: 10px;
+        }
+        
+        .upload-area p {
+            font-size: 14px;
+            color: #999;
+        }
+        
+        .upload-area input {
+            display: none;
+        }
+        
+        .image-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .preview-item {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .preview-item .remove {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            width: 20px;
+            height: 20px;
+            background: rgba(255, 0, 0, 0.8);
+            color: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .submit-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .success-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .success-modal.show {
+            display: flex;
+        }
+        
+        /* Toast提示 */
+        .toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.8);
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            z-index: 10001;
+            display: none;
+            white-space: nowrap;
+        }
+        
+        .toast.show {
+            display: block;
+            animation: fadeInOut 2s ease;
+        }
+        
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+            10% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            90% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+        }
+        
+        .success-content {
+            background: #fff;
+            padding: 40px 30px;
+            border-radius: 16px;
+            text-align: center;
+            max-width: 300px;
+            width: 90%;
+        }
+        
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+        
+        .success-icon i {
+            font-size: 40px;
+            color: #fff;
+        }
+        
+        .success-content h2 {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .success-content p {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        
+        .ticket-number {
+            background: #f0f0f0;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        
+        .close-btn {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        .error-msg {
+            color: #ff6b6b;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        .error-msg.show {
+            display: block;
+        }
+
+        /* 确认弹窗样式 */
+        .confirm-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .confirm-modal.show {
+            display: flex;
+        }
+
+        .confirm-content {
+            background: #fff;
+            padding: 30px 25px;
+            border-radius: 16px;
+            max-width: 340px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .confirm-content h2 {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .confirm-info {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .confirm-item {
+            display: flex;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .confirm-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .confirm-label {
+            color: #666;
+            width: 80px;
+            flex-shrink: 0;
+        }
+
+        .confirm-value {
+            color: #333;
+            font-weight: 500;
+            flex: 1;
+            word-break: break-all;
+        }
+
+        .confirm-tip {
+            font-size: 13px;
+            color: #ff6b6b;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .confirm-tip i {
+            margin-right: 5px;
+        }
+
+        .confirm-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .confirm-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .confirm-btn-edit {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .confirm-btn-edit:hover {
+            background: #e0e0e0;
+        }
+
+        .confirm-btn-submit {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+        }
+
+        .confirm-btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        /* 切换标签样式 */
+        .tab-switch {
+            display: flex;
+            background: #f5f5f5;
+            border-radius: 10px;
+            padding: 4px;
+            margin-bottom: 25px;
+        }
+
+        .tab-item {
+            flex: 1;
+            text-align: center;
+            padding: 12px;
+            font-size: 15px;
+            color: #666;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .tab-item.active {
+            background: #fff;
+            color: #667eea;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        /* 查询结果样式 */
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .result-header h3 {
+            font-size: 16px;
+            color: #333;
+        }
+
+        .result-count {
+            font-size: 14px;
+            color: #999;
+        }
+
+        .ticket-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .ticket-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 12px;
+            border-left: 4px solid #667eea;
+        }
+
+        .ticket-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .ticket-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .ticket-status {
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            margin-left: 10px;
+        }
+
+        .status-待分配 {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-处理中 {
+            background: #cce5ff;
+            color: #004085;
+        }
+
+        .status-已解决, .status-已关闭 {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .ticket-info {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .ticket-info span {
+            color: #999;
+        }
+
+        .ticket-assignee {
+            font-size: 13px;
+            color: #667eea;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px dashed #ddd;
+        }
+
+        .empty-result {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+
+        .empty-result i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: #ddd;
+        }
+
+        @media (max-width: 375px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                padding: 20px 15px;
+            }
+            
+            .header h1 {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 id="pageTitle">工单提交</h1>
+            <p id="pageDesc">请填写以下信息，我们将尽快处理</p>
+        </div>
+
+        <!-- 切换按钮 -->
+        <div class="tab-switch">
+            <div class="tab-item active" onclick="switchTab('submit')" id="tabSubmit">提交工单</div>
+            <div class="tab-item" onclick="switchTab('query')" id="tabQuery">查询工单</div>
+        </div>
+
+        <!-- 提交工单表单 -->
+        <form id="ticketForm">
+            <div class="form-group">
+                <label class="form-label">
+                    客户单位名称
+                    <span class="required">*</span>
+                </label>
+                <input type="text" class="form-input" id="company" name="company" placeholder="请输入单位名称">
+                <div class="error-msg" id="companyError">请输入单位名称</div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">
+                    联系人
+                    <span class="required">*</span>
+                </label>
+                <input type="text" class="form-input" id="contact" name="contact" placeholder="请输入联系人姓名">
+                <div class="error-msg" id="contactError">请输入联系人姓名</div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">
+                    联系电话
+                    <span class="required">*</span>
+                </label>
+                <input type="tel" class="form-input" id="phone" name="phone" placeholder="请输入联系电话">
+                <div class="error-msg" id="phoneError">请输入有效的联系电话</div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">
+                    确认联系电话
+                    <span class="required">*</span>
+                </label>
+                <input type="tel" class="form-input" id="phoneConfirm" name="phoneConfirm" placeholder="请再次输入联系电话">
+                <div class="error-msg" id="phoneConfirmError">两次输入的联系电话不一致</div>
+                <div class="form-hint" style="font-size: 12px; color: #999; margin-top: 5px;">
+                    <i class="fas fa-exclamation-circle"></i> 请确保手机号正确，以便工程师联系您
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">
+                    问题类型
+                    <span class="required">*</span>
+                </label>
+                <select class="form-select" id="problemType" name="problemType">
+                    <option value="">请选择问题类型</option>
+                    <option value="故障报修">故障报修</option>
+                    <option value="业务咨询">业务咨询</option>
+                    <option value="需求建议">需求建议</option>
+                </select>
+                <div class="error-msg" id="problemTypeError">请选择问题类型</div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">
+                    问题描述
+                    <span class="required">*</span>
+                </label>
+                <textarea class="form-textarea" id="description" name="description" placeholder="请详细描述您遇到的问题..."></textarea>
+                <div class="error-msg" id="descriptionError">请输入问题描述</div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">上传图片（最多5张）</label>
+                <div class="upload-area" onclick="document.getElementById('images').click()">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p>点击上传图片</p>
+                    <input type="file" id="images" name="images" accept="image/jpeg,image/png" multiple onchange="previewImages(this)">
+                </div>
+                <div class="image-preview" id="imagePreview"></div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">
+                    验证码
+                    <span class="required">*</span>
+                </label>
+                <div class="captcha-group">
+                    <input type="text" class="form-input captcha-input" id="captcha" name="captcha" placeholder="请输入验证码" maxlength="4">
+                    <img src="/api/public/captcha" alt="验证码" class="captcha-img" id="captchaImg" onclick="refreshCaptcha()">
+                </div>
+                <div class="error-msg" id="captchaError">请输入正确的验证码</div>
+            </div>
+            
+            <button type="submit" class="submit-btn" id="submitBtn">提交工单</button>
+        </form>
+
+        <!-- 查询工单表单 -->
+        <form id="queryForm" style="display: none;">
+            <div class="form-group">
+                <label class="form-label">
+                    联系电话
+                    <span class="required">*</span>
+                </label>
+                <input type="tel" class="form-input" id="queryPhone" name="queryPhone" placeholder="请输入提交工单时的手机号">
+                <div class="error-msg" id="queryPhoneError">请输入有效的联系电话</div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">
+                    验证码
+                    <span class="required">*</span>
+                </label>
+                <div class="captcha-group">
+                    <input type="text" class="form-input captcha-input" id="queryCaptcha" name="queryCaptcha" placeholder="请输入验证码" maxlength="4">
+                    <img src="/api/public/captcha" alt="验证码" class="captcha-img" id="queryCaptchaImg" onclick="refreshQueryCaptcha()">
+                </div>
+                <div class="error-msg" id="queryCaptchaError">请输入正确的验证码</div>
+            </div>
+
+            <button type="submit" class="submit-btn" id="queryBtn">查询工单</button>
+        </form>
+
+        <!-- 查询结果 -->
+        <div id="queryResult" style="display: none;">
+            <div class="result-header">
+                <h3>查询结果</h3>
+                <span class="result-count" id="resultCount">共 0 条</span>
+            </div>
+            <div class="ticket-list" id="ticketList"></div>
+            <button type="button" class="submit-btn" onclick="backToQuery()" style="margin-top: 20px;">返回查询</button>
+        </div>
+    </div>
+
+    <!-- 信息确认弹窗 -->
+    <div class="confirm-modal" id="confirmModal">
+        <div class="confirm-content">
+            <h2>请确认您的信息</h2>
+            <div class="confirm-info">
+                <div class="confirm-item">
+                    <span class="confirm-label">客户单位：</span>
+                    <span class="confirm-value" id="confirmCompany"></span>
+                </div>
+                <div class="confirm-item">
+                    <span class="confirm-label">联系人：</span>
+                    <span class="confirm-value" id="confirmContact"></span>
+                </div>
+                <div class="confirm-item">
+                    <span class="confirm-label">联系电话：</span>
+                    <span class="confirm-value" id="confirmPhone"></span>
+                </div>
+                <div class="confirm-item">
+                    <span class="confirm-label">问题类型：</span>
+                    <span class="confirm-value" id="confirmProblemType"></span>
+                </div>
+            </div>
+            <p class="confirm-tip"><i class="fas fa-exclamation-triangle"></i> 请确认联系电话正确，以便工程师联系您</p>
+            <div class="confirm-buttons">
+                <button class="confirm-btn confirm-btn-edit" onclick="closeConfirmModal()">修改</button>
+                <button class="confirm-btn confirm-btn-submit" onclick="submitConfirmed()">确认提交</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="success-modal" id="successModal">
+        <div class="success-content">
+            <div class="success-icon">
+                <i class="fas fa-check"></i>
+            </div>
+            <h2>提交成功</h2>
+            <p>工单提交成功，我们将尽快处理</p>
+            <div class="ticket-number" id="ticketNumber">#20240326001</div>
+            <button class="close-btn" onclick="closeModal()">确定</button>
+        </div>
+    </div>
+    
+    <script>
+        var uploadedImages = [];
+        
+        // 刷新验证码
+        function refreshCaptcha() {
+            document.getElementById('captchaImg').src = '/api/public/captcha?' + Date.now();
+        }
+        
+        // 预览图片
+        function previewImages(input) {
+            var preview = document.getElementById('imagePreview');
+            var files = input.files;
+            
+            if (uploadedImages.length + files.length > 5) {
+                showToast('最多只能上传5张图片');
+                return;
+            }
+            
+            for (var i = 0; i < files.length; i++) {
+                var file = files[i];
+                
+                // 检查文件大小（5MB）
+                if (file.size > 5 * 1024 * 1024) {
+                    showToast('图片大小不能超过5MB');
+                    continue;
+                }
+                
+                // 检查文件类型
+                if (!file.type.match('image/jpeg') && !file.type.match('image/png')) {
+                    showToast('只支持jpg/png格式的图片');
+                    continue;
+                }
+                
+                uploadedImages.push(file);
+                
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    var div = document.createElement('div');
+                    div.className = 'preview-item';
+                    div.innerHTML = '<img src="' + e.target.result + '"><span class="remove" onclick="removeImage(this)">×</span>';
+                    preview.appendChild(div);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        // 移除图片
+        function removeImage(btn) {
+            var index = Array.from(btn.parentNode.parentNode.children).indexOf(btn.parentNode);
+            uploadedImages.splice(index, 1);
+            btn.parentNode.remove();
+        }
+        
+        // 表单验证
+        function validateForm() {
+            var isValid = true;
+            
+            // 验证单位名称
+            var company = document.getElementById('company').value.trim();
+            if (!company) {
+                document.getElementById('companyError').classList.add('show');
+                isValid = false;
+            } else {
+                document.getElementById('companyError').classList.remove('show');
+            }
+            
+            // 验证联系人
+            var contact = document.getElementById('contact').value.trim();
+            if (!contact) {
+                document.getElementById('contactError').classList.add('show');
+                isValid = false;
+            } else {
+                document.getElementById('contactError').classList.remove('show');
+            }
+            
+            // 验证电话
+            var phone = document.getElementById('phone').value.trim();
+            if (!phone || !/^1[3-9]\d{9}$/.test(phone)) {
+                document.getElementById('phoneError').classList.add('show');
+                isValid = false;
+            } else {
+                document.getElementById('phoneError').classList.remove('show');
+            }
+            
+            // 验证确认电话
+            var phoneConfirm = document.getElementById('phoneConfirm').value.trim();
+            if (phone !== phoneConfirm) {
+                document.getElementById('phoneConfirmError').classList.add('show');
+                isValid = false;
+            } else {
+                document.getElementById('phoneConfirmError').classList.remove('show');
+            }
+            
+            // 验证问题类型
+            var problemType = document.getElementById('problemType').value;
+            if (!problemType) {
+                document.getElementById('problemTypeError').classList.add('show');
+                isValid = false;
+            } else {
+                document.getElementById('problemTypeError').classList.remove('show');
+            }
+            
+            // 验证问题描述
+            var description = document.getElementById('description').value.trim();
+            if (!description) {
+                document.getElementById('descriptionError').classList.add('show');
+                isValid = false;
+            } else {
+                document.getElementById('descriptionError').classList.remove('show');
+            }
+            
+            // 验证验证码
+            var captcha = document.getElementById('captcha').value.trim();
+            if (!captcha || captcha.length !== 4) {
+                document.getElementById('captchaError').classList.add('show');
+                isValid = false;
+            } else {
+                document.getElementById('captchaError').classList.remove('show');
+            }
+            
+            return isValid;
+        }
+        
+        // 表单提交 - 先显示确认弹窗
+        document.getElementById('ticketForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (!validateForm()) {
+                return;
+            }
+            
+            // 显示确认弹窗
+            showConfirmModal();
+        });
+        
+        // 显示确认弹窗
+        function showConfirmModal() {
+            document.getElementById('confirmCompany').textContent = document.getElementById('company').value.trim();
+            document.getElementById('confirmContact').textContent = document.getElementById('contact').value.trim();
+            document.getElementById('confirmPhone').textContent = document.getElementById('phone').value.trim();
+            document.getElementById('confirmProblemType').textContent = document.getElementById('problemType').value;
+            document.getElementById('confirmModal').classList.add('show');
+        }
+        
+        // 关闭确认弹窗
+        function closeConfirmModal() {
+            document.getElementById('confirmModal').classList.remove('show');
+        }
+        
+        // 确认提交
+        function submitConfirmed() {
+            closeConfirmModal();
+            
+            var submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = '提交中...';
+            
+            var formData = new FormData();
+            formData.append('company', document.getElementById('company').value.trim());
+            formData.append('contact', document.getElementById('contact').value.trim());
+            formData.append('phone', document.getElementById('phone').value.trim());
+            formData.append('problemType', document.getElementById('problemType').value);
+            formData.append('description', document.getElementById('description').value.trim());
+            formData.append('captcha', document.getElementById('captcha').value.trim());
+            
+            // 添加图片
+            uploadedImages.forEach(function(file, index) {
+                formData.append('images', file);
+            });
+            
+            fetch('/api/public/ticket/submit', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.code === 0) {
+                    document.getElementById('ticketNumber').textContent = '#' + data.ticket_number;
+                    document.getElementById('successModal').classList.add('show');
+                    document.getElementById('ticketForm').reset();
+                    document.getElementById('imagePreview').innerHTML = '';
+                    uploadedImages = [];
+                    refreshCaptcha();
+                } else {
+                    showToast(data.msg || '提交失败，请重试');
+                    refreshCaptcha();
+                }
+            })
+            .catch(err => {
+                console.error('提交失败:', err);
+                showToast('提交失败，请检查网络后重试');
+                refreshCaptcha();
+            })
+            .finally(() => {
+                submitBtn.disabled = false;
+                submitBtn.textContent = '提交工单';
+            });
+        }
+        
+        // 关闭成功弹窗
+        function closeModal() {
+            document.getElementById('successModal').classList.remove('show');
+        }
+        
+        // 输入时移除错误提示
+        document.querySelectorAll('.form-input, .form-select, .form-textarea').forEach(function(input) {
+            input.addEventListener('input', function() {
+                var errorId = this.id + 'Error';
+                var errorEl = document.getElementById(errorId);
+                if (errorEl) {
+                    errorEl.classList.remove('show');
+                }
+                
+                // 如果是手机号输入，同时移除确认手机号的错误提示
+                if (this.id === 'phone' || this.id === 'phoneConfirm') {
+                    document.getElementById('phoneError').classList.remove('show');
+                    document.getElementById('phoneConfirmError').classList.remove('show');
+                }
+            });
+        });
+        
+        // 显示Toast提示
+        function showToast(message, type = 'error') {
+            var toast = document.getElementById('toast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'toast';
+                toast.className = 'toast';
+                document.body.appendChild(toast);
+            }
+            toast.textContent = message;
+            toast.className = 'toast show ' + type;
+            setTimeout(function() {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+
+        // ==================== 工单查询功能 ====================
+
+        // 切换标签
+        function switchTab(tab) {
+            var tabSubmit = document.getElementById('tabSubmit');
+            var tabQuery = document.getElementById('tabQuery');
+            var ticketForm = document.getElementById('ticketForm');
+            var queryForm = document.getElementById('queryForm');
+            var queryResult = document.getElementById('queryResult');
+            var pageTitle = document.getElementById('pageTitle');
+            var pageDesc = document.getElementById('pageDesc');
+
+            if (tab === 'submit') {
+                tabSubmit.classList.add('active');
+                tabQuery.classList.remove('active');
+                ticketForm.style.display = 'block';
+                queryForm.style.display = 'none';
+                queryResult.style.display = 'none';
+                pageTitle.textContent = '工单提交';
+                pageDesc.textContent = '请填写以下信息，我们将尽快处理';
+            } else {
+                tabSubmit.classList.remove('active');
+                tabQuery.classList.add('active');
+                ticketForm.style.display = 'none';
+                queryForm.style.display = 'block';
+                queryResult.style.display = 'none';
+                pageTitle.textContent = '工单查询';
+                pageDesc.textContent = '请输入手机号查询您的工单状态';
+                refreshQueryCaptcha();
+            }
+        }
+
+        // 刷新查询验证码
+        function refreshQueryCaptcha() {
+            document.getElementById('queryCaptchaImg').src = '/api/public/captcha?' + Date.now();
+        }
+
+        // 验证查询表单
+        function validateQueryForm() {
+            var isValid = true;
+
+            // 验证手机号
+            var phone = document.getElementById('queryPhone').value.trim();
+            if (!phone || !/^1[3-9]\d{9}$/.test(phone)) {
+                document.getElementById('queryPhoneError').classList.add('show');
+                isValid = false;
+            } else {
+                document.getElementById('queryPhoneError').classList.remove('show');
+            }
+
+            // 验证验证码
+            var captcha = document.getElementById('queryCaptcha').value.trim();
+            if (!captcha || captcha.length !== 4) {
+                document.getElementById('queryCaptchaError').classList.add('show');
+                isValid = false;
+            } else {
+                document.getElementById('queryCaptchaError').classList.remove('show');
+            }
+
+            return isValid;
+        }
+
+        // 查询表单提交
+        document.getElementById('queryForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            if (!validateQueryForm()) {
+                return;
+            }
+
+            var queryBtn = document.getElementById('queryBtn');
+            queryBtn.disabled = true;
+            queryBtn.textContent = '查询中...';
+
+            var formData = new FormData();
+            formData.append('phone', document.getElementById('queryPhone').value.trim());
+            formData.append('captcha', document.getElementById('queryCaptcha').value.trim());
+
+            fetch('/api/public/ticket/query', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.code === 0) {
+                    showQueryResults(data.data);
+                } else {
+                    showToast(data.msg || '查询失败，请重试');
+                    refreshQueryCaptcha();
+                }
+            })
+            .catch(err => {
+                console.error('查询失败:', err);
+                showToast('查询失败，请检查网络后重试');
+                refreshQueryCaptcha();
+            })
+            .finally(() => {
+                queryBtn.disabled = false;
+                queryBtn.textContent = '查询工单';
+            });
+        });
+
+        // 显示查询结果
+        function showQueryResults(tickets) {
+            var queryForm = document.getElementById('queryForm');
+            var queryResult = document.getElementById('queryResult');
+            var ticketList = document.getElementById('ticketList');
+            var resultCount = document.getElementById('resultCount');
+
+            queryForm.style.display = 'none';
+            queryResult.style.display = 'block';
+
+            resultCount.textContent = '共 ' + tickets.length + ' 条';
+
+            if (tickets.length === 0) {
+                ticketList.innerHTML = `
+                    <div class="empty-result">
+                        <i class="fas fa-inbox"></i>
+                        <p>未找到相关工单</p>
+                    </div>
+                `;
+                return;
+            }
+
+            var html = '';
+            tickets.forEach(function(ticket) {
+                var statusClass = 'status-' + ticket.status;
+                html += `
+                    <div class="ticket-item">
+                        <div class="ticket-item-header">
+                            <div class="ticket-title">${escapeHtml(ticket.title)}</div>
+                            <span class="ticket-status ${statusClass}">${ticket.status}</span>
+                        </div>
+                        <div class="ticket-info">
+                            <span>提交时间：</span>${ticket.create_time}
+                        </div>
+                        <div class="ticket-info">
+                            <span>更新时间：</span>${ticket.update_time}
+                        </div>
+                        <div class="ticket-assignee">
+                            <i class="fas fa-user-circle"></i> 处理工程师：${getEngineerName(ticket.assignee_name)}
+                        </div>
+                    </div>
+                `;
+            });
+
+            ticketList.innerHTML = html;
+        }
+
+        // 返回查询
+        function backToQuery() {
+            document.getElementById('queryForm').style.display = 'block';
+            document.getElementById('queryResult').style.display = 'none';
+            document.getElementById('queryCaptcha').value = '';
+            refreshQueryCaptcha();
+        }
+
+        // HTML转义
+        function escapeHtml(text) {
+            if (!text) return '';
+            var div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // 获取工程师显示名称（姓氏+工）
+        function getEngineerName(name) {
+            if (!name || name === '待分配') {
+                return '待分配';
+            }
+            // 取第一个字符（姓氏）+ "工"
+            return name.charAt(0) + '工';
+        }
+
+        // 输入时移除错误提示
+        document.getElementById('queryPhone').addEventListener('input', function() {
+            document.getElementById('queryPhoneError').classList.remove('show');
+        });
+
+        document.getElementById('queryCaptcha').addEventListener('input', function() {
+            document.getElementById('queryCaptchaError').classList.remove('show');
+        });
+    </script>
+</body>
+</html>

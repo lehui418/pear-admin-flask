@@ -1,0 +1,506 @@
+/**
+ * 移动端产品建议列表页面样式
+ * 文件路径: static/css/mobile/product-suggestion-main.css
+ */
+
+/* 页面头部 */
+.mobile-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 46px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 15px;
+    z-index: 1000;
+}
+
+.mobile-header .back-btn {
+    color: #fff;
+    font-size: 20px;
+    text-decoration: none;
+    width: 40px;
+}
+
+.mobile-header .title {
+    font-size: 17px;
+    font-weight: 500;
+    flex: 1;
+    text-align: center;
+}
+
+.mobile-header .home-btn {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: #fff;
+    font-size: 13px;
+    padding: 6px 12px;
+    border-radius: 15px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: background 0.3s;
+}
+
+.mobile-header .home-btn:hover {
+    background: rgba(255,255,255,0.3);
+}
+
+.mobile-header .add-btn {
+    color: #fff;
+    font-size: 13px;
+    padding: 6px 12px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 15px;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: background 0.3s;
+}
+
+.mobile-header .add-btn:hover {
+    background: rgba(255,255,255,0.3);
+}
+
+/* 搜索栏 */
+.search-bar {
+    position: fixed;
+    top: 46px;
+    left: 0;
+    right: 0;
+    background: #fff;
+    padding: 10px 15px;
+    border-bottom: 1px solid #eee;
+    z-index: 100;
+}
+
+.search-input-wrapper {
+    display: flex;
+    gap: 10px;
+}
+
+.search-input {
+    flex: 1;
+    padding: 10px 15px;
+    border: 1px solid #e8e8e8;
+    border-radius: 20px;
+    font-size: 14px;
+    background: #f5f5f5;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #667eea;
+    background: #fff;
+}
+
+.search-btn {
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+/* 筛选栏 */
+.filter-bar {
+    position: fixed;
+    top: 96px;
+    left: 0;
+    right: 0;
+    background: #fff;
+    padding: 10px 15px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    z-index: 100;
+}
+
+.filter-bar::-webkit-scrollbar {
+    display: none;
+}
+
+.filter-btn {
+    padding: 6px 14px;
+    border: 1px solid #e8e8e8;
+    border-radius: 15px;
+    background: #fff;
+    font-size: 13px;
+    color: #666;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+}
+
+.filter-btn.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    border-color: transparent;
+}
+
+/* 列表容器 */
+.suggestion-list {
+    padding: 160px 15px 80px 15px;
+    min-height: 100vh;
+}
+
+/* 建议卡片 */
+.suggestion-card {
+    background: #fff;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+}
+
+.suggestion-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
+.suggestion-title-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.field-label {
+    font-size: 12px;
+    color: #999;
+    font-weight: 500;
+}
+
+.field-label-inline {
+    font-size: 12px;
+    color: #999;
+    margin-right: 6px;
+}
+
+.suggestion-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #333;
+    line-height: 1.4;
+}
+
+.suggestion-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.suggestion-tags {
+    display: flex;
+    align-items: center;
+}
+
+/* 状态标签 */
+.suggestion-status {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.suggestion-status.status-Open {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+.suggestion-status.status-In-Review {
+    background: #fff3e0;
+    color: #f57c00;
+}
+
+.suggestion-status.status-Accepted {
+    background: #e8f5e9;
+    color: #388e3c;
+}
+
+.suggestion-status.status-Rejected {
+    background: #ffebee;
+    color: #d32f2f;
+}
+
+.suggestion-status.status-Implemented {
+    background: #f3e5f5;
+    color: #7b1fa2;
+}
+
+/* 优先级标签 */
+.priority-tag {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.priority-tag.priority-高 {
+    background: #ffebee;
+    color: #d32f2f;
+}
+
+.priority-tag.priority-中 {
+    background: #fff3e0;
+    color: #f57c00;
+}
+
+.priority-tag.priority-低 {
+    background: #e8f5e9;
+    color: #388e3c;
+}
+
+/* 操作按钮 */
+.suggestion-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #f0f0f0;
+}
+
+.action-btn {
+    flex: 1;
+    padding: 8px;
+    border: none;
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.action-btn.view-btn {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+.action-btn.edit-btn {
+    background: #fff3e0;
+    color: #f57c00;
+}
+
+.action-btn.delete-btn {
+    background: #ffebee;
+    color: #d32f2f;
+}
+
+/* 加载更多 */
+.load-more {
+    text-align: center;
+    padding: 20px;
+    color: #999;
+    font-size: 14px;
+}
+
+/* 空状态 */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #999;
+}
+
+.empty-icon {
+    font-size: 48px;
+    margin-bottom: 15px;
+}
+
+/* 底部导航 */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border-top: 1px solid #eee;
+    display: flex;
+    justify-content: space-around;
+    padding: 8px 0;
+    z-index: 100;
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 11px;
+    color: #999;
+    cursor: pointer;
+    padding: 0 20px;
+}
+
+.nav-item.active {
+    color: #667eea;
+}
+
+.nav-icon {
+    font-size: 20px;
+    margin-bottom: 2px;
+}
+
+/* 删除确认弹窗 */
+.delete-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 10000;
+    justify-content: center;
+    align-items: center;
+}
+
+.delete-modal.active {
+    display: flex;
+}
+
+.delete-modal-content {
+    background: #fff;
+    border-radius: 12px;
+    padding: 30px;
+    text-align: center;
+    width: 280px;
+    animation: modalIn 0.2s ease;
+}
+
+@keyframes modalIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.delete-modal-icon {
+    font-size: 48px;
+    margin-bottom: 15px;
+}
+
+.delete-modal-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.delete-modal-desc {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.delete-modal-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.delete-modal-btn {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.delete-modal-btn.cancel {
+    background: #f5f5f5;
+    color: #666;
+}
+
+.delete-modal-btn.confirm {
+    background: #ff4d4f;
+    color: #fff;
+}
+
+/* 加载提示 */
+.loading-toast {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.8);
+    color: #fff;
+    padding: 20px 30px;
+    border-radius: 8px;
+    z-index: 10000;
+    text-align: center;
+}
+
+.loading-toast.active {
+    display: block;
+}
+
+.loading-spinner {
+    width: 30px;
+    height: 30px;
+    border: 3px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 10px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loading-text {
+    font-size: 14px;
+}
+
+/* Toast提示 */
+.toast {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.8);
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    z-index: 10001;
+    white-space: nowrap;
+}
+
+.toast.active {
+    display: block;
+    animation: fadeInOut 2s ease;
+}
+
+.toast.success {
+    background: rgba(46, 125, 50, 0.9);
+}
+
+.toast.error {
+    background: rgba(198, 40, 40, 0.9);
+}
+
+@keyframes fadeInOut {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+    10% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    90% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+}

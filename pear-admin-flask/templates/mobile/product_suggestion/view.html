@@ -1,0 +1,134 @@
+{% extends "mobile/base.html" %}
+
+{% block title %}查看产品建议{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/mobile/product-suggestion-view.css') }}">
+{% endblock %}
+
+{% block content %}
+<!-- 页面头部 -->
+<div class="mobile-header">
+    <a href="javascript:history.back()" class="back-btn">
+        <i class="fa fa-arrow-left"></i> 返回
+    </a>
+    <span class="title">查看产品建议</span>
+</div>
+
+<div class="view-container">
+    <!-- 基本信息 -->
+    <div class="info-card">
+        <div class="card-title">基本信息</div>
+        <div class="info-item">
+            <span class="info-label">建议标题</span>
+            <span class="info-value">{{ suggestion.title or '-' }}</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">优先级</span>
+            <span class="info-value">
+                {% if suggestion.priority == 'High' %}
+                <span class="priority-tag priority-High">高</span>
+                {% elif suggestion.priority == 'Medium' %}
+                <span class="priority-tag priority-Medium">中</span>
+                {% elif suggestion.priority == 'Low' %}
+                <span class="priority-tag priority-Low">低</span>
+                {% else %}
+                <span class="priority-tag">{{ suggestion.priority }}</span>
+                {% endif %}
+            </span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">状态</span>
+            <span class="info-value">
+                {% if suggestion.status == 'Open' %}
+                <span class="status-tag status-Open">创建/新建</span>
+                {% elif suggestion.status == 'In Review' %}
+                <span class="status-tag status-In Review">审核中</span>
+                {% elif suggestion.status == 'Accepted' %}
+                <span class="status-tag status-Accepted">已接受</span>
+                {% elif suggestion.status == 'Rejected' %}
+                <span class="status-tag status-Rejected">已拒绝</span>
+                {% elif suggestion.status == 'Implemented' %}
+                <span class="status-tag status-Implemented">已实现</span>
+                {% else %}
+                <span class="status-tag">{{ suggestion.status }}</span>
+                {% endif %}
+            </span>
+        </div>
+    </div>
+    
+    <!-- 产品信息 -->
+    <div class="info-card">
+        <div class="card-title">产品信息</div>
+        <div class="info-item">
+            <span class="info-label">产品类型</span>
+            <span class="info-value">{{ suggestion.product_type_level1 or '-' }}</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">产品二级分类</span>
+            <span class="info-value">{{ suggestion.product_type_level2 or '-' }}</span>
+        </div>
+    </div>
+    
+    <!-- 创建信息 -->
+    <div class="info-card">
+        <div class="card-title">创建信息</div>
+        <div class="info-item">
+            <span class="info-label">创建者</span>
+            <span class="info-value">{{ suggestion.creator_name or '未知' }}</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">创建时间</span>
+            <span class="info-value">{{ suggestion.formatted_create_time or '-' }}</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">更新时间</span>
+            <span class="info-value">{{ suggestion.formatted_update_time or '-' }}</span>
+        </div>
+    </div>
+    
+    <!-- 详细描述 -->
+    <div class="info-card">
+        <div class="card-title">详细描述</div>
+        <div class="description-content">
+            {{ suggestion.description or '暂无描述' }}
+        </div>
+        <div class="image-gallery" id="descriptionImages"></div>
+    </div>
+</div>
+
+<!-- 图片预览弹窗 -->
+<div class="image-modal" id="imageModal" onclick="closeImageModal()">
+    <span class="close-btn">&times;</span>
+    <img src="" alt="预览图片" id="modalImage">
+</div>
+
+<!-- 底部操作栏 -->
+<div class="action-bar">
+    <button class="action-btn primary" onclick="goBack()" style="flex: 1;">返回</button>
+</div>
+
+<!-- 底部导航 -->
+<div class="bottom-nav">
+    <div class="nav-item" onclick="goToWorkboard()">
+        <span class="nav-icon">📊</span>
+        <span>看板</span>
+    </div>
+    <div class="nav-item" onclick="goToTicketList()">
+        <span class="nav-icon">📝</span>
+        <span>工单</span>
+    </div>
+    <div class="nav-item" onclick="goToCustomerTickets()">
+        <span class="nav-icon">📋</span>
+        <span>客户</span>
+    </div>
+    <div class="nav-item active" onclick="goToProductSuggestion()">
+        <span class="nav-icon">💡</span>
+        <span>建议</span>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script src="{{ url_for('static', filename='js/mobile/product-suggestion-view.js') }}"></script>
+{% endblock %}

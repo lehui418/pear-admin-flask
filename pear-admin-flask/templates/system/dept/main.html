@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>部门新增</title>
+    {% include 'system/common/header.html' %}
+</head>
+<body class="pear-container">
+<div class="layui-card">
+    <div class="layui-card-body">
+        <form class="layui-form" action="">
+            <div class="layui-form-item" style="margin-bottom: unset;">
+                <label class="layui-form-label">部门名称</label>
+                <div class="layui-input-inline">
+                    <input type="text" name="deptName" placeholder="" class="layui-input">
+                </div>
+                <button class="layui-btn layui-btn-md" lay-submit lay-filter="dept-query">
+                    <i class="layui-icon layui-icon-search"></i>
+                    查询
+                </button>
+                <button type="reset" class="layui-btn layui-btn-primary layui-btn-md">
+                    <i class="layui-icon layui-icon-refresh"></i>
+                    重置
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="layui-card">
+    <div class="layui-card-body">
+        <table id="dept-table" lay-filter="dept-table"></table>
+    </div>
+</div>
+
+<script type="text/html" id="dept-toolbar">
+    {% if authorize("system:dept:edit") %}
+        <button class="layui-btn layui-btn-primary layui-btn-sm" lay-event="add">
+            <i class="layui-icon layui-icon-add-1"></i>
+            新增
+        </button>
+    {% endif %}
+    {% if authorize("system:dept:remove") %}
+        <button class="layui-btn layui-btn-sm" lay-event="batchRemove">
+            <i class="layui-icon layui-icon-delete"></i>
+            删除
+        </button>
+    {% endif %}
+</script>
+
+<script type="text/html" id="dept-bar">
+    {% if authorize("system:dept:edit") %}
+        <button class="layui-btn layui-btn-xs" lay-event="edit"><i class="pear-icon pear-icon-edit"> 编辑</i>
+        </button>
+    {% endif %}
+    {% if authorize("system:dept:remove") %}
+        <button class="layui-btn layui-btn-danger layui-btn-xs" lay-event="remove"><i
+                class="pear-icon pear-icon-ashbin"> 删除</i>
+        </button>
+    {% endif %}
+</script>
+{% raw %}
+<script type="text/html" id="dept-status">
+    <input type="checkbox" name="status" value="{{ d.id }}" lay-skin="switch" lay-text="启用|禁用"
+           lay-filter="dept-enable"
+           {{# if(d.status==1){ }} checked {{# } }}>
+</script>
+{% endraw %}
+</body>
+
+{% include 'system/common/footer.html' %}
+<script>
+    var MODULE_PATH = '/system/dept/'
+</script>
+<script src="{{ url_for('static',filename='js/dept/dept_main.js')}}"></script>
+</html>

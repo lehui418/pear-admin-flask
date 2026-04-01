@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>查看产品建议</title>
+    {% include 'system/common/header.html' %}
+</head>
+<body>
+<div class="layui-card">
+    <div class="layui-card-body" style="margin: 20px;">
+        <div class="layui-form">
+            <div class="layui-form-item">
+                <label class="layui-form-label">建议标题</label>
+                <div class="layui-input-block">
+                    <input type="text" value="{{ suggestion.title }}" class="layui-input" readonly>
+                </div>
+            </div>
+            
+            <div class="layui-form-item">
+                <label class="layui-form-label">优先级</label>
+                <div class="layui-input-block">
+                    <input type="text" value="{% if suggestion.priority == 'High' %}高{% elif suggestion.priority == 'Medium' %}中{% elif suggestion.priority == 'Low' %}低{% else %}{{ suggestion.priority }}{% endif %}" class="layui-input" readonly>
+                </div>
+            </div>
+            
+            <div class="layui-form-item">
+                <label class="layui-form-label">状态</label>
+                <div class="layui-input-block">
+                    <input type="text" value="{% if suggestion.status == 'Open' %}创建/新建{% elif suggestion.status == 'In Review' %}审核中{% elif suggestion.status == 'Accepted' %}已接受{% elif suggestion.status == 'Rejected' %}已拒绝{% elif suggestion.status == 'Implemented' %}已实现{% else %}{{ suggestion.status }}{% endif %}" class="layui-input" readonly>
+                </div>
+            </div>
+            
+            <div class="layui-form-item">
+                <label class="layui-form-label">产品类型</label>
+                <div class="layui-input-block">
+                    <input type="text" value="{{ suggestion.product_type_level1 }}" class="layui-input" readonly>
+                </div>
+            </div>
+            
+            <div class="layui-form-item">
+                <label class="layui-form-label">产品二级分类</label>
+                <div class="layui-input-block">
+                    <input type="text" value="{{ suggestion.product_type_level2 }}" class="layui-input" readonly>
+                </div>
+            </div>
+            
+            <div class="layui-form-item">
+                <label class="layui-form-label">创建者</label>
+                <div class="layui-input-block">
+                    <input type="text" value="{{ suggestion.creator_name }}" class="layui-input" readonly>
+                </div>
+            </div>
+            
+            <div class="layui-form-item">
+                <label class="layui-form-label">创建时间</label>
+                <div class="layui-input-block">
+                    <input type="text" value="{{ suggestion.formatted_create_time }}" class="layui-input" readonly>
+                </div>
+            </div>
+            
+            <div class="layui-form-item">
+                <label class="layui-form-label">更新时间</label>
+                <div class="layui-input-block">
+                    <input type="text" value="{{ suggestion.formatted_update_time }}" class="layui-input" readonly>
+                </div>
+            </div>
+            
+            <div class="layui-form-item layui-form-text">
+                <label class="layui-form-label">详细描述</label>
+                <div class="layui-input-block">
+                    <div id="description-content" style="padding: 10px; background-color: #f8f8f8; border: 1px solid #e6e6e6; border-radius: 2px; min-height: 120px;">
+                        {{ suggestion.description }}
+                    </div>
+                    <!-- 图片容器，与编辑页面保持一致 -->
+                    <div id="description-image-container" style="margin-top: 10px;"></div>
+                </div>
+            </div>
+            
+            <div class="layui-form-item">
+                <div class="layui-input-block">
+                    <button class="layui-btn" onclick="parent.layer.close(parent.layer.getFrameIndex(window.name))">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% include 'system/common/footer.html' %}
+<script>
+    var IMAGE_VIEW_URL = '/system/upload/image/';
+</script>
+<script src="{{ url_for('static', filename='js/product_suggestion/product_suggestion_view.js') }}"></script>
+</body>
+</html>

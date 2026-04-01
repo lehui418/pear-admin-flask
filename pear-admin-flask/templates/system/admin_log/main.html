@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>操作日志</title>
+    {% include 'system/common/header.html' %}
+</head>
+
+<body class="pear-container">
+    <div class="layui-fluid">
+        <div class="layui-card">
+            <div class="layui-card-body">
+                <!-- 搜索表单 -->
+                <form class="layui-form layui-form-pane" lay-filter="searchForm">
+                    <div class="layui-form-item">
+                        <div class="layui-inline">
+                            <label class="layui-form-label">用户名称</label>
+                            <div class="layui-input-inline">
+                                <input type="text" name="username" autocomplete="off" class="layui-input"
+                                    placeholder="请输入用户名称">
+                            </div>
+                        </div>
+                        <div class="layui-inline">
+                            <label class="layui-form-label">URL</label>
+                            <div class="layui-input-inline">
+                                <input type="text" name="url" autocomplete="off" class="layui-input"
+                                    placeholder="请输入URL">
+                            </div>
+                        </div>
+                        <div class="layui-inline">
+                            <label class="layui-form-label">IP地址</label>
+                            <div class="layui-input-inline">
+                                <input type="text" name="ip" autocomplete="off" class="layui-input"
+                                    placeholder="请输入IP地址">
+                            </div>
+                        </div>
+                        <div class="layui-inline">
+                            <button class="pear-btn pear-btn-primary" lay-submit lay-filter="searchBtn">
+                                <i class="layui-icon layui-icon-search"></i>
+                                搜索
+                            </button>
+                            <button type="reset" class="pear-btn">
+                                <i class="layui-icon layui-icon-refresh"></i>
+                                重置
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                <!-- 日志类型切换按钮 -->
+                <div class="layui-btn-container">
+                    <button class="layui-btn layui-btn-normal" id="allLogBtn">所有日志</button>
+                    <button class="layui-btn" id="loginLogBtn">登录日志</button>
+                    <button class="layui-btn" id="operateLogBtn">操作日志</button>
+                </div>
+
+                <!-- 日志表格 -->
+                <table id="logTable" lay-filter="logTable"></table>
+            </div>
+        </div>
+    </div>
+
+    {% include 'system/common/footer.html' %}
+    <script>
+        var LOG_DATA_URL = '{{ url_for("system.log.data") }}'
+        var LOG_LOGIN_URL = '{{ url_for("system.log.login_log") }}'
+        var LOG_OPERATE_URL = '{{ url_for("system.log.operate_log") }}'
+    </script>
+    <script src="{{ url_for('static', filename='js/admin_log/admin_log_main.js') }}"></script>
+</body>
+
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    {% include 'system/common/header.html' %}
+    <style>
+        .pear-container {
+            background-color: white;
+        }
+
+        body {
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="layui-row layui-col-space15">
+    <div class="layui-col-md12">
+        <div class="layui-card">
+            <div class="layui-tab-content">
+                <fieldset class="layui-elem-field layui-field-title">
+                    <legend>新增图片</legend>
+                </fieldset>
+                <form class="layui-form edit-form">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">
+                            新增图片
+                        </label>
+                        <button type="button" class="layui-btn layui-btn-normal" id="logo-img">选择文件</button>
+                        <button type="button" class="layui-btn" id="logo-upload-button">开始上传</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% include 'system/common/footer.html' %}
+<script>
+    var ADMINFILE_UPLOAD_URL = "{{ url_for('system.adminFile.upload_api') }}"
+</script>
+<script src="{{ url_for('static', filename='js/photo/photo_add.js') }}"></script>
+
+</body>
+</html>

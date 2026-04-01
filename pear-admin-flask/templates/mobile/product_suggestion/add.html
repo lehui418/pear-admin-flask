@@ -1,0 +1,158 @@
+{% extends "mobile/base.html" %}
+
+{% block title %}新增产品建议{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/mobile/product-suggestion-add.css') }}">
+{% endblock %}
+
+{% block content %}
+<!-- 页面头部 -->
+<div class="mobile-header">
+    <a href="javascript:history.back()" class="back-btn">
+        <i class="fa fa-arrow-left"></i> 返回
+    </a>
+    <span class="title">新增产品建议</span>
+</div>
+
+<div class="form-container">
+    <form id="addForm">
+        <!-- 基本信息 -->
+        <div class="form-card">
+            <div class="card-title">基本信息</div>
+            
+            <div class="form-item">
+                <label class="form-label">
+                    建议标题<span class="required">*</span>
+                </label>
+                <input type="text" name="title" class="form-input" placeholder="请输入建议标题" required>
+            </div>
+            
+            <div class="form-item">
+                <label class="form-label">
+                    优先级<span class="required">*</span>
+                </label>
+                <select name="priority" class="form-select" required>
+                    <option value="">请选择优先级</option>
+                    <option value="High">高</option>
+                    <option value="Medium">中</option>
+                    <option value="Low">低</option>
+                </select>
+            </div>
+            
+            <div class="form-item">
+                <label class="form-label">
+                    状态<span class="required">*</span>
+                </label>
+                <select name="status" class="form-select" required>
+                    <option value="Open" selected>创建/新建</option>
+                    <option value="In Review">审核中</option>
+                    <option value="Accepted">已接受</option>
+                    <option value="Rejected">已拒绝</option>
+                    <option value="Implemented">已实现</option>
+                </select>
+            </div>
+        </div>
+        
+        <!-- 产品信息 -->
+        <div class="form-card">
+            <div class="card-title">产品信息</div>
+            
+            <div class="form-item">
+                <label class="form-label">
+                    产品类型<span class="required">*</span>
+                </label>
+                <select name="product_type_level1" class="form-select" required>
+                    <option value="">请选择产品类型</option>
+                    <option value="双向网闸">双向网闸</option>
+                    <option value="单向光闸">单向光闸</option>
+                    <option value="国产网闸">国产网闸</option>
+                    <option value="国产光闸">国产光闸</option>
+                    <option value="防火墙">防火墙</option>
+                    <option value="数据交换平台">数据交换平台</option>
+                    <option value="文件交换系统（山东源鲁）">文件交换系统（山东源鲁）</option>
+                    <option value="文档审计">文档审计</option>
+                    <option value="端设备">端设备</option>
+                    <option value="密件流转">密件流转</option>
+                    <option value="真物理隔离网闸">真物理隔离网闸</option>
+                    <option value="其他">其他安全设备</option>
+                </select>
+            </div>
+            
+            <div class="form-item">
+                <label class="form-label">
+                    产品二级分类<span class="required">*</span>
+                </label>
+                <select name="product_type_level2" class="form-select" required>
+                    <option value="">请选择产品二级分类</option>
+                    <option value="国产">国产</option>
+                    <option value="标准">标准</option>
+                </select>
+            </div>
+        </div>
+        
+        <!-- 详细描述 -->
+        <div class="form-card">
+            <div class="card-title">详细描述</div>
+            
+            <div class="form-item">
+                <label class="form-label">
+                    详细描述<span class="required">*</span>
+                </label>
+                <textarea name="description" class="form-textarea" placeholder="请输入详细描述，支持粘贴图片" required></textarea>
+                <div class="tips">提示：可直接粘贴图片到描述框中</div>
+            </div>
+            
+            <div class="form-item">
+                <label class="form-label">图片附件</label>
+                <div class="image-upload" onclick="selectImage()">
+                    <div>📷 点击选择图片</div>
+                    <div style="font-size: 12px; margin-top: 5px;">支持 JPG、PNG 格式</div>
+                </div>
+                <input type="file" id="imageInput" accept="image/*" multiple style="display: none;" onchange="handleImageSelect(event)">
+                <div class="image-gallery" id="imageGallery"></div>
+                <input type="hidden" name="image_references_str" id="imageReferencesStr" value="">
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- 底部操作栏 -->
+<div class="action-bar">
+    <button type="button" class="action-btn secondary" onclick="goBack()">取消</button>
+    <button type="button" class="action-btn primary" onclick="submitForm()">提交</button>
+</div>
+
+<!-- 底部导航 -->
+<div class="bottom-nav">
+    <div class="nav-item" onclick="goToWorkboard()">
+        <span class="nav-icon">📊</span>
+        <span>看板</span>
+    </div>
+    <div class="nav-item" onclick="goToTicketList()">
+        <span class="nav-icon">📝</span>
+        <span>工单</span>
+    </div>
+    <div class="nav-item" onclick="goToCustomerTickets()">
+        <span class="nav-icon">📋</span>
+        <span>客户</span>
+    </div>
+    <div class="nav-item active" onclick="goToProductSuggestion()">
+        <span class="nav-icon">💡</span>
+        <span>建议</span>
+    </div>
+</div>
+
+<!-- 加载提示 -->
+<div class="loading-toast" id="loadingToast">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">加载中...</div>
+</div>
+
+<!-- Toast提示 -->
+<div class="toast" id="toast"></div>
+{% endblock %}
+
+{% block js %}
+<script src="{{ url_for('static', filename='js/mobile/product-suggestion-add.js') }}"></script>
+{% endblock %}

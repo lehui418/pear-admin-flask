@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>待办事项</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="{{ url_for('static',  filename='css/analysis/analysis.css') }}"/>
+    <link rel="stylesheet" href="{{ url_for('static' , filename='css/analysis/analysis_main.css') }}">
+</head>
+
+<body>
+    <div class="pear-container">
+        <!-- 统计卡片 -->
+        <div class="layui-row layui-col-space10">
+            <div class="layui-col-xs12 layui-col-md4">
+                <div class="layui-card top-panel">
+                    <div class="top-panel-header">待办工单</div>
+                    <div class="top-panel-number" style="color: #1E9FFF;" id="pendingCount">0</div>
+                </div>
+            </div>
+            <div class="layui-col-xs12 layui-col-md4">
+                <div class="layui-card top-panel">
+                    <div class="top-panel-header">今日已解决</div>
+                    <div class="top-panel-number" style="color: #5FB878;" id="resolvedTodayCount">0</div>
+                </div>
+            </div>
+            <div class="layui-col-xs12 layui-col-md4">
+                <div class="layui-card top-panel">
+                    <div class="top-panel-header">超时工单</div>
+                    <div class="top-panel-number" style="color: #FF5722;" id="overdueCount">0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 待办工单列表 -->
+        <div class="layui-card">
+            <div class="layui-card-header">
+                待办工单列表
+                <div class="layui-inline" style="float: right;">
+                    <input type="text" name="searchKeyword" id="searchKeyword" placeholder="工单标题/ID" autocomplete="off" class="layui-input layui-input-inline" style="width: 200px;">
+                    <button class="layui-btn layui-btn-sm layui-btn-primary" lay-event="refresh" id="refreshBtn">
+                        <i class="layui-icon layui-icon-refresh"></i> 刷新
+                    </button>
+                </div>
+            </div>
+            <div class="layui-card-body">
+                <table id="pendingTicketTable" lay-filter="pendingTicketTable"></table>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for ('static',filename='js/analysis/analysis_main.js') }}"></script>
+</body>
+
+</html>

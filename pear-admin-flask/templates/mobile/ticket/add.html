@@ -1,0 +1,122 @@
+{% extends "mobile/base.html" %}
+
+{% block title %}新增工单{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/mobile/ticket-add.css') }}">
+{% endblock %}
+
+{% block content %}
+<!-- 页面头部 -->
+<div class="mobile-header">
+    <a href="javascript:history.back()" class="back-btn">
+        <i class="fa fa-arrow-left"></i> 返回
+    </a>
+    <span class="title">新增工单</span>
+</div>
+
+<!-- 表单内容 -->
+<div class="mobile-content">
+    <form id="addForm">
+        <!-- 基本信息 -->
+        <div class="form-card">
+            <div class="card-title">基本信息</div>
+            
+            <div class="form-item">
+                <label class="form-label">工单标题 <span style="color: #ff4d4f;">*</span></label>
+                <input type="text" name="title" class="form-input" placeholder="请输入工单标题" required>
+            </div>
+            
+            <div class="form-item">
+                <label class="form-label">优先级</label>
+                <select name="priority" class="form-select">
+                    <option value="P1">P1 重大</option>
+                    <option value="P2">P2 主要</option>
+                    <option value="P3">P3 次要</option>
+                    <option value="P4" selected>P4 咨询</option>
+                </select>
+            </div>
+        </div>
+        
+        <!-- 工单状态 -->
+        <div class="form-card">
+            <div class="card-title">工单状态</div>
+            
+            <div class="form-item">
+                <label class="form-label">状态</label>
+                <select name="status" class="form-select">
+                    <option value="创建/提交" selected>创建/提交</option>
+                    <option value="待分配">待分配</option>
+                    <option value="处理中">处理中</option>
+                    <option value="待客户反馈">待客户反馈</option>
+                    <option value="待研发处理">待研发处理</option>
+                    <option value="已解决">已解决</option>
+                    <option value="已关闭">已关闭</option>
+                    <option value="已取消">已取消</option>
+                </select>
+            </div>
+            
+            <div class="form-item">
+                <label class="form-label">负责人</label>
+                <input type="text" name="assignee_name" class="form-input" value="{{ current_user.username }}" readonly>
+            </div>
+        </div>
+        
+        <!-- 问题描述 -->
+        <div class="form-card">
+            <div class="card-title">问题描述</div>
+            
+            <div class="form-item">
+                <textarea name="description" class="form-textarea" placeholder="请输入详细描述（不少于5个字）"></textarea>
+                
+                <!-- 图片上传 -->
+                <div class="image-upload-area" onclick="document.getElementById('descriptionImages').click()">
+                    <div class="upload-icon">📷</div>
+                    <div class="upload-text">点击上传图片</div>
+                    <div class="upload-hint">支持拍照或从相册选择</div>
+                </div>
+                <input type="file" id="descriptionImages" accept="image/*" multiple style="display:none" onchange="handleImageUpload(this)">
+                <div class="image-preview-list" id="descriptionPreview"></div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- 底部提交栏 -->
+<div class="submit-bar">
+    <button type="button" class="submit-btn" onclick="submitForm()">提 交</button>
+</div>
+
+<!-- 加载提示 -->
+<div class="loading-toast" id="loadingToast">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">加载中...</div>
+</div>
+
+<!-- Toast提示 -->
+<div class="toast" id="toast"></div>
+
+<!-- 底部导航 -->
+<div class="bottom-nav">
+    <div class="nav-item" onclick="goToWorkboard()">
+        <span class="nav-icon">📊</span>
+        <span>看板</span>
+    </div>
+    <div class="nav-item active" onclick="goToTicketList()">
+        <span class="nav-icon">📝</span>
+        <span>工单</span>
+    </div>
+    <div class="nav-item" onclick="goToCustomerTickets()">
+        <span class="nav-icon">📋</span>
+        <span>客户</span>
+    </div>
+    <div class="nav-item" onclick="goToProductSuggestion()">
+        <span class="nav-icon">💡</span>
+        <span>建议</span>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script src="{{ url_for('static', filename='js/mobile/ticket-add.js') }}"></script>
+{% endblock %}

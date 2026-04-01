@@ -1,0 +1,54 @@
+from functools import wraps
+from flask import abort, request, jsonify, session, current_app
+from flask_login import login_required, current_user
+from applications.common.admin import admin_log
+
+
+def authorize(power: str, log: bool = False):
+    """
+    用户权限判断，用于判断目前会话用户是否拥有访问权限。
+    在模板中有与之对应的全局非修饰函数 authorize ，此函数定义位于 `applications/extensions/init_template_directives.py` 。
+
+    :param power: 权限标识
+    :type power: str
+    :param log: 是否记录日志, defaults to False
+    :type log: bool, optional
+    """
+    def decorator(func):
+        @login_required
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            # 定义管理员的id为1
+            if current_user.username == current_app.config.get("SUPERADMIN"):
+
+                if log:
+                    admin_log(request=request, is_access=True)
+
+                return func(*args, **kwargs)
+
+            # 动态获取用户最新权限 修改点
+            user_roles = current_user.role
+            user_power = []
+            for role in user_roles:
+                if role.enable == 0:
+                    continue
+                for p in role.power:
+                    if p.enable == 0:
+                        continue
+                    user_power.append(p.code)
+            if not power in user_power:
+                if log:
+                    admin_log(request=request, is_access=False)
+                if request.method == 'GET':
+                    abort(403)
+                else:
+                    return jsonify(success=False, msg="权限不足!")
+
+            if log:
+                admin_log(request=request, is_access=True)
+
+            return func(*args, **kwargs)
+
+        return wrapper
+
+    return decorator

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>编辑产品建议</title>
+    {% include 'system/common/header.html' %}
+</head>
+<body>
+<div class="layui-card">
+    <div class="layui-card-body">
+        <form class="layui-form" id="editForm" lay-filter="editForm" style="margin: 20px;">
+            <input type="hidden" name="id" value="{{ suggestion.id }}">
+            
+            <div class="layui-form-item">
+                <label class="layui-form-label">建议标题</label>
+                <div class="layui-input-block">
+                    <input type="text" name="title" required lay-verify="required" value="{{ suggestion.title }}" placeholder="请输入建议标题" autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            
+            <div class="layui-form-item">
+                <label class="layui-form-label">优先级</label>
+                <div class="layui-input-block">
+                    <select name="priority" required lay-verify="required">
+                        <option value="">请选择优先级</option>
+                        <option value="High" {% if suggestion.priority == 'High' %}selected{% endif %}>高</option>
+                        <option value="Medium" {% if suggestion.priority == 'Medium' %}selected{% endif %}>中</option>
+                        <option value="Low" {% if suggestion.priority == 'Low' %}selected{% endif %}>低</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="layui-form-item">
+                <label class="layui-form-label">状态</label>
+                <div class="layui-input-block">
+                    <select name="status" required lay-verify="required" autocomplete="off">
+                        <option value="">请选择状态</option>
+                        <option value="Open" {% if suggestion.status == 'Open' %}selected{% endif %}>创建/新建</option>
+                        <option value="In Review" {% if suggestion.status == 'In Review' %}selected{% endif %}>审核中</option>
+                        <option value="Accepted" {% if suggestion.status == 'Accepted' %}selected{% endif %}>已接受</option>
+                        <option value="Rejected" {% if suggestion.status == 'Rejected' %}selected{% endif %}>已拒绝</option>
+                        <option value="Implemented" {% if suggestion.status == 'Implemented' %}selected{% endif %}>已实现</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="layui-form-item">
+                <label class="layui-form-label">产品类型</label>
+                <div class="layui-input-block">
+                    <select name="product_type_level1" required lay-verify="required" lay-search="">
+                        <option value="">请选择产品类型</option>
+                        <option value="双向网闸" {% if suggestion.product_type_level1 == '双向网闸' %}selected{% endif %}>双向网闸</option>
+                        <option value="单向光闸" {% if suggestion.product_type_level1 == '单向光闸' %}selected{% endif %}>单向光闸</option>
+                        <option value="国产网闸" {% if suggestion.product_type_level1 == '国产网闸' %}selected{% endif %}>国产网闸</option>
+                        <option value="国产光闸" {% if suggestion.product_type_level1 == '国产光闸' %}selected{% endif %}>国产光闸</option>
+                        <option value="防火墙" {% if suggestion.product_type_level1 == '防火墙' %}selected{% endif %}>防火墙</option>
+                        <option value="数据交换平台" {% if suggestion.product_type_level1 == '数据交换平台' %}selected{% endif %}>数据交换平台</option>
+                        <option value="文件交换系统（山东源鲁）" {% if suggestion.product_type_level1 == '文件交换系统（山东源鲁）' %}selected{% endif %}>文件交换系统（山东源鲁）</option>
+                        <option value="文档审计" {% if suggestion.product_type_level1 == '文档审计' %}selected{% endif %}>文档审计</option>
+                        <option value="端设备" {% if suggestion.product_type_level1 == '端设备' %}selected{% endif %}>端设备</option>
+                        <option value="密件流转" {% if suggestion.product_type_level1 == '密件流转' %}selected{% endif %}>密件流转</option>
+                        <option value="真物理隔离网闸" {% if suggestion.product_type_level1 == '真物理隔离网闸' %}selected{% endif %}>真物理隔离网闸</option>
+                        <option value="其他" {% if suggestion.product_type_level1 == '其他' %}selected{% endif %}>其他安全设备</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="layui-form-item">
+                <label class="layui-form-label">产品二级分类</label>
+                <div class="layui-input-block">
+                    <select name="product_type_level2" required lay-verify="required">
+                        <option value="">请选择产品二级分类</option>
+                        <option value="国产" {% if suggestion.product_type_level2 == '国产' %}selected{% endif %}>国产</option>
+                        <option value="标准" {% if suggestion.product_type_level2 == '标准' %}selected{% endif %}>标准</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="layui-form-item layui-form-text">
+                <label class="layui-form-label">详细描述</label>
+                <div class="layui-input-block">
+                    <textarea name="description" id="description" placeholder="请输入详细描述，支持粘贴图片" class="layui-textarea" rows="6">{{ suggestion.description }}</textarea>
+                    <div id="description-image-container" style="margin-top: 10px;"></div>
+                    <input type="hidden" name="image_references_str" id="image_references_str" value="">
+                </div>
+            </div>
+            
+            <div class="layui-form-item">
+                <div class="layui-input-block">
+                    <button class="layui-btn" lay-submit lay-filter="editForm">立即提交</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+    {% include 'system/common/footer.html' %}
+    <script>
+        // 从后端传递权限信息到前端
+        var NO_PERMISSION = {{ no_permission|default(false)|tojson|safe }};
+        var PERMISSION_MSG = {{ permission_msg|default('')|tojson|safe }};
+        // 图片相关URL
+        var UPLOAD_IMAGE_URL = "{{ url_for('system.adminUpload.upload_image') }}";  // 上传接口
+        var IMAGE_VIEW_URL_PREFIX = '/system/upload/image/';  // 查看图片路径
+        var UPDATE_URL = '/system/product_suggestion/update';
+
+    </script>
+    <script src="{{ url_for('static', filename='js/product_suggestion/product_suggestion_edit.js') }}"></script>
+</body>
+</html>

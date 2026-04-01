@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<head>
+    <title>用户编辑</title>
+    {% include 'system/common/header.html' %}
+</head>
+<body>
+<form class="layui-form" action="">
+    <div class="mainBox">
+        <div class="main-container">
+            <div class="main-container">
+                <div class="layui-form-item layui-hide">
+                    <label class="layui-form-label">编号</label>
+                    <div class="layui-input-block">
+                        <input type="text" value="{{ user.id }}" name="userId" lay-verify="title"
+                               autocomplete="off" placeholder="用户编号" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">账号</label>
+                    <div class="layui-input-block">
+                        <input type="text" value="{{ user.username }}" name="username" lay-verify="title"
+                               autocomplete="off" placeholder="登录账号" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">姓名</label>
+                    <div class="layui-input-block">
+                        <input type="text" value="{{ user.realname }}" name="realName" lay-verify="title"
+                               autocomplete="off" placeholder="用户姓名"
+                               class="layui-input">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">部门</label>
+                    <div class="layui-input-block">
+                        <ul id="selectParent" name="deptId" class="dtree" data-id="0"></ul>
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">角色</label>
+                    <div class="layui-input-block">
+                        {% for role in roles %}
+                            <input{% if role.id in checked_roles %}
+                                checked
+                            {% endif %}
+                                value="{{ role.id }}" title="{{ role.name }}" type="checkbox"
+                                name="roleIds" lay-skin="primary">
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="bottom">
+        <div class="button-container">
+            <button type="submit" class="layui-btn layui-btn-sm" lay-submit=""
+                    lay-filter="user-update">
+                <i class="layui-icon layui-icon-ok"></i>
+                提交
+            </button>
+            <button type="reset" class="layui-btn layui-btn-primary layui-btn-sm">
+                <i class="layui-icon layui-icon-refresh"></i>
+                重置
+            </button>
+        </div>
+    </div>
+</form>
+{% include 'system/common/footer.html' %}
+<script>
+    var deptTreeUrl = '/system/dept/tree'
+    var updateUserUrl = '/system/user/update'
+    var deptId = "{{ user.dept_id }}"
+</script>
+<script src="{{ url_for('static', filename='js/user/user_edit.js') }}"></script>
+</body>
+</html>

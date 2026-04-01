@@ -1,0 +1,338 @@
+/**
+ * 移动端新增工单样式
+ * 文件路径: static/css/mobile/ticket-add.css
+ */
+
+/* 页面头部 */
+.mobile-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 46px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.mobile-header .back-btn {
+    position: absolute;
+    left: 15px;
+    color: #fff;
+    font-size: 13px;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(255,255,255,0.2);
+    padding: 6px 12px;
+    border-radius: 15px;
+    transition: background 0.3s;
+}
+
+.mobile-header .back-btn:hover {
+    background: rgba(255,255,255,0.3);
+}
+
+.mobile-header .title {
+    font-size: 17px;
+    font-weight: 500;
+}
+
+/* 内容区域 */
+.mobile-content {
+    padding-top: 46px;
+    padding-bottom: 80px;
+}
+
+/* 表单卡片 */
+.form-card {
+    background: #fff;
+    margin: 10px;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.form-card .card-title {
+    font-size: 16px;
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+/* 表单项 */
+.form-item {
+    margin-bottom: 15px;
+}
+
+.form-item:last-child {
+    margin-bottom: 0;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: #333;
+    font-weight: 500;
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #e8e8e8;
+    border-radius: 8px;
+    font-size: 15px;
+    -webkit-appearance: none;
+    background: #fff;
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+    border-color: #667eea;
+    outline: none;
+}
+
+.form-textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+/* 优先级说明 */
+.priority-tip {
+    margin-top: 8px;
+    padding: 10px;
+    background: #f5f5f5;
+    border-radius: 6px;
+    font-size: 12px;
+    color: #666;
+    line-height: 1.6;
+}
+
+.priority-tip p {
+    margin: 4px 0;
+}
+
+.priority-tip .p1 { color: #ff4d4f; font-weight: bold; }
+.priority-tip .p2 { color: #fa8c16; font-weight: bold; }
+.priority-tip .p3 { color: #1890ff; font-weight: bold; }
+.priority-tip .p4 { color: #52c41a; font-weight: bold; }
+
+/* 只读输入框 */
+.form-input[readonly] {
+    background-color: #f5f5f5;
+    color: #999;
+}
+
+/* 图片上传区域 */
+.image-upload-area {
+    border: 2px dashed #d9d9d9;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    background: #fafafa;
+    cursor: pointer;
+    transition: border-color 0.3s;
+    margin-top: 10px;
+}
+
+.image-upload-area:active {
+    border-color: #667eea;
+    background: #f0f2ff;
+}
+
+.upload-icon {
+    font-size: 32px;
+    color: #999;
+    margin-bottom: 8px;
+}
+
+.upload-text {
+    font-size: 14px;
+    color: #666;
+}
+
+.upload-hint {
+    font-size: 12px;
+    color: #999;
+    margin-top: 4px;
+}
+
+/* 图片预览列表 */
+.image-preview-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.image-preview-item {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #e8e8e8;
+}
+
+.image-preview-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.image-preview-item .delete-img {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 20px;
+    height: 20px;
+    background: rgba(0,0,0,0.5);
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+/* 底部提交栏 */
+.submit-bar {
+    position: fixed;
+    bottom: 60px;
+    left: 0;
+    right: 0;
+    padding: 10px 15px;
+    background: #fff;
+    border-top: 1px solid #e8e8e8;
+    z-index: 1001;
+    box-sizing: border-box;
+}
+
+.submit-btn {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.submit-btn:active {
+    opacity: 0.9;
+}
+
+/* 加载提示 */
+.loading-toast {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.8);
+    color: #fff;
+    padding: 20px 30px;
+    border-radius: 8px;
+    z-index: 10000;
+    text-align: center;
+}
+
+.loading-toast.active {
+    display: block;
+}
+
+.loading-spinner {
+    width: 30px;
+    height: 30px;
+    border: 3px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 10px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Toast提示 */
+.toast {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.8);
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    z-index: 10001;
+    white-space: nowrap;
+}
+
+.toast.active {
+    display: block;
+    animation: fadeInOut 2s ease;
+}
+
+.toast.success {
+    background: rgba(46, 125, 50, 0.9);
+}
+
+.toast.error {
+    background: rgba(198, 40, 40, 0.9);
+}
+
+@keyframes fadeInOut {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+    15% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    85% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+}
+
+/* 底部导航 */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border-top: 1px solid #eee;
+    display: flex;
+    justify-content: space-around;
+    padding: 8px 0;
+    z-index: 100;
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 11px;
+    color: #999;
+    cursor: pointer;
+    padding: 0 20px;
+}
+
+.nav-item.active {
+    color: #667eea;
+}
+
+.nav-icon {
+    font-size: 20px;
+    margin-bottom: 2px;
+}

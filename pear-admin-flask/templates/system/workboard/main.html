@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>售后工单系统统计面板</title>
+    {% include 'system/common/header.html' %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='system/workboard/css/main.css') }}?v=2">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <script src="echarts_error_fix.js?v=2"></script>
+</head>
+
+<body class="pear-container">
+    <div class="layui-card">
+        <div class="layui-card-body container">
+            <!-- 头部区域 -->
+            <div class="header">
+                <h1>
+                    <span>售后工单系统统计面板</span>
+                    <span class="date" id="currentDateDisplay"></span>
+                </h1>
+                <div class="filters">
+                    <div class="filter-item">
+                        <label>时间范围</label>
+                        <select id="dateRangePicker">
+                            <option value="">全部日期</option>
+                            <option value="today">今日</option>
+                            <option value="this_week">本周</option>
+                            <option value="this_month">本月</option>
+                            <option value="this_quarter">本季度</option>
+                            <option value="custom">自定义</option>
+                        </select>
+                        <input type="text" id="customDateRangeInput" class="layui-input" placeholder="选择日期范围"
+                            style="display: none; width: 200px; margin-left: 10px;">
+                    </div>
+                    <div class="filter-item">
+                        <label>工单分类</label>
+                        <select id="classificationFilter">
+                            <option value="">全部分类</option>
+                            <option value="产品配置类">产品配置类</option>
+                            <option value="业务异常">业务异常</option>
+                            <option value="登录类">登录类</option>
+                            <option value="环境类-客户环境问题">环境类-客户环境问题</option>
+                            <option value="死机问题">死机问题</option>
+                            <option value="软件bug-新bug需研发提供升级包">软件bug-新bug需研发提供升级包</option>
+                            <option value="软件bug-已知有补丁包">软件bug-已知有补丁包</option>
+                            <option value="软件bug-需寄回升级包">软件bug-需寄回升级包</option>
+                            <option value="软件bug-临时补丁包">软件bug-临时补丁包</option>
+                            <option value="软件bug-不需要升级包">软件bug-不需要升级包</option>
+                            <option value="bug开发中">bug开发中</option>
+                            <option value="硬件问题（需寄回）">硬件问题（需寄回）</option>
+                            <option value="硬件问题（无需/暂不寄回）">硬件问题（无需/暂不寄回）</option>
+                            <option value="安全漏洞">安全漏洞</option>
+                            <option value="未排查出原因（临时解决）">未排查出原因（临时解决）</option>
+                            <option value="其他（检测咨询类）">其他（检测咨询类）</option>
+                            <option value="新需求">新需求</option>
+                            <option value="版本升级">版本升级</option>
+                            <option value="其他">其他</option>
+                        </select>
+                    </div>
+                    <div class="filter-item">
+                        <label>优先级</label>
+                        <select id="priorityFilter">
+                            <option value="">全部优先级</option>
+                            <option value="P1">P1</option>
+                            <option value="P2">P2</option>
+                            <option value="P3">P3</option>
+                            <option value="P4">P4</option>
+                        </select>
+                    </div>
+                    <div class="filter-item">
+                        <label>搜索</label>
+                        <input type="text" id="searchInput" placeholder="标题、描述、负责人...">
+                    </div>
+                </div>
+            </div>
+
+            <!-- KPI 指标卡片 -->
+            <div class="kpi-container">
+                <div class="kpi-card">
+                    <div class="kpi-title">工单总量</div>
+                    <div class="kpi-value" id="totalTickets">0</div>
+                    <div class="kpi-trend" id="totalTicketsTrend">
+                        <span id="totalTicketsChange">0%</span>
+                        <span id="totalTicketsCompare">较上周</span>
+                    </div>
+                </div>
+                <div class="kpi-card success">
+                    <div class="kpi-title">完成率</div>
+                    <div class="kpi-value" id="completedTickets">0%</div>
+                    <div class="kpi-trend" id="completedTicketsTrend">
+                        <span id="completedTicketsChange">0%</span>
+                        <span id="completedTicketsCompare">较上周</span>
+                    </div>
+                </div>
+                <div class="kpi-card warning">
+                    <div class="kpi-title">平均处理时长</div>
+                    <div class="kpi-value" id="resolvedTickets">0小时</div>
+                    <div class="kpi-trend" id="resolvedTicketsTrend">
+                        <span id="resolvedTicketsChange">0小时</span>
+                        <span id="resolvedTicketsCompare">较上周</span>
+                    </div>
+                </div>
+                <div class="kpi-card danger">
+                    <div class="kpi-title">超时工单</div>
+                    <div class="kpi-value" id="overdueTickets">0/0</div>
+                    <div class="kpi-trend" id="overdueTicketsTrend">
+                        <span id="overdueTicketsChange">0</span>
+                        <span id="overdueTicketsCompare">较上周</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 图表区域 -->
+            <div class="charts-container">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div class="chart-title">工单状态分布</div>
+                        <div class="chart-actions">
+                            <button class="active" onclick="switchStatusChart('this_week')">本周</button>
+                            <button onclick="switchStatusChart('last_week')">上周</button>
+                            <button onclick="switchStatusChart('all')">全部</button>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <div id="statusChart" style="height:100%; width:100%;"></div>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div class="chart-title">工单优先级分布</div>
+                        <div class="chart-actions">
+                            <button class="active" onclick="switchPriorityChart('this_week')">本周</button>
+                            <button onclick="switchPriorityChart('last_week')">上周</button>
+                            <button onclick="switchPriorityChart('all')">全部</button>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <div id="timeChart" style="height:100%; width:100%;"></div>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div class="chart-title">工单问题分类统计</div>
+                        <div class="chart-actions">
+                            <button class="active" onclick="switchIssueChartPeriod('this_week')">本周</button>
+                            <button onclick="switchIssueChartPeriod('last_week')">上周</button>
+                            <button onclick="switchIssueChartPeriod('all')">全部</button>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <div id="issueChart" style="height:100%; width:100%;"></div>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div class="chart-title">工程师工单处理占比</div>
+                        <div class="chart-actions">
+                            <button class="active" onclick="switchEngineerChart('this_week')">本周</button>
+                            <button onclick="switchEngineerChart('last_week')">上周</button>
+                            <button onclick="switchEngineerChart('all')">全部</button>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <div id="satisfactionChart" style="height:100%; width:100%;"></div>
+                    </div>
+                </div>
+
+                <!-- 新增：工程师工单处理统计 -->
+                <div class="chart-card full">
+                    <div class="chart-header">
+                        <div class="chart-title">工程师工单处理统计</div>
+                    </div>
+                    <div class="chart-container">
+                        <div class="engineer-stats">
+                            <!-- 工程师1 -->
+                            <div class="engineer-stat-row">
+                                <div class="engineer-name">张工程师</div>
+                                <div class="progress-container">
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: 100%; background: #3b82f6;"></div>
+                                    </div>
+                                    <div class="stat-value">42 个工单</div>
+                                </div>
+                                <div class="stats-details">
+                                    <div class="detail-item">
+                                        <span>完成率</span>
+                                        <span class="detail-value">92.8%</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span>平均耗时</span>
+                                        <span class="detail-value">7.2小时</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span>满意度</span>
+                                        <span class="detail-value">4.5/5.0</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 工程师2 -->
+                            <div class="engineer-stat-row">
+                                <div class="engineer-name">李工程师</div>
+                                <div class="progress-container">
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: 90%; background: #10b981;"></div>
+                                    </div>
+                                    <div class="stat-value">38 个工单</div>
+                                </div>
+                                <div class="stats-details">
+                                    <div class="detail-item">
+                                        <span>完成率</span>
+                                        <span class="detail-value">89.5%</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span>平均耗时</span>
+                                        <span class="detail-value">8.1小时</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span>满意度</span>
+                                        <span class="detail-value">4.4/5.0</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 工程师3 -->
+                            <div class="engineer-stat-row">
+                                <div class="engineer-name">王工程师</div>
+                                <div class="progress-container">
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: 83%; background: #f59e0b;"></div>
+                                    </div>
+                                    <div class="stat-value">35 个工单</div>
+                                </div>
+                                <div class="stats-details">
+                                    <div class="detail-item">
+                                        <span>完成率</span>
+                                        <span class="detail-value">85.7%</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span>平均耗时</span>
+                                        <span class="detail-value">9.4小时</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span>满意度</span>
+                                        <span class="detail-value">4.2/5.0</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 工程师4 -->
+                            <div class="engineer-stat-row">
+                                <div class="engineer-name">赵工程师</div>
+                                <div class="progress-container">
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: 67%; background: #6366f1;"></div>
+                                    </div>
+                                    <div class="stat-value">28 个工单</div>
+                                </div>
+                                <div class="stats-details">
+                                    <div class="detail-item">
+                                        <span>完成率</span>
+                                        <span class="detail-value">92.9%</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span>平均耗时</span>
+                                        <span class="detail-value">7.8小时</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span>满意度</span>
+                                        <span class="detail-value">4.5/5.0</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 工程师5 -->
+                            <div class="engineer-stat-row">
+                                <div class="engineer-name">刘工程师</div>
+                                <div class="progress-container">
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: 60%; background: #8b5cf6;"></div>
+                                    </div>
+                                    <div class="stat-value">25 个工单</div>
+                                </div>
+                                <div class="stats-details">
+                                    <div class="detail-item">
+                                        <span>完成率</span>
+                                        <span class="detail-value">80.0%</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span>平均耗时</span>
+                                        <span class="detail-value">10.2小时</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span>满意度</span>
+                                        <span class="detail-value">4.0/5.0</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLA超时统计 -->
+            <div class="list-card">
+                <div class="list-header">
+                    <div class="list-title">SLA超时统计</div>
+                    <div>
+                        <span style="color: var(--danger); font-weight: bold;"><span id="overdueTicketsCount">0</span>
+                            个超时工单</span>
+                    </div>
+                </div>
+
+                <!-- SLA超时工单列表 -->
+                <div class="sla-overdue-list" id="slaOverdueList">
+                    <div style="padding: 10px 15px; font-weight: bold; color: #333; border-bottom: 1px solid #eee;">
+                        SLA超时工单详情
+                        <span style="font-size: 12px; color: #666; font-weight: normal; margin-left: 10px;"
+                            id="overdueListSummary">
+                            显示前10条超时工单
+                        </span>
+                    </div>
+                    <div class="alert-list" id="overdueTicketsList" style="max-height: 400px; overflow-y: auto;">
+                        <!-- SLA超时工单列表将由JavaScript动态生成 -->
+                        <div class="no-data" style="text-align: center; padding: 20px; color: #999;">
+                            暂无SLA超时工单
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </div> <!-- layui-card-body -->
+    </div> <!-- layui-card -->
+    <script>
+        var getAnalyticsUrl = "{{ url_for('api.ticket.get_ticket_analytics') }}";
+        
+    </script>
+    <script src="{{ url_for('static', filename='js/workboard/workboard_main.js') }}"></script>
+</body>
+
+</html>

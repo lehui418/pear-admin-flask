@@ -1,0 +1,175 @@
+/* 移动端基础样式 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #333;
+    background-color: #f5f5f5;
+    -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-container {
+    min-height: 100vh;
+    padding-bottom: 60px;
+}
+
+/* ==================== Toast 提示组件样式 ==================== */
+
+.mobile-toast {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.8);
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    z-index: 9999;
+    opacity: 0;
+    transition: all 0.3s ease;
+    pointer-events: none;
+    max-width: 80%;
+    text-align: center;
+    word-wrap: break-word;
+}
+
+.mobile-toast.show {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.mobile-toast.hide {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
+}
+
+.mobile-toast i {
+    margin-right: 8px;
+    font-size: 16px;
+}
+
+.mobile-toast.toast-success {
+    background: rgba(82, 196, 26, 0.9);
+}
+
+.mobile-toast.toast-success i {
+    color: #fff;
+}
+
+.mobile-toast.toast-error {
+    background: rgba(255, 77, 79, 0.9);
+}
+
+.mobile-toast.toast-error i {
+    color: #fff;
+}
+
+.mobile-toast.toast-warning {
+    background: rgba(250, 173, 20, 0.9);
+}
+
+.mobile-toast.toast-warning i {
+    color: #fff;
+}
+
+.mobile-toast.toast-info {
+    background: rgba(24, 144, 255, 0.9);
+}
+
+.mobile-toast.toast-info i {
+    color: #fff;
+}
+
+/* ==================== 按钮点击反馈样式 ==================== */
+
+/* 按钮按下效果 */
+.btn-pressing {
+    opacity: 0.7 !important;
+    transform: scale(0.98) !important;
+    transition: all 0.1s ease !important;
+}
+
+/* 底部导航项按下效果 */
+.mobile-nav-item.btn-pressing {
+    background-color: rgba(102, 126, 234, 0.1) !important;
+}
+
+/* 提交按钮按下效果 */
+.submit-btn.btn-pressing {
+    background: linear-gradient(135deg, #5a6fd6 0%, #764ba2 100%) !important;
+}
+
+/* 返回按钮按下效果 */
+.back-btn.btn-pressing {
+    background: rgba(0, 0, 0, 0.15) !important;
+}
+
+/* 添加按钮按下效果 */
+.add-btn.btn-pressing {
+    background: rgba(255, 255, 255, 0.3) !important;
+}
+
+/* 首页按钮按下效果 */
+.home-btn.btn-pressing {
+    background: rgba(0, 0, 0, 0.15) !important;
+}
+
+/* 筛选按钮按下效果 */
+.filter-btn.btn-pressing {
+    background: rgba(102, 126, 234, 0.15) !important;
+}
+
+/* 防止重复点击 */
+.btn-processing {
+    pointer-events: none !important;
+    opacity: 0.6 !important;
+}
+
+/* ==================== 下拉刷新样式 ==================== */
+
+.pull-refresh-indicator {
+    position: absolute;
+    top: -60px;
+    left: 0;
+    right: 0;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    z-index: 100;
+    background: #f5f5f5;
+}
+
+.pull-refresh-indicator i {
+    margin-right: 8px;
+    font-size: 16px;
+    transition: transform 0.3s ease;
+}
+
+.pull-refresh-indicator.ready {
+    color: #667eea;
+}
+
+.pull-refresh-indicator.ready i {
+    transform: rotate(180deg);
+}
+
+.pull-refresh-indicator .fa-spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}

@@ -1,0 +1,33 @@
+.layui-card {
+    border-radius: 5px;
+}
+
+.top-panel {
+    text-align: center;
+    height: 120px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.top-panel-number {
+    font-size: 32px;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+.top-panel-header {
+    font-size: 16px;
+    color: #666;
+}
+
+.layui-col-space10 .layui-card {
+    margin-bottom: 0;
+    /* 移除卡片之间的默认下边距 */
+}
+
+.layui-row.layui-col-space10 {
+    margin-bottom: 15px;
+    /* 在卡片行下方添加一些空间 */
+}

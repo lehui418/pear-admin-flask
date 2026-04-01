@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TIPTOP售后工单系统</title>
+    <meta charset="utf-8">
+    {% include 'system/common/header.html' %}
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+</head>
+<!-- 结 构 代 码 -->
+<body class="layui-layout-body pear-admin">
+<!-- 布 局 框 架 -->
+<div class="layui-layout layui-layout-admin">
+    <!-- 顶 部 样 式 -->
+    <div class="layui-header">
+        <!-- 菜 单 顶 部 -->
+        <div class="layui-logo">
+            <!-- 图 标 -->
+            <img class="logo">
+            <!-- 标 题 -->
+            <span class="title">1111</span>
+        </div>
+        <!-- 顶 部 左 侧 功 能 -->
+        <ul class="layui-nav layui-layout-left">
+            <li class="collapse layui-nav-item"><a href="#" class="layui-icon layui-icon-shrink-right"></a></li>
+            <li class="refresh layui-nav-item"><a href="#" class="layui-icon layui-icon-refresh-1" loading=600></a></li>
+        </ul>
+        <!-- 多 系 统 菜 单 -->
+        <div id="control" class="layui-layout-control"></div>
+        <!-- 顶 部 右 侧 菜 单 -->
+        <ul class="layui-nav layui-layout-right">
+            <li class="layui-nav-item layui-hide-xs"><a href="#" class="menuSearch layui-icon layui-icon-search"></a>
+            </li>
+            <li class="layui-nav-item layui-hide-xs message"></li>
+            <li class="layui-nav-item layui-hide-xs"><a href="#"
+                                                        class="fullScreen layui-icon layui-icon-screen-full"></a></li>
+            <li class="layui-nav-item user">
+                <!-- 头 像 -->
+                <a class="layui-icon layui-icon-username" href="javascript:;"></a>
+                <!-- 功 能 菜 单 -->
+                <dl class="layui-nav-child">
+                    <dd><a href="javascript:void(0);" user-menu-url="/system/user/center" user-menu-id="5555"
+                           user-menu-title="基本资料">基本资料</a></dd>
+                    <dd><a href="javascript:void(0);" class="logout">注销登录</a></dd>
+                </dl>
+            </li>
+            <!-- 主 题 配 置 -->
+            <li class="layui-nav-item setting"><a href="#" class="layui-icon layui-icon-more-vertical"></a></li>
+        </ul>
+    </div>
+    <!-- 侧 边 区 域 -->
+    <div class="layui-side layui-bg-black">
+        <!-- 菜 单 顶 部 -->
+        <div class="layui-logo">
+            <!-- 图 标 -->
+            <img class="logo">
+            <!-- 标 题 -->
+            <span class="title"></span>
+        </div>
+        <!-- 菜 单 内 容 -->
+        <div class="layui-side-scroll">
+            <div id="side"></div>
+        </div>
+    </div>
+    <!-- 视 图 页 面 -->
+    <div class="layui-body">
+        <!-- 内 容 页 面 -->
+        <div id="content" style="padding: 0px;">
+            <!-- 统计卡片 -->
+            <div class="layui-row layui-col-space20" style="margin-bottom: 20px;">
+                <div class="layui-col-md3">
+                    <div class="layui-card">
+                        <div class="layui-card-header">工单总数</div>
+                        <div class="layui-card-body" style="font-size: 28px; color: #1890ff;">1234</div>
+                    </div>
+                </div>
+                <div class="layui-col-md3">
+                    <div class="layui-card">
+                        <div class="layui-card-header">已完成</div>
+                        <div class="layui-card-body" style="font-size: 28px; color: #52c41a;">980</div>
+                    </div>
+                </div>
+                <div class="layui-col-md3">
+                    <div class="layui-card">
+                        <div class="layui-card-header">处理中</div>
+                        <div class="layui-card-body" style="font-size: 28px; color: #faad14;">180</div>
+                    </div>
+                </div>
+                <div class="layui-col-md3">
+                    <div class="layui-card">
+                        <div class="layui-card-header">待分配</div>
+                        <div class="layui-card-body" style="font-size: 28px; color: #f5222d;">74</div>
+                    </div>
+                </div>
+            </div>
+            <!-- 图表区域 -->
+            <div class="layui-row layui-col-space20" style="margin-bottom: 20px;">
+                <div class="layui-col-md8">
+                    <div class="layui-card">
+                        <div class="layui-card-header">工单趋势</div>
+                        <div class="layui-card-body" style="height: 320px;">
+                            <div id="ticket-trend" style="width: 100%; height: 300px;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-col-md4">
+                    <div class="layui-card">
+                        <div class="layui-card-header">类型分布</div>
+                        <div class="layui-card-body" style="height: 320px;">
+                            <div id="ticket-type-pie" style="width: 100%; height: 300px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 最新工单表格 -->
+            <div class="layui-card">
+                <div class="layui-card-header">最新工单</div>
+                <div class="layui-card-body">
+                    <table class="layui-table">
+                        <thead>
+                        <tr>
+                            <th>工单编号</th>
+                            <th>标题</th>
+                            <th>类型</th>
+                            <th>状态</th>
+                            <th>创建时间</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td>20240601001</td>
+                            <td>系统无法登录</td>
+                            <td>登录问题</td>
+                            <td><span style="color: #faad14;">处理中</span></td>
+                            <td>2024-06-01 09:12</td>
+                        </tr>
+                        <tr>
+                            <td>20240601002</td>
+                            <td>页面报错500</td>
+                            <td>系统异常</td>
+                            <td><span style="color: #f5222d;">待分配</span></td>
+                            <td>2024-06-01 09:30</td>
+                        </tr>
+                        <tr>
+                            <td>20240601003</td>
+                            <td>数据导出失败</td>
+                            <td>数据问题</td>
+                            <td><span style="color: #52c41a;">已完成</span></td>
+                            <td>2024-06-01 10:05</td>
+                        </tr>
+                        <tr>
+                            <td>20240601004</td>
+                            <td>工单无法提交</td>
+                            <td>功能异常</td>
+                            <td><span style="color: #faad14;">处理中</span></td>
+                            <td>2024-06-01 10:20</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 页脚 -->
+    <div class="layui-footer layui-text">
+				<span class="left">
+					<span>
+						官网：<a href="http://www.pearadmin.com/team.html" target="_blank">www.pearadmin.com</a>&nbsp;&nbsp;&nbsp;
+						仓库：<a href="https://gitee.com/pear-admin/Pear-Admin-Layui" target="_blank">gitee.com/pear-admin</a>
+					</span>
+				</span>
+        <span class="center"></span>
+        <span class="right"></span>
+    </div>
+    <!-- 遮 盖 层 -->
+    <div class="pear-cover"></div>
+    <!-- 加 载 动 画 -->
+    <div class="loader-wrapper">
+        <!-- 动 画 对 象 -->
+        <div class="loader"></div>
+    </div>
+</div>
+<!-- 移 动 端 便 捷 操 作 -->
+<div class="pear-collapsed-pe collapse">
+    <a href="#" class="layui-icon layui-icon-shrink-right"></a>
+</div>
+<!-- 依 赖 脚 本 -->
+<script src="{{ url_for('static', filename='system/component/layui/layui.js') }}"></script>
+<script src="{{ url_for('static', filename='system/component/pear/pear.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<!-- 框 架 初 始 化 -->
+<script>
+    layui.use(['admin', 'jquery', 'popup'], function () {
+        var admin = layui.admin;
+        var popup = layui.popup;
+        var $ = layui.jquery;
+
+        // yml | json | api
+        admin.setConfigurationPath("{{ url_for('system.rights.configs') }}");
+
+        // 主题色自动通知子页面
+        admin._changeTheme = admin.changeTheme;
+        admin.changeTheme = function () {
+            admin._changeTheme();  // 调用原方法
+
+            /* 遍历所有 iframe 更改主题色 */
+            const variableKey = "--global-primary-color";
+            const variableVal = localStorage.getItem("theme-color-color");
+            const iframes = document.querySelectorAll('iframe');
+            iframes.forEach(function (iframe) {
+                try {
+                    const iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
+                    // 设置 iframe 中的主题色
+                    iframeDocument.documentElement.style.setProperty(variableKey, variableVal);
+                } catch (e) {
+                }
+            });
+        }
+
+        // 夜间模式切换通知子页面
+        admin._switchTheme = admin.switchTheme
+        admin.switchTheme = function (checked) {
+            admin.isdrak = checked;
+            admin._switchTheme(checked)
+
+            const iframes = document.querySelectorAll('iframe');
+            iframes.forEach(function (iframe) {
+                try {
+                    const iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
+
+                    if (checked === true || checked === "true") {
+                        iframeDocument.body.classList.add("pear-admin-dark");
+                    } else {
+                        iframeDocument.body.classList.remove("pear-admin-dark");
+                    }
+                } catch (e) {
+                }
+            });
+        }
+
+        // 渲染
+        admin.render();
+
+        // 注销
+        admin.logout(function () {
+            let loading = layer.load()
+            $.ajax({
+                url: '{{ url_for('system.passport.logout') }}',
+                dataType: 'json',
+                async: false,
+                type: 'post',
+                success: function (result) {
+                    layer.close(loading)
+                    if (result.success) {
+                        popup.success(result.msg, function () {
+                            location.href = '/'
+                        })
+                        return true
+                    }
+                }
+            })
+        })
+    })
+    // ECharts 图表渲染
+    document.addEventListener('DOMContentLoaded', function () {
+        // 工单趋势折线图
+        var trendChart = echarts.init(document.getElementById('ticket-trend'));
+        var trendOption = {
+            tooltip: { trigger: 'axis' },
+            xAxis: { type: 'category', data: ['5-27', '5-28', '5-29', '5-30', '5-31', '6-1', '6-2'] },
+            yAxis: { type: 'value' },
+            series: [{
+                name: '工单数',
+                type: 'line',
+                data: [120, 132, 101, 134, 90, 230, 210],
+                smooth: true,
+                areaStyle: {}
+            }]
+        };
+        trendChart.setOption(trendOption);
+        // 类型分布饼图
+        var pieChart = echarts.init(document.getElementById('ticket-type-pie'));
+        var pieOption = {
+            tooltip: { trigger: 'item' },
+            legend: { top: '5%', left: 'center' },
+            series: [{
+                name: '类型分布',
+                type: 'pie',
+                radius: ['40%', '70%'],
+                avoidLabelOverlap: false,
+                itemStyle: { borderRadius: 10, borderColor: '#fff', borderWidth: 2 },
+                label: { show: false, position: 'center' },
+                emphasis: { label: { show: true, fontSize: 18, fontWeight: 'bold' } },
+                labelLine: { show: false },
+                data: [
+                    { value: 335, name: '登录问题' },
+                    { value: 310, name: '系统异常' },
+                    { value: 234, name: '数据问题' },
+                    { value: 135, name: '功能异常' }
+                ]
+            }]
+        };
+        pieChart.setOption(pieOption);
+    });
+</script>
+</body>
+</html>

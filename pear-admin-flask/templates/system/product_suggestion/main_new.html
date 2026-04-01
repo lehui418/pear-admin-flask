@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>产品建议</title>
+    {% include 'system/common/header.html' %}
+</head>
+<body class="pear-container">
+<div class="layui-card">
+    <div class="layui-card-body">
+        <!-- 搜索区域 -->
+        <div class="layui-form layui-form-pane" id="searchArea" style="margin-bottom: 10px;">
+            <div class="layui-row layui-col-space10">
+                <div class="layui-col-md3">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">建议标题</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="searchTitle" id="searchTitle" placeholder="建议标题关键词" autocomplete="off" class="layui-input">
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-col-md3">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">优先级</label>
+                        <div class="layui-input-block">
+                            <select name="searchPriority" id="searchPriority">
+                                <option value="">全部</option>
+                                <option value="High">高</option>
+                                <option value="Medium">中</option>
+                                <option value="Low">低</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-col-md3">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">状态</label>
+                        <div class="layui-input-block">
+                            <select name="searchStatus" id="searchStatus">
+                                <option value="">全部</option>
+                                <option value="Open">创建/新建</option>
+                                <option value="In Review">审核中</option>
+                                <option value="Accepted">已接受</option>
+                                <option value="Rejected">已拒绝</option>
+                                <option value="Implemented">已实现</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-col-md3">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">产品类型</label>
+                        <div class="layui-input-block">
+                            <select name="product_type_level1" id="product_type_level1" lay-search="">
+                                <option value="">请选择产品类型</option>
+                                <option value="双向网闸">双向网闸</option>
+                                <option value="单向光闸">单向光闸</option>
+                                <option value="国产网闸">国产网闸</option>
+                                <option value="国产光闸">国产光闸</option>
+                                <option value="防火墙">防火墙</option>
+                                <option value="数据交换平台">数据交换平台</option>
+                                <option value="文件交换系统（山东源鲁）">文件交换系统（山东源鲁）</option>
+                                <option value="文档审计">文档审计</option>
+                                <option value="端设备">端设备</option>
+                                <option value="密件流转">密件流转</option>
+                                <option value="真物理隔离网闸">真物理隔离网闸</option>
+                                <option value="其他">其他安全设备</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="layui-row layui-col-space10">
+                <div class="layui-col-md3">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">创建者</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="searchCreator" id="searchCreator" placeholder="创建者姓名" autocomplete="off" class="layui-input">
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-col-md6">
+                    <div class="layui-form-item">
+                        <div class="layui-input-block" style="margin-left: 0; text-align: right;">
+                            <button type="button" class="layui-btn layui-btn-normal" onclick="search_table()">
+                                <i class="layui-icon layui-icon-search"></i>搜索
+                            </button>
+                            <button type="button" class="layui-btn layui-btn-primary" onclick="resetSearch()">
+                                <i class="layui-icon layui-icon-refresh"></i>重置
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 数据表格 -->
+        <table id="suggestionTable" lay-filter="suggestionTable"></table>
+    </div>
+</div>
+
+<!-- 工具栏 -->
+<script type="text/html" id="toolbar">
+    <button class="layui-btn layui-btn-normal layui-btn-sm" lay-event="add">
+        <i class="layui-icon layui-icon-add-1"></i>新增建议
+    </button>
+</script>
+
+<!-- 操作列 -->
+<script type="text/html" id="toolbarDemo">
+    <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="view">查看</a>
+    <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+    {% if authorize("system:product_suggestion:delete") %}
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="delete">删除</a>
+    {% endif %}
+</script>
+
+<!-- 优先级模板 -->
+<script type="text/html" id="priorityTpl">
+    {% raw %}{{#if (d.priority === 'High') { }}{% endraw %}
+    <span class="layui-badge layui-bg-red">高</span>
+    {% raw %}{{# }else if(d.priority === 'Medium'){ }}{% endraw %}
+    <span class="layui-badge layui-bg-orange">中</span>
+    {% raw %}{{# }else if(d.priority === 'Low'){ }}{% endraw %}
+    <span class="layui-badge layui-bg-green">低</span>
+    {% raw %}{{# }else{ }}{% endraw %}
+    <span class="layui-badge layui-bg-gray">{% raw %}{{ d.priority }}{% endraw %}</span>
+    {% raw %}{{# } }}{% endraw %}
+</script>
+
+<!-- 状态模板 -->
+<script type="text/html" id="statusTpl">
+    {% raw %}{{#if (d.status === 'Open') { }}{% endraw %}
+    <span class="layui-badge layui-bg-blue">创建/新建</span>
+    {% raw %}{{# }else if(d.status === 'In Review'){ }}{% endraw %}
+    <span class="layui-badge layui-bg-orange">审核中</span>
+    {% raw %}{{# }else if(d.status === 'Accepted'){ }}{% endraw %}
+    <span class="layui-badge layui-bg-green">已接受</span>
+    {% raw %}{{# }else if(d.status === 'Rejected'){ }}{% endraw %}
+    <span class="layui-badge layui-bg-red">已拒绝</span>
+    {% raw %}{{# }else if(d.status === 'Implemented'){ }}{% endraw %}
+    <span class="layui-badge layui-bg-purple">已实现</span>
+    {% raw %}{{# }else{ }}{% endraw %}
+    <span class="layui-badge layui-bg-gray">{% raw %}{{ d.status }}{% endraw %}</span>
+    {% raw %}{{# } }}{% endraw %}
+</script>
+<script>
+    var TABLE_URL = '/system/product_suggestion/table';
+    var UPDATE_URL = '/system/product_suggestion/update';
+    var DELETE_URL = '/system/product_suggestion/delete';
+    var ADD_URL = '/system/product_suggestion/add';
+    var VIEW_URL = '/system/product_suggestion/view';
+    var EDIT_URL = '/system/product_suggestion/edit';
+    var BATCH_DELETE_URL = '/system/product_suggestion/batchDelete';
+</script>
+<script src="{{ url_for('static', filename='js/product_suggestion/product_suggestion_main.js') }}"></script>
+</body>
+</html>

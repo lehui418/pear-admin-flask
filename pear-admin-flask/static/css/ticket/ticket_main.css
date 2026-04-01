@@ -1,0 +1,14 @@
+ /* 强制Layui表格单元格内容自动换行 */
+    .layui-table-cell {
+        height: auto;        /* 允许单元格高度根据内容自动调整 */
+        white-space: normal; /* 允许文本换行 */
+        word-break: break-all; /* 强制在单词内部断行，避免长单词撑开单元格 */
+        overflow: visible;   /* 确保内容不会被隐藏 */
+    }
+    /* 调整 layui-card 和 layui-card-body 的内边距和外边距，以减少空白区域 */
+    .layui-card {
+        margin: 5px; /* 减少卡片外边距，默认Layui可能有15px */
+    }
+    .layui-card-body {
+        padding: 10px; /* 减少卡片内边距，默认Layui可能有10-15px */
+    }

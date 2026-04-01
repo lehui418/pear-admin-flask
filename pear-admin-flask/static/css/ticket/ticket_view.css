@@ -1,0 +1,740 @@
+
+        /* 编辑页面特有样式 */
+        
+        /* General style for all layui dropdown lists to not exceed their container width */
+        .layui-form-select dl {
+            max-width: 100%;
+            box-sizing: border-box;
+            overflow-x: auto;
+        }
+        
+        /* CVSS评分输入框特殊样式 */
+        input[name="cvss_score"] {
+            font-weight: bold;
+            text-align: center;
+            color: #FF5722;
+        }
+        
+        input[name="cvss_score"]:focus {
+            border-color: #FF5722 !important;
+            box-shadow: 0 0 8px rgba(255, 87, 34, 0.4);
+        }
+        
+        /* IOC指标文本框样式 */
+        textarea[name="ioc_indicators"] {
+            font-family: 'Courier New', monospace;
+            background: #f8f9fa;
+            font-size: 12px;
+        }
+        
+        /* 合规开关样式增强 */
+        .layui-form-switch {
+            transition: all 0.3s ease;
+        }
+        
+        .layui-form-switch:hover {
+            transform: scale(1.05);
+        }
+        .layui-btn {
+            background-color: #1E9FFF;
+        }
+        
+        /* 确保下拉菜单正常显示 */
+        .layui-form-item select[name="impact_scope"] + .layui-form-select {
+            position: relative; /* 确保它是其内部dl元素的定位上下文 */
+            z-index: 9999 !important; /* 确保下拉框本身在最顶层 */
+            overflow: visible !important; /* 确保它不会裁剪其内部的下拉列表 */
+        }
+        /* 进一步确保下拉列表在最顶层，尤其是在复杂层叠关系中 */
+        .layui-form-item select[name="impact_scope"] + .layui-form-select dl {
+            z-index: 10000 !important; /* 确保下拉列表在最顶层 */
+        }
+
+        /* 为包含影响范围下拉框的 layui-form-item 创建新的堆叠上下文 */
+        .layui-form-item:has(select[name="impact_scope"]) {
+            position: relative; /* 创建新的堆叠上下文 */
+            z-index: 600; /* 高于产品信息区域 (z-index: 100) 和服务信息区域 (z-index: 500) */
+        }
+        
+        /* 为表单区域设置基础的层叠上下文 */
+        .form-section {
+            position: relative; 
+            z-index: 1; /* 默认的z-index，会被特定规则覆盖 */
+        }
+        
+        /* 提高"服务信息"区域的 z-index，确保其下拉框不会被后续区域遮挡 */
+        /* "服务信息"是 form 元素下的第二个 class 为 form-section 的 div */
+        form > .form-section:nth-of-type(2) { /* 服务信息 section */
+            z-index: 500; /* 极大提高z-index以确保其在其他form-section之上 */
+        }
+
+        /* 降低"产品信息"区域的 z-index，确保其位于"服务信息"区域下方 */
+        /* "产品信息"是 form 元素下的第三个 class 为 form-section 的 div */
+        form > .form-section:nth-of-type(3) { /* 产品信息 section */
+            z-index: 100; /* 确保低于"服务信息"区域 (z-index: 500) */
+        }
+        
+        /* 条件字段样式 */
+        .conditional-field {
+            display: none;
+        }
+        
+        /* 辅助信息样式 */
+        .help-text {
+            font-size: 12px;
+            color: #999;
+            margin-left: 5px;
+        }
+        .erp-validation-status {
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        .time-warning {
+            color: #FF5722;
+            font-size: 12px;
+        }
+        .success-text {
+            color: #5FB878;
+        }
+        .warning-text {
+            color: #FFB800;
+        }
+        .error-text {
+            color: #FF5722;
+        }
+        
+        /* 安全分析区域特殊样式 */
+        .security-analysis .form-section-title::before {
+            background: #FF5722;
+        }
+        
+        .compliance-section .form-section-title::before {
+            background: #5FB878;
+        }
+        
+        /* 工单流程记录样式 */
+        .flow-timeline {
+            padding: 15px;
+            background-color: #f8f8f8;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+        
+        /* 流程容器样式 */
+        .flow-items-container {
+            position: relative;
+        }
+        
+        /* 流程容器滚动条样式 */
+        .flow-items-container::-webkit-scrollbar {
+            height: 12px;
+        }
+        
+        .flow-items-container::-webkit-scrollbar-track {
+            background: #e8f4fd;
+            border-radius: 6px;
+        }
+        
+        .flow-items-container::-webkit-scrollbar-thumb {
+            background: linear-gradient(90deg, #1E9FFF 0%, #00d4aa 100%);
+            border-radius: 6px;
+        }
+        
+        .flow-items-container::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(90deg, #0080cc 0%, #00b894 100%);
+        }
+        
+        /* 滚动提示 */
+        .flow-scroll-hint {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 24px;
+            background: linear-gradient(180deg, transparent 0%, rgba(30, 159, 255, 0.1) 100%);
+            border-radius: 0 0 12px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .flow-items-container:hover .flow-scroll-hint {
+            opacity: 1;
+        }
+        
+        .flow-scroll-hint span {
+            font-size: 11px;
+            color: #1E9FFF;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .flow-scroll-hint i {
+            animation: scroll-hint-bounce 1s ease-in-out infinite;
+        }
+        
+        @keyframes scroll-hint-bounce {
+            0%, 100% { transform: translateX(-3px); }
+            50% { transform: translateX(3px); }
+        }
+        
+        .flow-loading {
+            text-align: center;
+            padding: 20px;
+            color: #999;
+        }
+        
+        .flow-item {
+            position: relative;
+            padding-left: 35px;
+            margin-bottom: 20px;
+        }
+        
+        .flow-item:before {
+            content: '';
+            position: absolute;
+            left: 6px;
+            top: 8px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1E9FFF 0%, #00d4aa 100%);
+            z-index: 2;
+            box-shadow: 0 2px 6px rgba(30, 159, 255, 0.4);
+            border: 2px solid #fff;
+        }
+        
+        .flow-item:after {
+            content: '';
+            position: absolute;
+            left: 12px;
+            top: 22px;
+            width: 3px;
+            height: calc(100% + 8px);
+            background: linear-gradient(180deg, #1E9FFF 0%, #00d4aa 50%, #1E9FFF 100%);
+            border-radius: 2px;
+        }
+        
+        .flow-item:last-child:after {
+            display: none;
+        }
+        
+        .flow-item.pending:before {
+            background: linear-gradient(135deg, #FFB800 0%, #FF9800 100%);
+            box-shadow: 0 2px 6px rgba(255, 184, 0, 0.4);
+        }
+        
+        .flow-item.pending:after {
+            background: linear-gradient(180deg, #FFB800 0%, #FF9800 50%, #FFB800 100%);
+        }
+        
+        .flow-item.completed:before {
+            background: linear-gradient(135deg, #5FB878 0%, #2ECC71 100%);
+            box-shadow: 0 2px 6px rgba(95, 184, 120, 0.4);
+        }
+        
+        .flow-item.completed:after {
+            background: linear-gradient(180deg, #5FB878 0%, #2ECC71 50%, #5FB878 100%);
+        }
+        
+        .flow-item.temporary:before {
+            background: linear-gradient(135deg, #FF5722 0%, #E91E63 100%);
+            box-shadow: 0 2px 6px rgba(255, 87, 34, 0.4);
+        }
+        
+        .flow-item.temporary:after {
+            background: linear-gradient(180deg, #FF5722 0%, #E91E63 50%, #FF5722 100%);
+        }
+        
+        .flow-content {
+            background: linear-gradient(180deg, #ffffff 0%, #fafbfc 100%);
+            padding: 15px 18px;
+            border-radius: 10px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.05);
+            border: 1px solid #e8e8e8;
+            transition: all 0.3s ease;
+        }
+        
+        .flow-content:hover {
+            box-shadow: 0 6px 20px rgba(0,0,0,0.12), 0 2px 6px rgba(0,0,0,0.08);
+            transform: translateY(-2px);
+        }
+        
+        /* 卡片头部标签 */
+        .flow-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .flow-type-tag {
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+        
+        .flow-priority-tag {
+            color: #fff;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        /* 信息行样式 */
+        .flow-info-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+            margin: 8px 0;
+            font-size: 13px;
+        }
+        
+        .flow-info-primary {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .flow-info-time {
+            color: #666;
+        }
+        
+        .flow-info-handler {
+            color: #1E9FFF;
+        }
+        
+        .flow-info-dept {
+            color: #5FB878;
+        }
+        
+        .flow-info-mode {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            color: #1976D2;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .flow-info-status-change {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .status-from {
+            color: #999;
+            background: #f5f5f5;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+        
+        .status-label {
+            color: #333;
+            font-size: 12px;
+            font-weight: 700;
+            margin-right: 4px;
+        }
+        
+        .status-arrow {
+            color: #1E9FFF;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        .status-to {
+            color: #fff;
+            background: linear-gradient(135deg, #5FB878 0%, #2ECC71 100%);
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(95, 184, 120, 0.3);
+        }
+        
+        /* 问题分类变更样式 */
+        .flow-info-category-change {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .category-label {
+            color: #333;
+            font-size: 12px;
+            font-weight: 700;
+            margin-right: 4px;
+        }
+        
+        .category-from {
+            color: #999;
+            background: #f5f5f5;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+        
+        .category-arrow {
+            color: #FF9800;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        .category-to {
+            color: #fff;
+            background: linear-gradient(135deg, #FF9800 0%, #FF5722 100%);
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(255, 152, 0, 0.3);
+        }
+        
+        /* 超时预警 - 底部红色警告 */
+        .flow-overdue-alert {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+            border: 1px solid #f44336;
+            border-radius: 8px;
+            padding: 10px 12px;
+            margin-top: 12px;
+            box-shadow: 0 2px 8px rgba(244, 67, 54, 0.2);
+        }
+        
+        .flow-overdue-icon {
+            width: 36px;
+            height: 36px;
+            background: #f44336;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+        
+        .flow-overdue-content {
+            flex: 1;
+        }
+        
+        .flow-overdue-title {
+            font-weight: 600;
+            color: #c62828;
+            font-size: 13px;
+            margin-bottom: 2px;
+        }
+        
+        .flow-overdue-desc {
+            color: #d32f2f;
+            font-size: 12px;
+        }
+        
+        /* 彻底修复阶段累计超时 - 黄色背景突出 */
+        .flow-overdue-summary {
+            background: linear-gradient(135deg, #fff8e6 0%, #ffecb3 100%);
+            border: 1px solid #FFB800;
+            border-radius: 6px;
+            padding: 8px 12px;
+            margin-top: 10px;
+            box-shadow: 0 1px 4px rgba(255, 184, 0, 0.2);
+        }
+        
+        .flow-overdue-summary-title {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #F57C00;
+            font-size: 13px;
+        }
+        
+        .flow-overdue-total {
+            background: linear-gradient(135deg, #FFB800 0%, #FF8F00 100%);
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            box-shadow: 0 1px 3px rgba(255, 184, 0, 0.3);
+        }
+        
+        .flow-overdue-summary-details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        
+        .dept-overdue-tag {
+            background: #fff;
+            color: #E65100;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            border: 1px solid #FFB800;
+            font-weight: 500;
+        }
+        
+        .flow-details {
+            margin: 6px 0;
+            font-size: 13px;
+            color: #555;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            max-width: 420px;
+            padding: 4px 0;
+        }
+        
+
+        
+        .flow-status {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 15px;
+            font-size: 11px;
+            font-weight: 500;
+            margin-top: 8px;
+        }
+        
+        .flow-status.pending {
+            background: linear-gradient(135deg, #FFB800 0%, #FF9800 100%);
+            color: #fff;
+        }
+        
+        .flow-status.completed {
+            background: linear-gradient(135deg, #5FB878 0%, #2ECC71 100%);
+            color: #fff;
+        }
+        
+        .flow-status.temporary {
+            background: linear-gradient(135deg, #FF5722 0%, #E91E63 100%);
+            color: #fff;
+        }
+        
+        .flow-empty {
+            text-align: center;
+            padding: 20px;
+            color: #999;
+        }
+        
+        .flow-summary {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 12px 18px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .flow-summary-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+            font-size: 14px;
+        }
+        
+        .flow-summary-stats {
+            display: flex;
+            flex-wrap: wrap;
+        }
+        
+        .flow-stat-item {
+            margin-right: 20px;
+            margin-bottom: 5px;
+            background: #fff;
+            padding: 5px 12px;
+            border-radius: 6px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .flow-stat-label {
+            color: #666;
+            font-size: 12px;
+        }
+        
+        .flow-stat-value {
+            color: #333;
+            font-weight: 600;
+            font-size: 13px;
+        }
+        
+        /* 进度条样式 */
+        .flow-progress-bar {
+            position: relative;
+            height: 28px;
+            background: linear-gradient(90deg, #e8f4fd 0%, #f0f0f0 100%);
+            border-radius: 14px;
+            margin: 12px 0;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .flow-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #1E9FFF 0%, #00d4aa 100%);
+            border-radius: 14px;
+            transition: width 0.5s ease;
+            box-shadow: 0 2px 8px rgba(30, 159, 255, 0.3);
+        }
+        
+        .flow-progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+            text-shadow: 0 1px 2px rgba(255,255,255,0.8);
+        }
+        
+        /* 统计项高亮样式 */
+        .flow-stat-highlight {
+            background: linear-gradient(135deg, #e8f4fd 0%, #d4e9f7 100%);
+            border-color: #1E9FFF;
+        }
+        
+        .flow-stat-warning {
+            background: linear-gradient(135deg, #fff8e6 0%, #ffefcc 100%);
+            border-color: #FF9800;
+        }
+        
+        .flow-stat-danger {
+            background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+            border-color: #f44336;
+            animation: pulse-warning 2s infinite;
+            transition: all 0.3s ease;
+        }
+        
+        .flow-stat-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(244, 67, 54, 0.4);
+        }
+        
+        @keyframes pulse-warning {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.4); }
+            50% { box-shadow: 0 0 0 4px rgba(244, 67, 54, 0); }
+        }
+        
+        .status-completed {
+            color: #5FB878;
+        }
+        
+        .status-progress {
+            color: #1E9FFF;
+        }
+        
+        /* 超时信息样式优化 */
+        .flow-overdue {
+            background: linear-gradient(135deg, #fff5f5 0%, #ffe8e8 100%);
+            padding: 8px 12px;
+            border-radius: 6px;
+            border-left: 3px solid #FF5722;
+            margin-top: 8px;
+        }
+        
+        .flow-overdue-cumulative {
+             background: linear-gradient(135deg, #fff8e6 0%, #ffefcc 100%);
+             padding: 8px 12px;
+             border-radius: 6px;
+             border-left: 3px solid #FF9800;
+             margin-top: 8px;
+         }
+         
+         /* 处理记录样式 */
+         .flow-notes-container {
+             margin: 8px 0;
+             padding: 10px 12px;
+             background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+             border-radius: 8px;
+             border: 1px solid #e9ecef;
+             border-left: 3px solid #1E9FFF;
+         }
+         
+         .flow-notes {
+             background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+             padding: 10px 12px;
+             border-radius: 8px;
+             border: 1px solid #e9ecef;
+             border-left: 3px solid #1E9FFF;
+             margin: 8px 0;
+         }
+         
+         .flow-notes-preview,
+         .flow-notes-full {
+             font-size: 13px;
+             color: #444;
+             line-height: 1.7;
+             word-break: break-word;
+         }
+         
+         .flow-notes-preview strong,
+         .flow-notes-full strong {
+             color: #1E9FFF;
+             font-weight: 600;
+         }
+         
+         .flow-notes-full {
+             max-height: 300px;
+             overflow-y: auto;
+         }
+         
+         .flow-notes-full::-webkit-scrollbar {
+             width: 6px;
+         }
+         
+         .flow-notes-full::-webkit-scrollbar-track {
+             background: #f1f1f1;
+             border-radius: 3px;
+         }
+         
+         .flow-notes-full::-webkit-scrollbar-thumb {
+             background: #c1c1c1;
+             border-radius: 3px;
+         }
+         
+         .flow-notes-toggle {
+             display: inline-block;
+             margin-top: 8px;
+             padding: 4px 12px;
+             background: linear-gradient(135deg, #1E9FFF 0%, #00a8e8 100%);
+             color: #fff;
+             border-radius: 15px;
+             font-size: 12px;
+             cursor: pointer;
+             transition: all 0.3s ease;
+             text-decoration: none;
+         }
+         
+         .flow-notes-toggle:hover {
+             background: linear-gradient(135deg, #0080cc 0%, #0090d4 100%);
+             transform: translateY(-1px);
+         }
+         
+         .flow-notes-toggle i {
+             transition: transform 0.3s ease;
+         }
+         
+         .flow-notes-toggle.expanded i {
+             transform: rotate(180deg);
+         }
+ /* 
+         .layui-form-item {
+        display: flex;
+        align-items: center;
+    } */
