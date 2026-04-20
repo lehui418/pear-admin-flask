@@ -1,0 +1,105 @@
+name: P0 Min Regression
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  p0-min-regression:
+    runs-on: ubuntu-latest
+    env:
+      APP_ENV: development
+      APP_DEBUG: "true"
+      FLASK_DEBUG: "true"
+      SECRET_KEY: ci-secret-key
+      DATABASE_URI: sqlite:///ci.db
+      SESSION_COOKIE_SECURE: "false"
+      PUBLIC_RATE_LIMIT_FAIL_OPEN: "true"
+      SLOW_SQL_LOG_ENABLED: "false"
+      PYTHONUNBUFFERED: "1"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Prepare DB schema
+        run: |
+          rm -f ci.db
+          python - <<'PY'
+          from applications import create_app
+          from applications.extensions import db
+          app = create_app()
+          with app.app_context():
+              db.drop_all()
+              db.create_all()
+          print("schema ready")
+          PY
+
+      - name: Seed base admin data
+        run: |
+          flask --app app:app admin init
+
+      - name: Reset regression accounts password
+        run: |
+          python - <<'PY'
+          from applications import create_app
+          from applications.extensions import db
+          from applications.models import User
+          app = create_app()
+          with app.app_context():
+              admin = User.query.filter_by(username="admin").first()
+              test = User.query.filter_by(username="test").first()
+              if not admin or not test:
+                  raise RuntimeError("seed users missing after admin init")
+              admin.set_password("admin123")
+              test.set_password("test123")
+              db.session.commit()
+          print("accounts ready")
+          PY
+
+      - name: Start app
+        run: |
+          mkdir -p logs
+          nohup python app.py > logs/ci-app.log 2>&1 &
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:5000/system/passport/login >/dev/null; then
+              echo "app is up"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "app did not start in time"
+          tail -n 200 logs/ci-app.log || true
+          exit 1
+
+      - name: Run P0 regression
+        run: |
+          python scripts/regression/run_p0_min_regression.py \
+            --base-url http://127.0.0.1:5000 \
+            --username admin \
+            --password admin123 \
+            --output logs/p0-min-regression-result.json
+
+      - name: Upload regression artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p0-min-regression-artifacts
+          path: |
+            logs/p0-min-regression-result.json
+            logs/ci-app.log
+            logs/pear-admin.log
