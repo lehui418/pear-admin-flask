@@ -17,7 +17,7 @@ from flask import (
     send_file,
 )
 from flask_login import current_user, login_required
-from sqlalchemy import desc, inspect
+from sqlalchemy import and_, desc, inspect, not_, or_
 from sqlalchemy.orm import joinedload
 
 from applications.common import curd
@@ -34,12 +34,34 @@ from applications.models.ticket_flow import TicketFlow
 from applications.schemas import TicketSchema
 from applications.services.sla_service import SLAService
 from applications.services.ticket_flow_service import TicketFlowService
+from applications.services.ticket_permission_service import TicketPermissionService
 from applications.common.utils.datetime_util import (
     format_datetime as fmt_datetime,
     parse_datetime_with_logging,
 )
 
 bp = Blueprint("ticket", __name__, url_prefix="/ticket")
+
+
+def _is_mobile_request() -> bool:
+    user_agent = request.headers.get("User-Agent", "").lower()
+    is_mobile = "mobile" in user_agent or "android" in user_agent or "iphone" in user_agent
+    if request.args.get("mobile") == "1":
+        is_mobile = True
+    return is_mobile
+
+
+def _render_permission_denied(message: str, mobile_template: str = "mobile/ticket/error.html"):
+    if _is_mobile_request():
+        return render_template(
+            mobile_template,
+            title="权限不足",
+            message=message,
+        )
+    try:
+        return render_template("errors/403.html"), 403
+    except Exception:
+        return f"<h1>403 Forbidden</h1><p>{message}</p>", 403
 
 
 def _format_datetime(value):
@@ -50,6 +72,23 @@ def _format_datetime(value):
     :return: 格式化后的字符串或原值
     """
     return fmt_datetime(value)
+
+
+def _hide_unclaimed_customer_tickets(query):
+    """
+    在工单记录页隐藏尚未认领的客户工单。
+
+    客户工单页仍然使用独立接口查看待认领数据，这里只影响通用工单记录列表。
+    """
+    unclaimed_customer_ticket = and_(
+        Ticket.source == "wechat",
+        or_(
+            Ticket.status == "待分配",
+            Ticket.assignee_name.is_(None),
+            Ticket.assignee_name == "",
+        ),
+    )
+    return query.filter(not_(unclaimed_customer_ticket))
 
 
 def _build_ticket_query_filters(request_args: dict) -> ModelFilter:
@@ -67,6 +106,7 @@ def _build_ticket_query_filters(request_args: dict) -> ModelFilter:
     mf.exact("security_level", str_escape(request_args.get("security_level", "")))
     mf.exact("threat_type", str_escape(request_args.get("threat_type", "")))
     mf.exact("impact_scope", str_escape(request_args.get("impact_scope", "")))
+    mf.exact("source", str_escape(request_args.get("source", "")))
 
     mf.vague("assignee_name", str_escape(request_args.get("assignee", "")))
     mf.vague("serial_number", str_escape(request_args.get("serial_number", "")))
@@ -133,6 +173,17 @@ def _extract_photo_ids(image_references_str: str) -> str:
     if not image_references_str:
         return None
     try:
+        # 尝试解析为JSON（移动端提交的base64数组格式）
+        try:
+            json_data = json.loads(image_references_str)
+            if isinstance(json_data, list):
+                # 如果是数组，生成唯一的ID列表
+                photo_ids = [f"mobile_img_{i}_{hash(img[:100])}" for i, img in enumerate(json_data)]
+                return json.dumps(photo_ids) if photo_ids else None
+        except json.JSONDecodeError:
+            pass
+        
+        # 原有的格式解析（PC端提交的 @@IMAGE@@#id=xxx 格式）
         photo_ids = []
         image_marks = image_references_str.strip().split("\n@@IMAGE_SEPARATOR@@\n")
         for mark in image_marks:
@@ -256,19 +307,22 @@ def _initialize_ticket_sla(ticket: Ticket) -> None:
 @authorize("system:ticket:main")
 @login_required
 def main():
-    is_rd_dept_member = False
-    is_quality_dept_member = False
-    if current_user.dept_id:
-        user_dept = Dept.query.get(current_user.dept_id)
-        if user_dept:
-            if "研发" in user_dept.dept_name or "开发" in user_dept.dept_name:
-                is_rd_dept_member = True
-            if (
-                "质量" in user_dept.dept_name
-                or "质检" in user_dept.dept_name
-                or "品控" in user_dept.dept_name
-            ):
-                is_quality_dept_member = True
+    # 判断是否为移动端访问
+    user_agent = request.headers.get('User-Agent', '').lower()
+    is_mobile = 'mobile' in user_agent or 'android' in user_agent or 'iphone' in user_agent
+    
+    # 通过参数强制移动端
+    if request.args.get('mobile') == '1':
+        is_mobile = True
+    
+    # 移动端返回移动端模板
+    if is_mobile:
+        return render_template("mobile/ticket/list.html")
+    
+    # PC端原有逻辑
+    is_rd_dept_member, is_quality_dept_member = (
+        TicketPermissionService.get_user_department_flags(current_user)
+    )
 
     return render_template(
         "system/ticket/main.html",
@@ -281,6 +335,17 @@ def main():
 @bp.get("/add")
 @authorize("system:ticket:add")
 def add_view():
+    # 判断是否为移动端访问
+    user_agent = request.headers.get('User-Agent', '').lower()
+    is_mobile = 'mobile' in user_agent or 'android' in user_agent or 'iphone' in user_agent
+    
+    if request.args.get('mobile') == '1':
+        is_mobile = True
+    
+    if is_mobile:
+        return render_template("mobile/ticket/add.html")
+    
+    # PC端原有逻辑
     # 使用缓存获取用户列表，缓存5分钟
     cache_key = f"{CACHE_KEYS['USER_INFO']}:all_users"
     users = CacheManager.get_or_set(
@@ -351,6 +416,7 @@ def table_data():
 
     mf = _build_ticket_query_filters(request.args)
     query = query.filter(mf.get_filter(Ticket))
+    query = _hide_unclaimed_customer_tickets(query)
 
     data, count, page, limit = query.order_by(
         desc(Ticket.create_time)
@@ -479,7 +545,7 @@ def save():
         new_ticket = Ticket(
             # 基本字段
             title=str_escape(req_json.get("title")),
-            description=req_json.get("description"),
+            description=str_escape(req_json.get("description")),
             priority=str_escape(req_json.get("priority")),
             status=ticket_status,  # 从表单获取status，默认为'创建/提交'
             assignee_name=str_escape(
@@ -583,6 +649,8 @@ def save():
 
 # 查看工单详情界面
 @bp.get("/view/<int:ticket_id>")
+@authorize("system:ticket:main")
+@login_required
 def view_view(ticket_id):
     ticket = db.session.get(Ticket, ticket_id)
     if not ticket:
@@ -614,7 +682,17 @@ def view_view(ticket_id):
                 f"Error calculating overdue status for ticket {ticket.id} in view_view: {e}"
             )
 
-    return render_template("system/ticket/view.html", ticket=ticket)
+    # 判断是否为移动端访问
+    user_agent = request.headers.get('User-Agent', '').lower()
+    is_mobile = 'mobile' in user_agent or 'android' in user_agent or 'iphone' in user_agent
+    
+    if request.args.get('mobile') == '1':
+        is_mobile = True
+    
+    if is_mobile:
+        return render_template("mobile/ticket/view.html", ticket=ticket)
+    else:
+        return render_template("system/ticket/view.html", ticket=ticket)
 
 
 # 编辑工单界面
@@ -646,116 +724,22 @@ def edit_view(ticket_id):
                 f"Error calculating overdue status for ticket {ticket.id} in edit_view: {e}"
             )
 
-    # 检查是否为负责人标志
     is_assignee = request.args.get("is_assignee") == "true"
-
-    # 权限检查：管理员可以编辑任何工单，其他用户只能编辑自己创建的工单或自己负责的工单
-    # 如果工单状态为"未完成-研发原因"，研发部门成员也可以编辑
-    is_rd_dept_member = False
-    is_quality_dept_member = False
-    if current_user.dept_id:
-        from applications.models import Dept
-
-        user_dept = Dept.query.get(current_user.dept_id)
-        if user_dept:
-            if "研发" in user_dept.dept_name or "开发" in user_dept.dept_name:
-                is_rd_dept_member = True
-            if (
-                "质量" in user_dept.dept_name
-                or "质检" in user_dept.dept_name
-                or "品控" in user_dept.dept_name
-            ):
-                is_quality_dept_member = True
-
-    if current_user.username == "admin":
-        # 管理员可以编辑任何工单
-        pass  # 允许继续执行
-    # 用户可以编辑自己创建的工单
-    elif (
-        hasattr(ticket, "user_id")
-        and ticket.user_id
-        and ticket.user_id == current_user.id
-    ):
-        pass  # 允许继续执行
-    # 用户可以编辑自己负责的工单
-    elif (
-        hasattr(ticket, "assignee_name")
-        and ticket.assignee_name
-        and ticket.assignee_name == current_user.username
-    ):
-        pass  # 允许继续执行
-    # 检查前端传递的是否为负责人标志
-    elif is_assignee:
-        # 前端已确认用户是负责人，允许编辑
-        current_app.logger.info(
-            f"User {current_user.username} viewing edit page for ticket ID {ticket_id} as assignee"
-        )
-        pass  # 允许继续执行
-    # 研发部门成员可以编辑状态为"未完成-研发原因"的工单
-    elif is_rd_dept_member and ticket.status == "未完成-研发原因":
-        current_app.logger.info(
-            f"R&D department member {current_user.username} viewing edit page for ticket ID {ticket_id} with status '未完成-研发原因'"
-        )
-        pass  # 允许继续执行
-    # 研发部门成员可以编辑状态为"暂时规避"且问题分类为特定类型的工单
-    elif (
-        is_rd_dept_member
-        and ticket.status == "暂时规避"
-        and ticket.problem_classification_main
-    ):
-        # 检查问题分类是否包含研发相关的关键词
-        problem_classification = ticket.problem_classification_main
-        if isinstance(problem_classification, str):
-            problem_classification_lower = problem_classification.lower()
-        else:
-            problem_classification_lower = str(problem_classification).lower()
-
-        # 定义研发相关的问题分类关键词
-        rd_keywords = ["软件bug-新bug需研发提供升级包", "bug开发中", "死机问题"]
-        is_rd_related = any(
-            keyword in problem_classification_lower for keyword in rd_keywords
-        )
-
-        if is_rd_related:
+    permission_result = TicketPermissionService.can_edit_ticket(
+        current_user,
+        ticket,
+        is_assignee_hint=is_assignee,
+    )
+    if permission_result.allowed:
+        if is_assignee:
             current_app.logger.info(
-                f"R&D department member {current_user.username} viewing edit page for ticket ID {ticket_id} with status '暂时规避' and R&D related problem classification: {problem_classification}"
+                f"User {current_user.username} viewing edit page for ticket ID {ticket_id} as assignee"
             )
-            pass  # 允许继续执行
-        else:
-            current_app.logger.warning(
-                f"R&D department member {current_user.username} attempted to edit ticket ID {ticket_id} with status '暂时规避' but problem classification is not R&D related: {problem_classification}"
-            )
-            try:
-                return render_template("errors/403.html"), 403
-            except:
-                return (
-                    "<h1>403 Forbidden</h1><p>您没有权限编辑此工单（暂时规避状态的工单需要问题分类为研发相关类型）</p>",
-                    403,
-                )
-    # 质量部权限：检查是否在业务恢复阶段且状态为"未完成-生产原因"，或在彻底修复阶段且问题分类符合质量部责任
-    elif is_quality_dept_member and (
-        (ticket.status == "未完成-生产原因")
-        or (
-            ticket.problem_classification_main
-            and (
-                "软件bug-需寄回升级包" in ticket.problem_classification_main
-                or "硬件" in ticket.problem_classification_main
-            )
-        )
-    ):
-        current_app.logger.info(
-            f"Quality department member {current_user.username} viewing edit page for ticket ID {ticket_id}"
-        )
-        pass  # 允许继续执行
     else:
         current_app.logger.warning(
-            f"User {current_user.username} attempted to edit ticket ID {ticket_id} without permission"
+            f"User {current_user.username} attempted to edit ticket ID {ticket_id} without permission: {permission_result.message}"
         )
-        # 检查403页面是否存在，如果不存在则返回简单的错误信息
-        try:
-            return render_template("errors/403.html"), 403
-        except:
-            return "<h1>403 Forbidden</h1><p>您没有权限编辑此工单</p>", 403
+        return _render_permission_denied(permission_result.message)
 
     users = User.query.all()
 
@@ -808,6 +792,20 @@ def edit_view(ticket_id):
                         ticket_data[field].replace("T", " ").split(".")[0]
                     )  # 去除可能的毫秒部分
 
+    # 移动端检测
+    user_agent = request.headers.get('User-Agent', '').lower()
+    is_mobile = 'mobile' in user_agent or 'android' in user_agent or 'iphone' in user_agent
+    if request.args.get('mobile') == '1':
+        is_mobile = True
+    
+    if is_mobile:
+        return render_template(
+            "mobile/ticket/edit.html",
+            ticket=ticket,
+            ticket_data_json=ticket_data,
+            users=users,
+        )
+    
     return render_template(
         "system/ticket/edit.html",
         ticket=ticket,
@@ -818,6 +816,7 @@ def edit_view(ticket_id):
 
 # 从add.html加载数据到edit.html
 @bp.post("/load_add_data_to_edit")
+@login_required
 @authorize("system:ticket:add")
 def load_add_data_to_edit():
     # 获取add.html提交的表单数据
@@ -865,88 +864,9 @@ def update():
 
     ticket = Ticket.query.get_or_404(ticket_id)
 
-    # 检查用户是否有权限编辑此工单
-    # 管理员可以编辑所有工单
-    if current_user.username == "admin":
-        pass  # 管理员有全部权限
-    # 普通用户只能编辑自己创建的工单或自己负责的工单
-    elif (ticket.user_id and ticket.user_id == current_user.id) or (
-        ticket.assignee_name and ticket.assignee_name == current_user.username
-    ):
-        pass  # 用户有权限编辑自己的工单或负责的工单
-    # 研发部门成员可以编辑状态为"未完成-研发原因"的工单
-    elif ticket.status == "未完成-研发原因":
-        # 检查用户是否属于研发部门
-        is_rd_dept_member = False
-        if current_user.dept_id:
-            from applications.models import Dept
-
-            dept = Dept.query.get(current_user.dept_id)
-            if dept and ("研发" in dept.dept_name or "开发" in dept.dept_name):
-                is_rd_dept_member = True
-
-        if not is_rd_dept_member:
-            return fail_api(
-                msg="权限不足：只有研发部门成员可以编辑状态为'未完成-研发原因'的工单"
-            )
-    # 研发部门成员可以编辑状态为"暂时规避"且问题分类为特定类型的工单
-    elif ticket.status == "暂时规避" and ticket.problem_classification_main:
-        # 检查用户是否属于研发部门
-        is_rd_dept_member = False
-        if current_user.dept_id:
-            from applications.models import Dept
-
-            dept = Dept.query.get(current_user.dept_id)
-            if dept and ("研发" in dept.dept_name or "开发" in dept.dept_name):
-                is_rd_dept_member = True
-
-        if not is_rd_dept_member:
-            return fail_api(
-                msg="权限不足：只有研发部门成员可以编辑状态为'暂时规避'的工单"
-            )
-
-        # 检查问题分类是否包含研发相关的关键词
-        problem_classification = ticket.problem_classification_main
-        if isinstance(problem_classification, str):
-            problem_classification_lower = problem_classification.lower()
-        else:
-            problem_classification_lower = str(problem_classification).lower()
-
-        # 定义研发相关的问题分类关键词
-        rd_keywords = ["软件bug-新bug需研发提供升级包", "bug开发中", "死机问题"]
-        is_rd_related = any(
-            keyword in problem_classification_lower for keyword in rd_keywords
-        )
-
-        if not is_rd_related:
-            return fail_api(
-                msg="权限不足：暂时规避状态的工单需要问题分类为研发相关类型（软件bug-新bug需研发提供升级包、bug开发中、死机问题）"
-            )
-    # 质量部权限：检查是否在业务恢复阶段且状态为"未完成-生产原因"，或在彻底修复阶段且问题分类符合质量部责任
-    elif (ticket.status == "未完成-生产原因") or (
-        ticket.problem_classification_main
-        and (
-            "软件bug-需寄回升级包" in ticket.problem_classification_main
-            or "硬件" in ticket.problem_classification_main
-        )
-    ):
-        # 检查用户是否属于质量部门
-        is_quality_dept_member = False
-        if current_user.dept_id:
-            from applications.models import Dept
-
-            dept = Dept.query.get(current_user.dept_id)
-            if dept and (
-                "质量" in dept.dept_name
-                or "质检" in dept.dept_name
-                or "品控" in dept.dept_name
-            ):
-                is_quality_dept_member = True
-
-        if not is_quality_dept_member:
-            return fail_api(msg="权限不足：只有质量部门成员可以编辑此类工单")
-    else:
-        return fail_api(msg="权限不足：您只能编辑自己创建的工单或自己负责的工单")
+    permission_result = TicketPermissionService.can_edit_ticket(current_user, ticket)
+    if not permission_result.allowed:
+        return fail_api(msg=permission_result.message)
 
     # --- 开始记录变更 ---
     # 字段名到中文标签的映射
@@ -1047,6 +967,16 @@ def update():
         if not image_references_str:
             return []
         try:
+            # 尝试解析为JSON（移动端提交的base64数组格式）
+            try:
+                json_data = json.loads(image_references_str)
+                if isinstance(json_data, list):
+                    # 如果是数组，生成唯一的ID列表
+                    return [f"mobile_img_{i}_{hash(img[:100])}" for i, img in enumerate(json_data)]
+            except json.JSONDecodeError:
+                pass
+            
+            # 原有的格式解析（PC端提交的 @@IMAGE@@#id=xxx 格式）
             photo_ids = []
             image_marks = image_references_str.strip().split("\n@@IMAGE_SEPARATOR@@\n")
             for mark in image_marks:
@@ -1080,6 +1010,11 @@ def update():
         if hasattr(ticket, "image_references_str_solution")
         else None,
     )
+    
+    # 调试日志
+    current_app.logger.info(f"[MOBILE DEBUG] Received image_references_str_description: {image_references_str_description[:200] if image_references_str_description else 'None'}...")
+    current_app.logger.info(f"[MOBILE DEBUG] Received image_references_str_relatedinfo: {image_references_str_relatedinfo[:200] if image_references_str_relatedinfo else 'None'}...")
+    current_app.logger.info(f"[MOBILE DEBUG] Received image_references_str_solution: {image_references_str_solution[:200] if image_references_str_solution else 'None'}...")
 
     photo_ids_description = extract_photo_ids(image_references_str_description)
     photo_ids_relatedinfo = extract_photo_ids(image_references_str_relatedinfo)
@@ -1100,6 +1035,9 @@ def update():
     ticket.image_references_str_description = image_references_str_description
     ticket.image_references_str_relatedinfo = image_references_str_relatedinfo
     ticket.image_references_str_solution = image_references_str_solution
+    
+    # 调试日志
+    current_app.logger.info(f"[MOBILE DEBUG] Saved image_references_str_description: {ticket.image_references_str_description[:200] if ticket.image_references_str_description else 'None'}...")
 
     # Combine them for the old `image_references_str` field if it's still used or for backward compatibility
     combined_image_references_str_update = ""
@@ -1290,13 +1228,13 @@ def update():
         )
 
         # 更新问题分析与处理过程字段
-        ticket.relatedinfo = req_json.get(
+        ticket.relatedinfo = str_escape(req_json.get(
             "relatedinfo",
             ticket.relatedinfo if hasattr(ticket, "relatedinfo") else None,
-        )
-        ticket.solution = req_json.get(
+        ))
+        ticket.solution = str_escape(req_json.get(
             "solution", ticket.solution if hasattr(ticket, "solution") else None
-        )
+        ))
         ticket.impact_scope = req_json.get(
             "impact_scope",
             ticket.impact_scope if hasattr(ticket, "impact_scope") else None,
@@ -1359,10 +1297,10 @@ def update():
             ticket.lessons_learned if hasattr(ticket, "lessons_learned") else None,
         )
         # 更新详细记录字段
-        ticket.description = req_json.get(
+        ticket.description = str_escape(req_json.get(
             "description",
             ticket.description if hasattr(ticket, "description") else None,
-        )
+        ))
 
         # 统一处理所有流程记录更新，避免重复创建多个节点
         # 检查是否有任何字段更新需要创建流程记录
@@ -1895,41 +1833,16 @@ def delete():
     g.ticket_id = ticket.id
     g.ticket_title = ticket.title
 
-    # Permission check
-    # 只允许管理员删除所有工单，其他用户只能删除自己创建的工单
-    if not current_user.is_authenticated:
-        return fail_api(msg="您需要登录才能删除工单")
-
-    # 权限检查：管理员可以删除任何工单，其他用户只能删除自己创建的工单或自己负责的工单
-    if current_user.username == "admin":
-        # 管理员可以删除任何工单
-        pass  # 允许继续执行
-    # 用户可以删除自己创建的工单
-    elif (
-        hasattr(ticket, "user_id")
-        and ticket.user_id
-        and ticket.user_id == current_user.id
-    ):
-        pass  # 允许继续执行
-    # 用户可以删除自己负责的工单
-    elif (
-        hasattr(ticket, "assignee_name")
-        and ticket.assignee_name
-        and ticket.assignee_name == current_user.username
-    ):
-        pass  # 允许继续执行
-    # 检查前端传递的是否为负责人标志
-    elif request.form.get("is_assignee") == "true":
-        # 前端已确认用户是负责人，允许删除
-        current_app.logger.info(
-            f"User {current_user.username} deleting ticket ID {ticket_id} as assignee"
-        )
-        pass  # 允许继续执行
-    else:
+    permission_result = TicketPermissionService.can_delete_ticket(
+        current_user,
+        ticket,
+        is_assignee_hint=request.form.get("is_assignee") == "true",
+    )
+    if not permission_result.allowed:
         current_app.logger.warning(
-            f"User {current_user.username} attempted to delete ticket ID {ticket_id} without permission"
+            f"User {current_user.username} attempted to delete ticket ID {ticket_id} without permission: {permission_result.message}"
         )
-        return fail_api(msg="您没有权限删除此工单")
+        return fail_api(msg=permission_result.message)
 
     try:
         # 首先删除相关的工单流程记录（解决外键约束问题）
@@ -1978,44 +1891,22 @@ def batch_delete():
                     current_app.logger.warning(f"No ticket found with ID {ticket_id}")
                     continue
 
-                # 权限检查：管理员可以删除任何工单，其他用户只能删除自己创建的工单或自己负责的工单
-                if current_user.username == "admin":
-                    # 管理员可以删除任何工单
-                    # 先删除相关的流程记录
-                    TicketFlow.query.filter_by(ticket_id=ticket.id).delete()
-                    db.session.delete(ticket)
-                    deleted_count += 1
-                    current_app.logger.info(f"Admin deleted ticket ID {ticket_id}")
-                elif (
-                    hasattr(ticket, "user_id")
-                    and ticket.user_id
-                    and ticket.user_id == current_user.id
-                ):
-                    # 用户可以删除自己创建的工单
-                    # 先删除相关的流程记录
-                    TicketFlow.query.filter_by(ticket_id=ticket.id).delete()
-                    db.session.delete(ticket)
-                    deleted_count += 1
-                    current_app.logger.info(
-                        f"User {current_user.username} deleted own ticket ID {ticket_id}"
-                    )
-                elif (
-                    hasattr(ticket, "assignee_name")
-                    and ticket.assignee_name
-                    and ticket.assignee_name == current_user.username
-                ):
-                    # 用户可以删除自己负责的工单
-                    # 先删除相关的流程记录
-                    TicketFlow.query.filter_by(ticket_id=ticket.id).delete()
-                    db.session.delete(ticket)
-                    deleted_count += 1
-                    current_app.logger.info(
-                        f"User {current_user.username} deleted ticket ID {ticket_id} as assignee"
-                    )
-                else:
+                permission_result = TicketPermissionService.can_delete_ticket(
+                    current_user,
+                    ticket,
+                )
+                if not permission_result.allowed:
                     current_app.logger.warning(
-                        f"User {current_user.username} attempted to delete ticket ID {ticket_id} without permission"
+                        f"User {current_user.username} attempted to delete ticket ID {ticket_id} without permission: {permission_result.message}"
                     )
+                    continue
+
+                TicketFlow.query.filter_by(ticket_id=ticket.id).delete()
+                db.session.delete(ticket)
+                deleted_count += 1
+                current_app.logger.info(
+                    f"User {current_user.username} deleted ticket ID {ticket_id}"
+                )
             except ValueError:
                 current_app.logger.warning(
                     f"Invalid ticket ID in batch delete: {ticket_id_str}"
@@ -2253,3 +2144,175 @@ def export_tickets():
     except Exception as e:
         current_app.logger.error(f"Error exporting tickets: {e}")
         return fail_api(msg="导出失败")
+
+
+# ==================== 客户工单管理功能 ====================
+
+# 客户工单管理页面
+@bp.get("/customer")
+@authorize("system:customer_ticket:main")
+@login_required
+def customer_ticket_main():
+    """客户工单管理页面 - 仅技术支持部可见"""
+    # 检查是否是超级管理员（admin）
+    if current_user.username != current_app.config.get("SUPERADMIN", "admin"):
+        # 检查用户部门是否为技术支持部（部门ID=4）
+        user_dept_id = getattr(current_user, 'dept_id', None)
+        if user_dept_id != 4:
+            abort(403)
+    
+    # 检查是否是移动端访问
+    is_mobile = request.args.get('mobile') == '1' or request.headers.get('User-Agent', '').lower().find('mobile') != -1
+    if is_mobile:
+        return render_template("mobile/ticket/customer_ticket.html")
+    return render_template("system/ticket/customer_ticket.html")
+
+
+# 客户工单数据接口
+@bp.get("/customer_table")
+@authorize("system:customer_ticket:main")
+@login_required
+def customer_ticket_table():
+    """客户工单数据接口 - 只返回来源为wechat的工单"""
+    # 检查是否是超级管理员（admin）
+    if current_user.username != current_app.config.get("SUPERADMIN", "admin"):
+        # 检查用户部门是否为技术支持部（部门ID=4）
+        user_dept_id = getattr(current_user, 'dept_id', None)
+        if user_dept_id != 4:
+            return fail_api(msg="无权限访问")
+    
+    query = Ticket.query.with_entities(
+        Ticket.id,
+        Ticket.title,
+        Ticket.description,
+        Ticket.priority,
+        Ticket.status,
+        Ticket.assignee_name,
+        Ticket.submitter_company,
+        Ticket.submitter_contact,
+        Ticket.submitter_ip,
+        Ticket.source,
+        Ticket.create_time,
+        Ticket.update_time,
+    )
+
+    # 只查询客户提交的工单（source='wechat'）
+    query = query.filter(Ticket.source == 'wechat')
+
+    # 关键词搜索
+    keyword = str_escape(request.args.get("keyword", ""))
+    if keyword:
+        try:
+            ticket_id = int(keyword)
+            query = query.filter(Ticket.id == ticket_id)
+        except ValueError:
+            query = query.filter(Ticket.title.like(f"%{keyword}%"))
+
+    # 状态筛选
+    status = str_escape(request.args.get("status", ""))
+    if status:
+        query = query.filter(Ticket.status == status)
+
+    # 客户单位筛选
+    company = str_escape(request.args.get("company", ""))
+    if company:
+        query = query.filter(Ticket.submitter_company.like(f"%{company}%"))
+
+    # 联系人筛选
+    contact = str_escape(request.args.get("contact", ""))
+    if contact:
+        query = query.filter(Ticket.submitter_contact.like(f"%{contact}%"))
+
+    # 分配人筛选
+    assignee = str_escape(request.args.get("assignee", ""))
+    if assignee:
+        query = query.filter(Ticket.assignee_name.like(f"%{assignee}%"))
+
+    # 提交日期筛选
+    date = str_escape(request.args.get("date", ""))
+    if date:
+        query = query.filter(Ticket.create_time.like(f"%{date}%"))
+
+    data, count, page, limit = query.order_by(
+        desc(Ticket.create_time)
+    ).layui_paginate_db_json()
+
+    # 格式化时间字段 - 处理字符串格式的时间
+    for item in data:
+        if 'create_time' in item and item['create_time']:
+            # 尝试解析字符串为datetime，然后格式化
+            dt = parse_datetime_with_logging(item['create_time'])
+            if dt:
+                item['create_time'] = fmt_datetime(dt)
+        if 'update_time' in item and item['update_time']:
+            dt = parse_datetime_with_logging(item['update_time'])
+            if dt:
+                item['update_time'] = fmt_datetime(dt)
+
+    return table_api(data=data, count=count)
+
+
+# 认领工单
+@bp.post("/claim/<int:ticket_id>")
+@authorize("system:customer_ticket:claim")
+@login_required
+@operation_log(lambda: f"认领客户工单 -> ID: {g.ticket_id}")
+def claim_ticket(ticket_id):
+    """认领客户工单"""
+    ticket = Ticket.query.get(ticket_id)
+    if not ticket:
+        return fail_api(msg="工单不存在")
+
+    if ticket.source != 'wechat':
+        return fail_api(msg="只能认领客户工单")
+
+    if ticket.status != '待分配':
+        return fail_api(msg="只能认领待分配状态的工单")
+
+    # 设置分配人为当前用户
+    ticket.assignee_name = current_user.username
+    ticket.status = '处理中'
+    ticket.update_time = datetime.now()
+
+    try:
+        db.session.commit()
+        g.ticket_id = ticket_id
+        return success_api(msg="认领成功")
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"认领工单失败: {e}")
+        return fail_api(msg="认领失败")
+
+
+# 批量认领工单
+@bp.post("/batch_claim")
+@authorize("system:customer_ticket:claim")
+@login_required
+@operation_log(lambda: f"批量认领客户工单 -> IDs: {g.ticket_ids}, 成功: {g.claimed_count}")
+def batch_claim_tickets():
+    """批量认领客户工单"""
+    ids = request.form.get("ids", "")
+    if not ids:
+        return fail_api(msg="请选择要认领的工单")
+
+    id_list = [int(id.strip()) for id in ids.split(",") if id.strip()]
+
+    try:
+        tickets = Ticket.query.filter(Ticket.id.in_(id_list)).all()
+        claimed_count = 0
+
+        for ticket in tickets:
+            if ticket.source == 'wechat' and ticket.status == '待分配':
+                ticket.assignee_name = current_user.username
+                ticket.status = '处理中'
+                ticket.update_time = datetime.now()
+                claimed_count += 1
+
+        db.session.commit()
+        g.ticket_ids = ",".join(str(i) for i in id_list)
+        g.claimed_count = claimed_count
+        return success_api(msg=f"成功认领 {claimed_count} 个工单")
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"批量认领工单失败: {e}")
+        return fail_api(msg="批量认领失败")

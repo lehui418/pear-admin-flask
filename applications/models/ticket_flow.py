@@ -4,6 +4,11 @@ from datetime import datetime
 class TicketFlow(db.Model):
     """工单流程记录模型，用于跟踪工单状态变化和处理流程"""
     __tablename__ = 'ticket_flow'
+    __table_args__ = (
+        db.Index('idx_ticket_flow_ticket_create_time', 'ticket_id', 'create_time'),
+        db.Index('idx_ticket_flow_to_status_create_time', 'to_status', 'create_time'),
+        db.Index('idx_ticket_flow_handler_create_time', 'handler', 'create_time'),
+    )
 
     id = db.Column(db.Integer, primary_key=True)
     ticket_id = db.Column(db.Integer, db.ForeignKey('ticket.id'), nullable=False)  # 关联工单ID

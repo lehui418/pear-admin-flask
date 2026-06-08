@@ -1,0 +1,119 @@
+{% extends "mobile/base.html" %}
+
+{% block title %}工作看板{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/mobile/workboard.css') }}">
+{% endblock %}
+
+{% block content %}
+<!-- 页面头部 -->
+<div class="mobile-header">
+    <button class="home-btn" onclick="goToHome()">
+        <i class="fa fa-home"></i> 首页
+    </button>
+    <span class="title">工作看板</span>
+</div>
+
+<div class="workboard-container">
+    <!-- 时间筛选 -->
+    <div class="filter-bar">
+        <button class="filter-btn" data-range="today">今日</button>
+        <button class="filter-btn" data-range="week">本周</button>
+        <button class="filter-btn" data-range="month">本月</button>
+        <button class="filter-btn" data-range="quarter">本季度</button>
+        <button class="filter-btn active" data-range="all">全部</button>
+    </div>
+    
+    <!-- 统计卡片 -->
+    <div class="stats-grid">
+        <div class="stat-card primary">
+            <div class="stat-title">工单总量</div>
+            <div class="stat-value" id="totalTickets">0</div>
+            <div class="stat-change">较上周 +0%</div>
+        </div>
+        <div class="stat-card success">
+            <div class="stat-title">完成率</div>
+            <div class="stat-value" id="completionRate">0%</div>
+            <div class="stat-change">较上周 +0%</div>
+        </div>
+        <div class="stat-card warning">
+            <div class="stat-title">待处理</div>
+            <div class="stat-value" id="pendingTickets">0</div>
+            <div class="stat-change">较上周 +0%</div>
+        </div>
+        <div class="stat-card info">
+            <div class="stat-title">超时工单</div>
+            <div class="stat-value" id="overdueTickets">0</div>
+            <div class="stat-change">较上周 +0%</div>
+        </div>
+    </div>
+    
+    <!-- 图表区域 -->
+    <div class="chart-card">
+        <div class="chart-title">工单趋势</div>
+        <div class="chart-container" id="trendChart">
+            <div class="loading-hint">
+                <div class="loading-spinner"></div>
+                加载中...
+            </div>
+        </div>
+    </div>
+    
+    <div class="chart-card">
+        <div class="chart-title">优先级分布</div>
+        <div class="chart-container" id="priorityChart">
+            <div class="loading-hint">
+                <div class="loading-spinner"></div>
+                加载中...
+            </div>
+        </div>
+    </div>
+    
+    <!-- 工单问题分类统计 -->
+    <div class="chart-card">
+        <div class="chart-title">工单问题分类统计</div>
+        <div class="chart-container" id="categoryChart">
+            <div class="loading-hint">
+                <div class="loading-spinner"></div>
+                加载中...
+            </div>
+        </div>
+    </div>
+    
+    <!-- 工程师工单处理占比 -->
+    <div class="chart-card">
+        <div class="chart-title">工程师工单处理占比</div>
+        <div class="chart-container" id="engineerChart">
+            <div class="loading-hint">
+                <div class="loading-spinner"></div>
+                加载中...
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 底部导航 -->
+<div class="bottom-nav">
+    <div class="nav-item active" onclick="goToWorkboard()">
+        <span class="nav-icon">📊</span>
+        <span>看板</span>
+    </div>
+    <div class="nav-item" onclick="goToTicketList()">
+        <span class="nav-icon">📝</span>
+        <span>工单</span>
+    </div>
+    <div class="nav-item" onclick="goToCustomerTickets()">
+        <span class="nav-icon">📋</span>
+        <span>客户</span>
+    </div>
+    <div class="nav-item" onclick="goToProductSuggestion()">
+        <span class="nav-icon">💡</span>
+        <span>建议</span>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script src="{{ url_for('static', filename='js/mobile/workboard.js') }}"></script>
+{% endblock %}

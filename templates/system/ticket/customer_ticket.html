@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>客户工单</title>
+    {% include 'system/common/header.html' %}
+    <link rel="stylesheet" href="{{url_for('static',filename='css/ticket/ticket_main.css')}}">
+    <style>
+        /* 常用筛选区域样式 */
+        .common-search-area {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+        
+        .common-search-area .layui-form-item {
+            margin-bottom: 10px;
+        }
+        
+        .common-search-area .layui-form-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        /* 高级筛选按钮样式 */
+        .advanced-search-toggle {
+            text-align: center;
+            margin: 10px 0;
+            padding: 8px;
+            background-color: #e6e6e6;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .advanced-search-toggle:hover {
+            background-color: #d9d9d9;
+        }
+        
+        .advanced-search-toggle i {
+            margin-right: 5px;
+        }
+        
+        /* 高级筛选区域样式 */
+        #advancedSearchArea {
+            display: none;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px dashed #ccc;
+        }
+        
+        #advancedSearchArea.show {
+            display: block;
+        }
+        
+        /* 搜索区域默认隐藏 */
+        #searchArea {
+            display: none;
+        }
+        
+        #searchArea.show {
+            display: block;
+        }
+
+        /* 认领按钮样式 */
+        .claim-btn {
+            background-color: #1E9FFF;
+            color: white;
+        }
+        
+        .claim-btn:hover {
+            background-color: #0d8ce6;
+        }
+
+        .claimed-btn {
+            min-width: 86px;
+            background-color: #52c41a !important;
+            border-color: #52c41a !important;
+            color: #fff !important;
+            cursor: default !important;
+            opacity: 1;
+        }
+
+        /* 状态标签样式 */
+        .status-badge {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        .status-pending {
+            background-color: #FFB800;
+            color: white;
+        }
+        
+        .status-processing {
+            background-color: #1E9FFF;
+            color: white;
+        }
+        
+        .status-resolved {
+            background-color: #5FB878;
+            color: white;
+        }
+
+        /* 返回首页按钮 */
+        .back-home-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border: none;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            cursor: pointer;
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: all 0.3s;
+        }
+
+        .back-home-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.5);
+        }
+
+        .back-home-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* 移动端适配 */
+        @media screen and (max-width: 768px) {
+            .layui-card-header {
+                padding: 15px;
+            }
+            
+            .layui-card-header h3 {
+                font-size: 16px;
+            }
+            
+            .common-search-area {
+                padding: 10px;
+            }
+            
+            .layui-col-md2 {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+            
+            .back-home-btn {
+                width: 45px;
+                height: 45px;
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+
+<body class="pear-container">
+    <div class="layui-card">
+        <div class="layui-card-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <h3>客户工单管理</h3>
+            <div>
+                <button class="layui-btn layui-btn-normal layui-btn-sm" onclick="showPublicSubmitLink()">
+                    <i class="layui-icon layui-icon-link"></i> 客户提单链接
+                </button>
+                <button class="layui-btn layui-btn-primary layui-btn-sm" onclick="goToHome()">
+                    <i class="layui-icon layui-icon-home"></i> 首页
+                </button>
+            </div>
+        </div>
+        <div class="layui-card-body">
+            <!-- 搜索区域 -->
+            <div class="layui-form layui-form-pane" id="searchArea" style="margin-bottom: 10px;">
+                
+                <!-- 常用筛选区域 -->
+                <div class="common-search-area">
+                    <div class="layui-row layui-col-space15">
+                        <div class="layui-col-md2">
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">工单标题/ID</label>
+                                <div class="layui-input-block">
+                                    <input type="text" name="searchKeyword" id="searchKeyword"
+                                        placeholder="工单标题/ID" autocomplete="off" class="layui-input">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-col-md2">
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">工单状态</label>
+                                <div class="layui-input-block">
+                                    <select name="searchStatus" id="searchStatus">
+                                        <option value="">全部</option>
+                                        <option value="待分配">待分配</option>
+                                        <option value="处理中">处理中</option>
+                                        <option value="已解决">已解决</option>
+                                        <option value="已关闭">已关闭</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-col-md2">
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">客户单位</label>
+                                <div class="layui-input-block">
+                                    <input type="text" name="searchCompany" id="searchCompany"
+                                        placeholder="客户单位名称" autocomplete="off" class="layui-input">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-col-md2">
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">联系人</label>
+                                <div class="layui-input-block">
+                                    <input type="text" name="searchContact" id="searchContact"
+                                        placeholder="联系人姓名" autocomplete="off" class="layui-input">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-col-md2">
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">分配人</label>
+                                <div class="layui-input-block">
+                                    <input type="text" name="searchAssignee" id="searchAssignee"
+                                        placeholder="分配人姓名" autocomplete="off" class="layui-input">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-col-md2">
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">提交时间</label>
+                                <div class="layui-input-block">
+                                    <input type="date" name="searchDate" id="searchDate"
+                                        placeholder="提交日期" autocomplete="off" class="layui-input">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 常用筛选操作按钮 -->
+                    <div class="layui-row">
+                        <div class="layui-col-md12" style="text-align: center; margin-top: 10px;">
+                            <button class="layui-btn layui-btn-normal layui-btn-sm" id="searchBtn" data-type="reload">
+                                <i class="layui-icon layui-icon-search"></i>搜索
+                            </button>
+                            <button class="layui-btn layui-btn-primary layui-btn-sm" id="resetBtn">
+                                <i class="layui-icon layui-icon-refresh"></i>重置
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <table id="dataTable" lay-filter="dataTable"></table>
+        </div>
+    </div>
+
+    <!-- 悬浮返回首页按钮 -->
+    <button class="back-home-btn" onclick="goToHome()" title="返回首页">
+        🏠
+    </button>
+
+    <script type="text/html" id="toolbar">
+        <button class="layui-btn layui-btn-normal layui-btn-sm" lay-event="batchClaim" id="batchClaimBtn" style="display:none;">
+            <i class="layui-icon layui-icon-ok"></i>
+            批量认领
+        </button>
+    </script>
+
+    <script type="text/html" id="user-bar">
+        <div class="layui-btn-group">
+            <button class="layui-btn layui-btn-primary layui-btn-sm" lay-event="view"><i class="layui-icon layui-icon-read"></i></button>
+            {{ '{{# if(d.status == "待分配") { }}' | safe }}
+            <button class="layui-btn claim-btn layui-btn-sm" lay-event="claim"><i class="layui-icon layui-icon-ok"></i>认领</button>
+            {{ '{{# } else if(d.assignee_name) { }}' | safe }}
+            <button class="layui-btn layui-btn-sm claimed-btn" type="button">已认领</button>
+            {{ '{{# } }}' | safe }}
+        </div>
+    </script>
+
+    <script type="text/html" id="status-tpl">
+        {{ '{{# if(d.status == "待分配") { }}' | safe }}
+        <span class="status-badge status-pending">待分配</span>
+        {{ '{{# } else if(d.status == "处理中") { }}' | safe }}
+        <span class="status-badge status-processing">处理中</span>
+        {{ '{{# } else if(d.status == "已解决" || d.status == "已关闭") { }}' | safe }}
+        <span class="status-badge status-resolved">已解决</span>
+        {{ '{{# } else { }}' | safe }}
+        <span class="layui-badge">{{ '{{ d.status }}' | safe }}</span>
+        {{ '{{# } }}' | safe }}
+    </script>
+
+    <script>
+        // 存储当前用户信息供 JavaScript 使用
+        var CURRENT_USER_ID = {{ current_user.id | tojson }};
+        var CURRENT_USERNAME = {{ current_user.username | tojson }};
+        var IS_ADMIN = {{ (current_user.username == 'admin') | tojson }};
+        var HAS_CLAIM_PERMISSION = {{ authorize("system:customer_ticket:claim") | tojson }};
+        var HAS_EDIT_PERMISSION = {{ authorize("system:customer_ticket:edit") | tojson }};
+        var PUBLIC_TICKET_SUBMIT_PATH = "{{ url_for('public_ticket.submit_page') }}";
+
+        function getPublicSubmitUrl() {
+            return window.location.origin + PUBLIC_TICKET_SUBMIT_PATH;
+        }
+
+        function showPublicSubmitLink() {
+            var url = getPublicSubmitUrl();
+            var html = ''
+                + '<div style="padding:16px 18px;">'
+                + '<div style="margin-bottom:10px;color:#333;">把下面这个链接发给客户，客户打开后即可填写工单：</div>'
+                + '<input id="publicSubmitUrlInput" class="layui-input" readonly value="' + url + '" style="margin-bottom:12px;">'
+                + '<div style="display:flex;gap:10px;justify-content:flex-end;">'
+                + '<button class="layui-btn layui-btn-normal layui-btn-sm" onclick="copyPublicSubmitLink()">复制链接</button>'
+                + '<button class="layui-btn layui-btn-primary layui-btn-sm" onclick="window.open(getPublicSubmitUrl(), \'_blank\')">打开页面</button>'
+                + '</div>'
+                + '</div>';
+            layer.open({
+                type: 1,
+                title: '客户提单链接',
+                area: ['560px', '210px'],
+                content: html
+            });
+        }
+
+        function copyPublicSubmitLink() {
+            var url = getPublicSubmitUrl();
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(url).then(function () {
+                    layer.msg('链接已复制', { icon: 1 });
+                }).catch(function () {
+                    fallbackCopyPublicSubmitLink(url);
+                });
+            } else {
+                fallbackCopyPublicSubmitLink(url);
+            }
+        }
+
+        function fallbackCopyPublicSubmitLink(url) {
+            var input = document.getElementById('publicSubmitUrlInput');
+            if (!input) {
+                input = document.createElement('input');
+                input.value = url;
+                document.body.appendChild(input);
+            }
+            input.select();
+            document.execCommand('copy');
+            layer.msg('链接已复制', { icon: 1 });
+        }
+
+        // 返回首页
+        function goToHome() {
+            window.location.href = '/mobile';
+        }
+    </script>
+
+    {% include 'system/common/footer.html' %}
+    <script src="{{ url_for('static', filename='js/ticket/customer_ticket.js', v='20260527_02') }}"></script>
+</body>
+
+</html>

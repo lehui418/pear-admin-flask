@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>登录 - 售后工单系统</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile/mobile-base.css') }}">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .login-box {
+            background: #fff;
+            border-radius: 12px;
+            padding: 30px 25px;
+            width: 100%;
+            max-width: 350px;
+        }
+        .login-title {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .login-title h1 {
+            color: #333;
+            font-size: 22px;
+            margin-bottom: 5px;
+        }
+        .login-title p {
+            color: #999;
+            font-size: 13px;
+        }
+        .form-item {
+            margin-bottom: 15px;
+        }
+        .form-item input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #e8e8e8;
+            border-radius: 8px;
+            font-size: 15px;
+            -webkit-appearance: none;
+        }
+        .form-item input:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+        .captcha-row {
+            display: flex;
+            gap: 10px;
+        }
+        .captcha-row input {
+            flex: 1;
+        }
+        .captcha-img {
+            width: 100px;
+            height: 42px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .login-btn:active {
+            opacity: 0.9;
+        }
+        .mobile-tag {
+            text-align: center;
+            margin-top: 15px;
+            color: #667eea;
+            font-size: 13px;
+        }
+
+        .customer-entry {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px dashed #e8e8e8;
+            text-align: center;
+        }
+
+        .customer-entry-text {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 10px;
+        }
+
+        .customer-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: #f8f9fa;
+            border: 1px solid #e8e8e8;
+            border-radius: 20px;
+            color: #667eea;
+            font-size: 14px;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .customer-btn:hover {
+            background: #667eea;
+            color: #fff;
+            border-color: #667eea;
+        }
+
+        .customer-btn i {
+            font-size: 16px;
+        }
+
+        .url-hint {
+            margin-top: 10px;
+            font-size: 11px;
+            color: #bbb;
+            word-break: break-all;
+            padding: 0 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-box">
+        <div class="login-title">
+            <h1>售后工单系统</h1>
+            <p>移动办公，随时随地处理工单</p>
+        </div>
+        
+        <form id="loginForm">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="form-item">
+                <input type="text" name="username" placeholder="请输入用户名" required>
+            </div>
+            <div class="form-item">
+                <input type="password" name="password" placeholder="请输入密码" required>
+            </div>
+            <div class="form-item captcha-row">
+                <input type="text" name="captcha" placeholder="验证码" required>
+                <img src="{{ url_for('system.passport.captcha') }}" 
+                     class="captcha-img" 
+                     onclick="refreshCaptcha(this)"
+                     alt="验证码">
+            </div>
+            <button type="submit" class="login-btn">登 录</button>
+        </form>
+        
+        <div class="mobile-tag">📱 移动端版本</div>
+
+        <!-- 客户工单提交入口 -->
+        <div class="customer-entry">
+            <div class="customer-entry-text">我是客户，需要提交工单</div>
+            <a href="/api/public/ticket/submit/page" class="customer-btn">
+                <i class="fas fa-edit"></i>
+                <span>客户工单提交</span>
+            </a>
+            <div class="url-hint">工程师可复制此链接给客户：/api/public/ticket/submit/page</div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='index/layui/layui.js') }}"></script>
+    <script>
+        layui.use(['layer', 'jquery'], function(){
+            var layer = layui.layer;
+            var $ = layui.jquery;
+            
+            // 刷新验证码
+            window.refreshCaptcha = function(img) {
+                img.src = "{{ url_for('system.passport.captcha') }}?t=" + Date.now();
+            };
+            
+            // 表单提交
+            $('#loginForm').on('submit', function(e) {
+                e.preventDefault();
+                var data = $(this).serialize();
+                
+                // 显示加载中
+                var loadIndex = layer.load(2);
+                
+                $.post("{{ url_for('system.passport.login') }}", data, function(res) {
+                    layer.close(loadIndex);
+                    if (res.code === 0 || res.success) {
+                        // 自定义成功弹窗
+                        layer.alert('<div style="text-align:center;padding:20px 0;"><i class="layui-icon layui-icon-ok-circle" style="font-size:48px;color:#5FB878;"></i><div style="margin-top:15px;font-size:16px;">登录成功</div></div>', {
+                            title: false,
+                            closeBtn: 0,
+                            btn: false,
+                            shade: 0.5,
+                            area: ['200px', '180px'],
+                            success: function() {
+                                setTimeout(function() {
+                                    window.location.href = "{{ url_for('index.mobile_home_readable') }}";
+                                }, 1200);
+                            }
+                        });
+                    } else {
+                        layer.msg(res.msg || '登录失败', {icon: 2, time: 2000});
+                        refreshCaptcha($('.captcha-img')[0]);
+                    }
+                }).fail(function() {
+                    layer.close(loadIndex);
+                    layer.msg('网络错误，请稍后重试', {icon: 2, time: 2000});
+                });
+            });
+        });
+    </script>
+</body>
+</html>

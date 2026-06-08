@@ -104,11 +104,17 @@ class Query(BaseQuery):
         # 获取查询的列名列表
         column_names = [col["name"] for col in self.column_descriptions]
 
-        # 将元组转换为字典（支持单列或多列）
-        data = [
-            dict(zip(column_names, row))
-            for row in _res.items
-        ]
+        # 将元组转换为字典（支持单列或多列），并格式化 datetime 字段
+        data = []
+        for row in _res.items:
+            row_dict = {}
+            for name, value in zip(column_names, row):
+                # 格式化 datetime 对象为字符串
+                if isinstance(value, datetime.datetime):
+                    row_dict[name] = value.strftime('%Y-%m-%d %H:%M:%S')
+                else:
+                    row_dict[name] = value
+            data.append(row_dict)
 
         return data, _res.total, _res.page, _res.per_page
 

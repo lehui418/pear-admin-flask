@@ -5,4 +5,18 @@
     document.documentElement.style.setProperty(variableKey, variableVal);
 </script>
 <script src="{{ url_for('static', filename='system/component/pear/pear.js') }}"></script>
+<script>
+    layui.use(['jquery'], function () {
+        var $ = layui.jquery;
+        var csrfToken = "{{ csrf_token() }}";
+        $.ajaxSetup({
+            beforeSend: function (xhr, settings) {
+                var method = (settings.type || 'GET').toUpperCase();
+                if (!/^(GET|HEAD|OPTIONS|TRACE)$/.test(method)) {
+                    xhr.setRequestHeader('X-CSRFToken', csrfToken);
+                }
+            }
+        });
+    });
+</script>
 

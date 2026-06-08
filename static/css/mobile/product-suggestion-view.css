@@ -1,0 +1,329 @@
+/**
+ * 移动端产品建议查看页面样式
+ * 文件路径: static/css/mobile/product-suggestion-view.css
+ */
+
+.view-container {
+    padding: 15px;
+    padding-top: 61px;
+    padding-bottom: 80px;
+}
+
+/* 页面头部 */
+.mobile-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 46px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 15px;
+    z-index: 1000;
+}
+
+.mobile-header .back-btn {
+    color: #fff;
+    font-size: 13px;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(255,255,255,0.2);
+    padding: 6px 12px;
+    border-radius: 15px;
+    transition: background 0.3s;
+}
+
+.mobile-header .back-btn:hover {
+    background: rgba(255,255,255,0.3);
+}
+
+.mobile-header .title {
+    font-size: 17px;
+    font-weight: 500;
+    flex: 1;
+    text-align: center;
+}
+
+.mobile-header .header-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.mobile-header .header-btn {
+    color: #fff;
+    font-size: 14px;
+    padding: 5px 10px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 4px;
+    text-decoration: none;
+}
+
+/* 详情卡片 */
+.detail-card,
+.info-card {
+    background: #fff;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.detail-card:last-child,
+.info-card:last-child {
+    margin-bottom: 0;
+}
+
+.card-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+/* 详情项 */
+.detail-item,
+.info-item {
+    display: flex;
+    margin-bottom: 12px;
+    align-items: flex-start;
+}
+
+.detail-item:last-child,
+.info-item:last-child {
+    margin-bottom: 0;
+}
+
+.detail-label,
+.info-label {
+    width: 80px;
+    color: #666;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.detail-value,
+.info-value {
+    flex: 1;
+    color: #333;
+    font-size: 14px;
+    word-break: break-all;
+}
+
+/* 状态标签 */
+.status-tag {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.status-tag.status-Open {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+.status-tag.status-In-Review {
+    background: #fff3e0;
+    color: #f57c00;
+}
+
+.status-tag.status-Accepted {
+    background: #e8f5e9;
+    color: #388e3c;
+}
+
+.status-tag.status-Rejected {
+    background: #ffebee;
+    color: #d32f2f;
+}
+
+.status-tag.status-Implemented {
+    background: #f3e5f5;
+    color: #7b1fa2;
+}
+
+/* 优先级标签 */
+.priority-tag {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.priority-tag.priority-高 {
+    background: #ffebee;
+    color: #d32f2f;
+}
+
+.priority-tag.priority-中 {
+    background: #fff3e0;
+    color: #f57c00;
+}
+
+.priority-tag.priority-低 {
+    background: #e8f5e9;
+    color: #388e3c;
+}
+
+/* 描述内容 */
+.description-content {
+    background: #f8f9fa;
+    padding: 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #333;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+/* 图片区域 */
+.description-images {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.description-images img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 1px solid #e8e8e8;
+    cursor: pointer;
+}
+
+/* 图片预览弹窗 */
+.image-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.9);
+    z-index: 10000;
+    justify-content: center;
+    align-items: center;
+}
+
+.image-modal.active {
+    display: flex;
+}
+
+.image-modal img {
+    max-width: 90%;
+    max-height: 80%;
+    object-fit: contain;
+}
+
+.image-modal .close-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    color: #fff;
+    font-size: 30px;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+}
+
+/* 底部操作栏 */
+.action-bar {
+    position: fixed;
+    bottom: 60px;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border-top: 1px solid #eee;
+    display: flex;
+    padding: 12px 15px;
+    gap: 10px;
+    z-index: 100;
+}
+
+.action-btn {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    text-align: center;
+}
+
+.action-btn.primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+}
+
+.action-btn.primary:active {
+    opacity: 0.9;
+}
+
+.action-btn.secondary {
+    background: #f5f5f5;
+    color: #666;
+}
+
+.action-btn.secondary:active {
+    background: #e8e8e8;
+}
+
+.action-btn.danger {
+    background: #ffebee;
+    color: #d32f2f;
+}
+
+.action-btn.danger:active {
+    background: #ffcdd2;
+}
+
+/* 底部导航 */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border-top: 1px solid #eee;
+    display: flex;
+    justify-content: space-around;
+    padding: 8px 0;
+    z-index: 100;
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 11px;
+    color: #999;
+    cursor: pointer;
+    padding: 0 20px;
+}
+
+.nav-item.active {
+    color: #667eea;
+}
+
+.nav-icon {
+    font-size: 20px;
+    margin-bottom: 2px;
+}

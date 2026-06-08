@@ -9,6 +9,9 @@ import traceback
 @authorize("system:workboard:main")
 def main():
     try:
+        # 检查是否是移动端请求
+        if request.args.get('mobile') == '1':
+            return render_template('mobile/workboard/main.html')
         return render_template('system/workboard/main.html')
     except Exception as e:
         print("Error in workboard main route:")

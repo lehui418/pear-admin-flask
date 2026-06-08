@@ -1,0 +1,307 @@
+{% extends "mobile/base.html" %}
+
+{% block title %}编辑工单{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/mobile/ticket-edit.css') }}">
+{% endblock %}
+
+{% block content %}
+<!-- 页面头部 -->
+<div class="mobile-header">
+    <a href="javascript:history.back()" class="back-btn">
+        <i class="fa fa-arrow-left"></i> 返回
+    </a>
+    <span class="title">编辑工单</span>
+</div>
+
+<!-- 表单内容 -->
+<div class="mobile-content">
+    <form id="editForm">
+        <input type="hidden" name="id" value="{{ ticket.id }}">
+        
+        <!-- 基本信息 -->
+        <div class="form-card">
+            <div class="card-title">基本信息</div>
+            
+            <div class="form-item">
+                <label class="form-label">工单标题 <span style="color: #ff4d4f;">*</span></label>
+                <input type="text" name="title" class="form-input" value="{{ ticket.title }}" required>
+            </div>
+            
+            <div class="form-item">
+                <label class="form-label">优先级</label>
+                <select name="priority" class="form-select">
+                    <option value="P1" {{ 'selected' if ticket.priority == 'P1' else '' }}>P1 重大</option>
+                    <option value="P2" {{ 'selected' if ticket.priority == 'P2' else '' }}>P2 主要</option>
+                    <option value="P3" {{ 'selected' if ticket.priority == 'P3' else '' }}>P3 次要</option>
+                    <option value="P4" {{ 'selected' if ticket.priority == 'P4' else '' }}>P4 咨询</option>
+                </select>
+            </div>
+            
+            <div class="form-item">
+                <label class="form-label">工单状态</label>
+                <select name="status" class="form-select">
+                    <option value="创建/提交" {{ 'selected' if ticket.status == '创建/提交' else '' }}>创建/提交</option>
+                    <option value="处理中" {{ 'selected' if ticket.status == '处理中' else '' }}>处理中</option>
+                    <option value="已解决" {{ 'selected' if ticket.status == '已解决' else '' }}>已解决</option>
+                    <option value="已关闭" {{ 'selected' if ticket.status == '已关闭' else '' }}>已关闭</option>
+                    <option value="未完成-客户原因" {{ 'selected' if ticket.status == '未完成-客户原因' else '' }}>未完成-客户原因</option>
+                    <option value="未完成-研发原因" {{ 'selected' if ticket.status == '未完成-研发原因' else '' }}>未完成-研发原因</option>
+                    <option value="暂时规避" {{ 'selected' if ticket.status == '暂时规避' else '' }}>暂时规避</option>
+                </select>
+            </div>
+            
+            <div class="form-item">
+                <label class="form-label">负责人</label>
+                <input type="text" name="assignee_name" class="form-input" value="{{ ticket.assignee_name }}" readonly>
+            </div>
+            
+            <div class="form-item">
+                <label class="form-label">详细描述</label>
+                <textarea name="description" class="form-textarea">{{ ticket.description or '' }}</textarea>
+                
+                <!-- 图片上传 -->
+                <div class="image-upload-area" onclick="document.getElementById('descriptionImages').click()">
+                    <div class="upload-icon">📷</div>
+                    <div class="upload-text">点击上传图片</div>
+                    <div class="upload-hint">支持拍照或从相册选择</div>
+                </div>
+                <input type="file" id="descriptionImages" accept="image/*" multiple style="display:none" onchange="handleImageUpload(this, 'description')">
+                <div class="image-preview-list" id="descriptionPreview"></div>
+            </div>
+        </div>
+        
+        <!-- 产品信息 -->
+        <div class="form-card">
+            <div class="card-title">产品信息</div>
+            
+            <div class="form-item">
+                <label class="form-label">产品类型</label>
+                <select name="product_type_level1" class="form-select">
+                    <option value="">请选择设备类型</option>
+                    <option value="双向网闸" {{ 'selected' if ticket.product_type_level1 == '双向网闸' else '' }}>双向网闸</option>
+                    <option value="单向光闸" {{ 'selected' if ticket.product_type_level1 == '单向光闸' else '' }}>单向光闸</option>
+                    <option value="国产网闸" {{ 'selected' if ticket.product_type_level1 == '国产网闸' else '' }}>国产网闸</option>
+                    <option value="国产光闸" {{ 'selected' if ticket.product_type_level1 == '国产光闸' else '' }}>国产光闸</option>
+                    <option value="防火墙" {{ 'selected' if ticket.product_type_level1 == '防火墙' else '' }}>防火墙</option>
+                    <option value="数据交换平台" {{ 'selected' if ticket.product_type_level1 == '数据交换平台' else '' }}>数据交换平台</option>
+                    <option value="文件交换系统（山东源鲁）" {{ 'selected' if ticket.product_type_level1 == '文件交换系统（山东源鲁）' else '' }}>文件交换系统（山东源鲁）</option>
+                    <option value="文档审计" {{ 'selected' if ticket.product_type_level1 == '文档审计' else '' }}>文档审计</option>
+                    <option value="端设备" {{ 'selected' if ticket.product_type_level1 == '端设备' else '' }}>端设备</option>
+                    <option value="密件流转" {{ 'selected' if ticket.product_type_level1 == '密件流转' else '' }}>密件流转</option>
+                    <option value="真物理隔离网闸" {{ 'selected' if ticket.product_type_level1 == '真物理隔离网闸' else '' }}>真物理隔离网闸</option>
+                    <option value="其他" {{ 'selected' if ticket.product_type_level1 == '其他' else '' }}>其他安全设备</option>
+                </select>
+            </div>
+            
+            <div class="form-item">
+                <label class="form-label">产品二级分类</label>
+                <select name="product_type_level2" class="form-select">
+                    <option value="">请选择</option>
+                    <option value="国产" {{ 'selected' if ticket.product_type_level2 == '国产' else '' }}>国产</option>
+                    <option value="标准" {{ 'selected' if ticket.product_type_level2 == '标准' else '' }}>标准</option>
+                </select>
+            </div>
+            
+            <div class="form-item">
+                <label class="form-label">版本号</label>
+                <select name="version_number" class="form-select">
+                    <option value="">请选择版本号</option>
+                    <option value="V3.4.12" {{ 'selected' if ticket.version_number == 'V3.4.12' else '' }}>V3.4.12</option>
+                    <option value="V3.4.11" {{ 'selected' if ticket.version_number == 'V3.4.11' else '' }}>V3.4.11</option>
+                    <option value="V3.4.10" {{ 'selected' if ticket.version_number == 'V3.4.10' else '' }}>V3.4.10</option>
+                    <option value="V3.4.9" {{ 'selected' if ticket.version_number == 'V3.4.9' else '' }}>V3.4.9</option>
+                    <option value="V3.4.7" {{ 'selected' if ticket.version_number == 'V3.4.7' else '' }}>V3.4.7</option>
+                    <option value="V3.4.6" {{ 'selected' if ticket.version_number == 'V3.4.6' else '' }}>V3.4.6</option>
+                    <option value="V3.4.5" {{ 'selected' if ticket.version_number == 'V3.4.5' else '' }}>V3.4.5</option>
+                    <option value="V3.4.4" {{ 'selected' if ticket.version_number == 'V3.4.4' else '' }}>V3.4.4</option>
+                    <option value="V3.4.3" {{ 'selected' if ticket.version_number == 'V3.4.3' else '' }}>V3.4.3</option>
+                    <option value="V3.4.2" {{ 'selected' if ticket.version_number == 'V3.4.2' else '' }}>V3.4.2</option>
+                    <option value="V3.4.1" {{ 'selected' if ticket.version_number == 'V3.4.1' else '' }}>V3.4.1</option>
+                    <option value="V3.4.0" {{ 'selected' if ticket.version_number == 'V3.4.0' else '' }}>V3.4.0</option>
+                    <option value="V3.3.5" {{ 'selected' if ticket.version_number == 'V3.3.5' else '' }}>V3.3.5</option>
+                    <option value="V3.3.4" {{ 'selected' if ticket.version_number == 'V3.3.4' else '' }}>V3.3.4</option>
+                    <option value="V3.3.3" {{ 'selected' if ticket.version_number == 'V3.3.3' else '' }}>V3.3.3</option>
+                    <option value="V3.3.1" {{ 'selected' if ticket.version_number == 'V3.3.1' else '' }}>V3.3.1</option>
+                    <option value="V3.2.0" {{ 'selected' if ticket.version_number == 'V3.2.0' else '' }}>V3.2.0</option>
+                    <option value="V3.1.5" {{ 'selected' if ticket.version_number == 'V3.1.5' else '' }}>V3.1.5</option>
+                    <option value="V3.1.4" {{ 'selected' if ticket.version_number == 'V3.1.4' else '' }}>V3.1.4</option>
+                    <option value="V3.1.3" {{ 'selected' if ticket.version_number == 'V3.1.3' else '' }}>V3.1.3</option>
+                    <option value="V3.1.2" {{ 'selected' if ticket.version_number == 'V3.1.2' else '' }}>V3.1.2</option>
+                    <option value="V2.4.0.5 及以前版本" {{ 'selected' if ticket.version_number == 'V2.4.0.5 及以前版本' else '' }}>V2.4.0.5 及以前版本</option>
+                    <option value="V3.0&V4.0防火墙" {{ 'selected' if ticket.version_number == 'V3.0&V4.0防火墙' else '' }}>V3.0&V4.0防火墙</option>
+                    <option value="V1.0" {{ 'selected' if ticket.version_number == 'V1.0' else '' }}>V1.0</option>
+                    <option value="V1.1" {{ 'selected' if ticket.version_number == 'V1.1' else '' }}>V1.1</option>
+                    <option value="国产V3.0" {{ 'selected' if ticket.version_number == '国产V3.0' else '' }}>国产V3.0</option>
+                </select>
+            </div>
+            
+            <div class="form-item">
+                <label class="form-label">序列号</label>
+                <input type="text" name="serial_number" class="form-input" value="{{ ticket.serial_number or '' }}">
+            </div>
+            
+            <div class="form-item">
+                <div class="switch-item">
+                    <span class="switch-label">是否过保</span>
+                    <div class="switch-btn {{ 'active' if ticket.is_out_of_warranty else '' }}" onclick="toggleSwitch(this, 'is_out_of_warranty')"></div>
+                </div>
+                <input type="hidden" name="is_out_of_warranty" value="{{ 'true' if ticket.is_out_of_warranty else 'false' }}">
+            </div>
+            
+            <div class="form-item">
+                <label class="form-label">客户/代理商名称</label>
+                <input type="text" name="customer_agent_name" class="form-input" value="{{ ticket.customer_agent_name or '' }}">
+            </div>
+        </div>
+        
+        <!-- 服务与处理信息 -->
+        <div class="form-card">
+            <div class="card-title">服务与处理信息</div>
+            
+            <div class="form-item">
+                <label class="form-label">响应方式</label>
+                <div class="radio-group">
+                    <label class="radio-item {{ 'active' if ticket.service_method == '远程' or not ticket.service_method else '' }}">
+                        <input type="radio" name="service_method" value="远程" {{ 'checked' if ticket.service_method == '远程' or not ticket.service_method else '' }}> 远程
+                    </label>
+                    <label class="radio-item {{ 'active' if ticket.service_method == '电话' else '' }}">
+                        <input type="radio" name="service_method" value="电话" {{ 'checked' if ticket.service_method == '电话' else '' }}> 电话
+                    </label>
+                    <label class="radio-item {{ 'active' if ticket.service_method == '微信' else '' }}">
+                        <input type="radio" name="service_method" value="微信" {{ 'checked' if ticket.service_method == '微信' else '' }}> 微信
+                    </label>
+                    <label class="radio-item {{ 'active' if ticket.service_method == '现场/上门' else '' }}">
+                        <input type="radio" name="service_method" value="现场/上门" {{ 'checked' if ticket.service_method == '现场/上门' else '' }}> 现场/上门
+                    </label>
+                </div>
+            </div>
+            
+            <div class="form-item">
+                <label class="form-label">影响范围</label>
+                <select name="impact_scope" class="form-select">
+                    <option value="">请选择</option>
+                    <option value="单个用户" {{ 'selected' if ticket.impact_scope == '单个用户' else '' }}>单个用户</option>
+                    <option value="部门级" {{ 'selected' if ticket.impact_scope == '部门级' else '' }}>部门级</option>
+                    <option value="企业级" {{ 'selected' if ticket.impact_scope == '企业级' else '' }}>企业级</option>
+                    <option value="跨组织" {{ 'selected' if ticket.impact_scope == '跨组织' else '' }}>跨组织</option>
+                </select>
+            </div>
+            
+            <div class="form-item">
+                <label class="form-label">问题分类</label>
+                <select name="problem_classification_main" class="form-select">
+                    <option value="">请选择问题分类</option>
+                    <option value="产品配置类" {{ 'selected' if ticket.problem_classification_main == '产品配置类' else '' }}>产品配置类</option>
+                    <option value="业务异常" {{ 'selected' if ticket.problem_classification_main == '业务异常' else '' }}>业务异常</option>
+                    <option value="登录类" {{ 'selected' if ticket.problem_classification_main == '登录类' else '' }}>登录类</option>
+                    <option value="环境类-客户环境问题" {{ 'selected' if ticket.problem_classification_main == '环境类-客户环境问题' else '' }}>环境类-客户环境问题</option>
+                    <option value="死机问题" {{ 'selected' if ticket.problem_classification_main == '死机问题' else '' }}>死机问题</option>
+                    <option value="软件bug-新bug需研发提供升级包" {{ 'selected' if ticket.problem_classification_main == '软件bug-新bug需研发提供升级包' else '' }}>软件bug-新bug需研发提供升级包</option>
+                    <option value="软件bug-已知有补丁包" {{ 'selected' if ticket.problem_classification_main == '软件bug-已知有补丁包' else '' }}>软件bug-已知有补丁包</option>
+                    <option value="软件bug-需寄回升级包" {{ 'selected' if ticket.problem_classification_main == '软件bug-需寄回升级包' else '' }}>软件bug-需寄回升级包</option>
+                    <option value="软件bug-临时补丁包" {{ 'selected' if ticket.problem_classification_main == '软件bug-临时补丁包' else '' }}>软件bug-临时补丁包</option>
+                    <option value="软件bug-不需要升级包" {{ 'selected' if ticket.problem_classification_main == '软件bug-不需要升级包' else '' }}>软件bug-不需要升级包</option>
+                    <option value="bug开发中" {{ 'selected' if ticket.problem_classification_main == 'bug开发中' else '' }}>bug开发中</option>
+                    <option value="硬件问题（需寄回）" {{ 'selected' if ticket.problem_classification_main == '硬件问题（需寄回）' else '' }}>硬件问题（需寄回）</option>
+                    <option value="硬件问题（无需/暂不寄回）" {{ 'selected' if ticket.problem_classification_main == '硬件问题（无需/暂不寄回）' else '' }}>硬件问题（无需/暂不寄回）</option>
+                    <option value="安全漏洞" {{ 'selected' if ticket.problem_classification_main == '安全漏洞' else '' }}>安全漏洞</option>
+                    <option value="未排查出原因（临时解决）" {{ 'selected' if ticket.problem_classification_main == '未排查出原因（临时解决）' else '' }}>未排查出原因（临时解决）</option>
+                    <option value="其他（检测咨询类）" {{ 'selected' if ticket.problem_classification_main == '其他（检测咨询类）' else '' }}>其他（检测咨询类）</option>
+                    <option value="新需求" {{ 'selected' if ticket.problem_classification_main == '新需求' else '' }}>新需求</option>
+                    <option value="版本升级" {{ 'selected' if ticket.problem_classification_main == '版本升级' else '' }}>版本升级</option>
+                    <option value="其他" {{ 'selected' if ticket.problem_classification_main == '其他' else '' }}>其他</option>
+                </select>
+            </div>
+            
+            <div class="form-item">
+                <label class="form-label">模块标签</label>
+                <input type="text" name="problem_tags" class="form-input" value="{{ ticket.problem_tags or '' }}" placeholder="逗号分隔">
+            </div>
+        </div>
+        
+        <!-- 处理记录 -->
+        <div class="form-card">
+            <div class="card-title">处理记录</div>
+            
+            <div class="form-item">
+                <label class="form-label">相关日志、截图等</label>
+                <textarea name="relatedinfo" class="form-textarea">{{ ticket.relatedinfo or '' }}</textarea>
+                
+                <!-- 图片上传 -->
+                <div class="image-upload-area" onclick="document.getElementById('relatedinfoImages').click()">
+                    <div class="upload-icon">📷</div>
+                    <div class="upload-text">点击上传图片</div>
+                    <div class="upload-hint">支持拍照或从相册选择</div>
+                </div>
+                <input type="file" id="relatedinfoImages" accept="image/*" multiple style="display:none" onchange="handleImageUpload(this, 'relatedinfo')">
+                <div class="image-preview-list" id="relatedinfoPreview"></div>
+            </div>
+            
+            <div class="form-item">
+                <label class="form-label">处置方案</label>
+                <textarea name="solution" class="form-textarea">{{ ticket.solution or '' }}</textarea>
+                
+                <!-- 图片上传 -->
+                <div class="image-upload-area" onclick="document.getElementById('solutionImages').click()">
+                    <div class="upload-icon">📷</div>
+                    <div class="upload-text">点击上传图片</div>
+                    <div class="upload-hint">支持拍照或从相册选择</div>
+                </div>
+                <input type="file" id="solutionImages" accept="image/*" multiple style="display:none" onchange="handleImageUpload(this, 'solution')">
+                <div class="image-preview-list" id="solutionPreview"></div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- 底部操作栏 -->
+<div class="submit-bar">
+    <button type="button" class="submit-btn" onclick="submitForm()">立即保存</button>
+    <button type="button" class="submit-btn secondary" onclick="viewFlow()">查看流程</button>
+    <button type="button" class="submit-btn cancel" onclick="goBack()">取消</button>
+</div>
+
+<script>
+// 注入工单数据
+window.ticketData = {
+    image_references_str_description: {{ ticket.image_references_str_description | tojson | default('""', true) }},
+    image_references_str_relatedinfo: {{ ticket.image_references_str_relatedinfo | tojson | default('""', true) }},
+    image_references_str_solution: {{ ticket.image_references_str_solution | tojson | default('""', true) }}
+};
+</script>
+
+<!-- 加载提示 -->
+<div class="loading-toast" id="loadingToast">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">加载中...</div>
+</div>
+
+<!-- Toast提示 -->
+<div class="toast" id="toast"></div>
+
+<!-- 底部导航 -->
+<div class="bottom-nav">
+    <div class="nav-item" onclick="goToWorkboard()">
+        <span class="nav-icon">📊</span>
+        <span>看板</span>
+    </div>
+    <div class="nav-item active" onclick="goToTicketList()">
+        <span class="nav-icon">📝</span>
+        <span>工单</span>
+    </div>
+    <div class="nav-item" onclick="goToCustomerTickets()">
+        <span class="nav-icon">📋</span>
+        <span>客户</span>
+    </div>
+    <div class="nav-item" onclick="goToProductSuggestion()">
+        <span class="nav-icon">💡</span>
+        <span>建议</span>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script src="{{ url_for('static', filename='js/mobile/ticket-edit.js') }}"></script>
+{% endblock %}

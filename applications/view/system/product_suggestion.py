@@ -15,6 +15,19 @@ from applications.common.script.admin import operation_log
 
 bp = Blueprint('product_suggestion', __name__, url_prefix='/product_suggestion')
 
+
+def _is_admin_user() -> bool:
+    if not getattr(current_user, 'is_authenticated', False):
+        return False
+    return current_user.username == current_app.config.get('SUPERADMIN', 'admin')
+
+
+def _is_owner(suggestion: ProductSuggestion) -> bool:
+    if not getattr(current_user, 'is_authenticated', False):
+        return False
+    return suggestion.creator_id == current_user.id
+
+
 # 产品建议主页面
 @bp.get('/')
 @authorize("system:product_suggestion:main")
@@ -39,12 +52,8 @@ def force_refresh():
 @authorize("system:product_suggestion:add")
 def add_view():
     users = User.query.all()
-    return render_template('system/product_suggestion/add.html', users=users)
+    return render_template('system/product_suggestion/add.html', users=users, is_admin=_is_admin_user())
 
-# 测试提交页面
-@bp.get('/test_submit')
-def test_submit():
-    return render_template('test_submit.html')
 
 # 产品建议数据列表
 @bp.get('/table')
@@ -63,6 +72,10 @@ def table_data():
     if search_title:
         query = query.filter(ProductSuggestion.title.like(f'%{search_title}%'))
         current_app.logger.info(f"应用标题搜索过滤: %{search_title}%")
+
+    search_customer = request.args.get('searchCustomer', '').strip()
+    if search_customer:
+        query = query.filter(ProductSuggestion.customer_name.like(f'%{search_customer}%'))
     
     # 详细描述搜索（只匹配文本内容，不匹配图片URL）
     search_description = request.args.get('searchDescription', '').strip()
@@ -161,12 +174,13 @@ def table_data():
         is_admin = False
         is_owner = False
         if hasattr(current_user, 'is_authenticated') and current_user.is_authenticated:
-            is_admin = current_user.username == 'admin'
+            is_admin = _is_admin_user()
             is_owner = suggestion.creator_id == current_user.id
         
         item = {
             'id': suggestion.id,
             'title': suggestion.title,
+            'customer_name': suggestion.customer_name or '',
             'description': suggestion.description,
             'priority': suggestion.priority,
             'status': suggestion.status,
@@ -175,8 +189,8 @@ def table_data():
             'product_type_level2': suggestion.product_type_level2,
             'create_time': suggestion.create_time.strftime('%Y-%m-%d %H:%M:%S') if suggestion.create_time else '',
             'update_time': suggestion.update_time.strftime('%Y-%m-%d %H:%M:%S') if suggestion.update_time else '',
-            'can_edit': is_admin or is_owner,  # 是否可以编辑
-            'can_delete': is_admin or is_owner  # 是否可以删除
+            'can_edit': (is_admin or is_owner),
+            'can_delete': (is_admin or is_owner)
         }
         data.append(item)
     
@@ -204,9 +218,10 @@ def save():
     try:
         # 获取表单数据
         title = str_escape(req_json.get('title'))
+        customer_name = str_escape(req_json.get('customer_name'))
         description = str_escape(req_json.get('description'))
         priority = str_escape(req_json.get('priority', 'Medium'))
-        status = str_escape(req_json.get('status', 'Open'))
+        status = str_escape(req_json.get('status', 'Open')) if _is_admin_user() else 'Open'
         product_type_level1 = str_escape(req_json.get('product_type_level1'))
         product_type_level2 = str_escape(req_json.get('product_type_level2'))
         
@@ -236,6 +251,7 @@ def save():
         current_app.logger.info("开始创建ProductSuggestion对象")
         new_suggestion = ProductSuggestion(
             title=title,
+            customer_name=customer_name,
             description=description,
             priority=priority,
             status=status,
@@ -296,22 +312,18 @@ def edit_view(suggestion_id):
     if not suggestion:
         return render_template('errors/404.html'), 404
     
-    # 权限检查：管理员可以编辑任何产品建议，普通用户只能编辑自己创建的产品建议
-    if current_user.username == 'admin':
-        # 管理员可以编辑任何产品建议
-        pass
-    elif suggestion.creator_id == current_user.id:
-        # 用户可以编辑自己创建的产品建议
-        pass
-    else:
+    # 管理员或创建者可编辑
+    if not (_is_admin_user() or _is_owner(suggestion)):
         current_app.logger.warning(f"User {current_user.username} attempted to edit product suggestion ID {suggestion_id} without permission")
-        # 返回带提示的页面，使用layui的弹出提示
-        return render_template('system/product_suggestion/edit.html', 
-                               suggestion=suggestion, 
-                               no_permission=True,
-                               permission_msg="暂无权限编辑他人创建的产品建议")
-    
-    return render_template('system/product_suggestion/edit.html', suggestion=suggestion)
+        return render_template(
+            'system/product_suggestion/edit.html',
+            suggestion=suggestion,
+            no_permission=True,
+            permission_msg="无权限编辑该产品建议",
+            is_admin=False
+        )
+
+    return render_template('system/product_suggestion/edit.html', suggestion=suggestion, is_admin=_is_admin_user())
 
 # 更新产品建议
 @bp.post('/update')
@@ -344,17 +356,13 @@ def update():
         suggestion = ProductSuggestion.query.get_or_404(suggestion_id)
         current_app.logger.info(f"找到产品建议: {suggestion.title}")
         
-        # 权限检查：管理员可以编辑所有产品建议，普通用户只能编辑自己创建的产品建议
+        # 管理员或创建者可更新；非管理员不可改状态
         current_app.logger.info(f"当前用户: {current_user.username}, 创建者: {suggestion.creator_name}")
-        if current_user.username == 'admin':
-            current_app.logger.info("管理员权限验证通过")
-            pass  # 管理员有全部权限
-        elif suggestion.creator_id == current_user.id:
-            current_app.logger.info("用户权限验证通过")
-            pass  # 用户可以编辑自己创建的产品建议
-        else:
+        is_admin = _is_admin_user()
+        is_owner = _is_owner(suggestion)
+        if not (is_admin or is_owner):
             current_app.logger.warning(f"权限不足：用户 {current_user.username} 尝试编辑产品建议 {suggestion_id}")
-            return fail_api(msg="权限不足：您只能编辑自己创建的产品建议")
+            return fail_api(msg="权限不足：只能编辑自己创建的产品建议")
         
         # 记录日志所需信息
         g.suggestion_id = suggestion.id
@@ -363,9 +371,11 @@ def update():
         # 更新字段
         current_app.logger.info("开始更新字段")
         suggestion.title = str_escape(req_data.get('title', suggestion.title))
+        suggestion.customer_name = str_escape(req_data.get('customer_name', suggestion.customer_name))
         suggestion.description = str_escape(req_data.get('description', suggestion.description))
         suggestion.priority = str_escape(req_data.get('priority', suggestion.priority))
-        suggestion.status = str_escape(req_data.get('status', suggestion.status))
+        if is_admin:
+            suggestion.status = str_escape(req_data.get('status', suggestion.status))
         suggestion.product_type_level1 = str_escape(req_data.get('product_type_level1', suggestion.product_type_level1))
         suggestion.product_type_level2 = str_escape(req_data.get('product_type_level2', suggestion.product_type_level2))
         
@@ -384,34 +394,36 @@ def update():
 
 # 删除产品建议
 @bp.post('/delete')
-@authorize("system:product_suggestion:delete")
+@authorize("system:product_suggestion:main")
 @operation_log(lambda: f'删除产品建议 -> ID: {g.suggestion_id}, 标题: {g.suggestion_title}')
 def delete():
     suggestion_id = request.form.get('id')
     if not suggestion_id:
         return fail_api(msg="缺少产品建议ID")
     
-    suggestion = db.session.get(ProductSuggestion, int(suggestion_id))
+    g.suggestion_id = suggestion_id
+    g.suggestion_title = "已删除或不存在"
+
+    try:
+        suggestion_id_int = int(suggestion_id)
+    except ValueError:
+        return fail_api(msg="产品建议ID格式错误")
+
+    suggestion = db.session.get(ProductSuggestion, suggestion_id_int)
     if not suggestion:
-        return fail_api(msg="产品建议不存在")
+        return success_api(msg="产品建议已删除")
     
     # 在删除前，将产品建议信息存入g对象，用于日志记录
     g.suggestion_id = suggestion.id
     g.suggestion_title = suggestion.title
     
-    # 权限检查：管理员可以删除任何产品建议，普通用户只能删除自己创建的产品建议
+    # 管理员或创建者可删除
     if not current_user.is_authenticated:
         return fail_api(msg="您需要登录才能删除产品建议")
-    
-    if current_user.username == 'admin':
-        # 管理员可以删除任何产品建议
-        pass
-    elif suggestion.creator_id == current_user.id:
-        # 用户可以删除自己创建的产品建议
-        pass
-    else:
+
+    if not (_is_admin_user() or _is_owner(suggestion)):
         current_app.logger.warning(f"User {current_user.username} attempted to delete product suggestion ID {suggestion_id} without permission")
-        return fail_api(msg="您没有权限删除此产品建议")
+        return fail_api(msg="权限不足：只能删除自己创建的产品建议")
     
     try:
         db.session.delete(suggestion)
@@ -424,7 +436,7 @@ def delete():
 
 # 批量删除产品建议
 @bp.post('/batchDelete')
-@authorize("system:product_suggestion:delete")
+@authorize("system:product_suggestion:main")
 @operation_log(lambda: f'批量删除产品建议 -> ID: {g.suggestion_ids}')
 def batch_delete():
     ids = request.form.getlist('ids[]')
@@ -450,19 +462,14 @@ def batch_delete():
                     current_app.logger.warning(f"No product suggestion found with ID {suggestion_id}")
                     continue
                 
-                # 权限检查：管理员可以删除任何产品建议，其他用户只能删除自己创建的产品建议
-                if current_user.username == 'admin':
-                    # 管理员可以删除任何产品建议
-                    db.session.delete(suggestion)
-                    deleted_count += 1
-                    current_app.logger.info(f"Admin deleted product suggestion ID {suggestion_id}")
-                elif suggestion.creator_id == current_user.id:
-                    # 用户可以删除自己创建的产品建议
-                    db.session.delete(suggestion)
-                    deleted_count += 1
-                    current_app.logger.info(f"User {current_user.username} deleted own product suggestion ID {suggestion_id}")
-                else:
+                # 管理员或创建者可删除
+                if not (_is_admin_user() or _is_owner(suggestion)):
                     current_app.logger.warning(f"User {current_user.username} attempted to delete product suggestion ID {suggestion_id} without permission")
+                    continue
+
+                db.session.delete(suggestion)
+                deleted_count += 1
+                current_app.logger.info(f"Deleted product suggestion ID {suggestion_id} by {current_user.username}")
             except ValueError:
                 current_app.logger.warning(f"Invalid product suggestion ID in batch delete: {suggestion_id_str}")
                 continue

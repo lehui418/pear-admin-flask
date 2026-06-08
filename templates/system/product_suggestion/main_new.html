@@ -20,6 +20,14 @@
                 </div>
                 <div class="layui-col-md3">
                     <div class="layui-form-item">
+                        <label class="layui-form-label">客户名称</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="searchCustomer" id="searchCustomer" placeholder="客户名称关键词" autocomplete="off" class="layui-input">
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-col-md3">
+                    <div class="layui-form-item">
                         <label class="layui-form-label">优先级</label>
                         <div class="layui-input-block">
                             <select name="searchPriority" id="searchPriority">
@@ -46,6 +54,8 @@
                         </div>
                     </div>
                 </div>
+            </div>
+            <div class="layui-row layui-col-space10">
                 <div class="layui-col-md3">
                     <div class="layui-form-item">
                         <label class="layui-form-label">产品类型</label>
@@ -68,8 +78,6 @@
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="layui-row layui-col-space10">
                 <div class="layui-col-md3">
                     <div class="layui-form-item">
                         <label class="layui-form-label">创建者</label>
@@ -108,10 +116,12 @@
 <!-- 操作列 -->
 <script type="text/html" id="toolbarDemo">
     <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="view">查看</a>
+    {% raw %}{{# if(d.can_edit){ }}{% endraw %}
     <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
-    {% if authorize("system:product_suggestion:delete") %}
+    {% raw %}{{# } }}{% endraw %}
+    {% raw %}{{# if(d.can_delete){ }}{% endraw %}
     <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="delete">删除</a>
-    {% endif %}
+    {% raw %}{{# } }}{% endraw %}
 </script>
 
 <!-- 优先级模板 -->
@@ -144,6 +154,19 @@
     {% raw %}{{# } }}{% endraw %}
 </script>
 <script>
+    layui.use(['jquery'], function () {
+        var $ = layui.jquery;
+        var csrfToken = "{{ csrf_token() }}";
+        $.ajaxSetup({
+            beforeSend: function (xhr, settings) {
+                var method = (settings.type || 'GET').toUpperCase();
+                if (!/^(GET|HEAD|OPTIONS|TRACE)$/.test(method)) {
+                    xhr.setRequestHeader('X-CSRFToken', csrfToken);
+                }
+            }
+        });
+    });
+
     var TABLE_URL = '/system/product_suggestion/table';
     var UPDATE_URL = '/system/product_suggestion/update';
     var DELETE_URL = '/system/product_suggestion/delete';

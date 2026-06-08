@@ -51,7 +51,8 @@ let issueChartData = {
     all: null
 };
 let currentIssueChartPeriod = 'this_week';
-let issueChartUseGlobalDateRange = true; // 是否使用全局日期范围
+let issueChartUseGlobalDateRange = true; // 顶部筛选默认控制问题分类图。
+let issueChartRequestSeq = 0;
 
 // 优先级图表数据存储
 let priorityChartData = {
@@ -61,22 +62,23 @@ let priorityChartData = {
 };
 let currentPriorityChartPeriod = 'this_week';
 let priorityChartUseGlobalDateRange = true; // 是否使用全局日期范围
+let dashboardRequestSeq = 0;
 
 // 初始化所有图表
 function initCharts() {
     try {
-        console.log("initCharts开始执行 - charts对象:", charts);
+        // console.log("initCharts开始执行 - charts对象:", charts);
         Object.keys(charts).forEach(function (chartId) {
             const chartEl = document.getElementById(chartId);
-            console.log(`检查图表元素 - chartId: ${chartId}, chartEl:`, chartEl);
+            // console.log(`检查图表元素 - chartId: ${chartId}, chartEl:`, chartEl);
             if (chartEl) {
                 charts[chartId].instance = echarts.init(chartEl, null, { renderer: 'svg' });
-                console.log(`图表初始化成功 - chartId: ${chartId}, instance:`, charts[chartId].instance);
+                // console.log(`图表初始化成功 - chartId: ${chartId}, instance:`, charts[chartId].instance);
             } else {
                 console.error('Chart element not found: ' + chartId);
             }
         });
-        console.log("图表初始化完成 - charts对象:", charts);
+        // console.log("图表初始化完成 - charts对象:", charts);
     } catch (e) {
         console.error("图表初始化失败:", e);
     }
@@ -139,7 +141,7 @@ function showChartError(chartId, message) {
 // 安全的setOption包装函数，统一处理错误
 function safeSetOption(chartId, option, notMerge) {
     try {
-        console.log(`safeSetOption - ${chartId}: 开始设置选项`);
+        // console.log(`safeSetOption - ${chartId}: 开始设置选项`);
 
         // 验证图表实例
         if (!charts[chartId]) {
@@ -172,9 +174,9 @@ function safeSetOption(chartId, option, notMerge) {
             });
         }
 
-        console.log(`safeSetOption - ${chartId}: 调用setOption`);
+        // console.log(`safeSetOption - ${chartId}: 调用setOption`);
         charts[chartId].instance.setOption(option, notMerge);
-        console.log(`safeSetOption - ${chartId}: setOption成功`);
+        // console.log(`safeSetOption - ${chartId}: setOption成功`);
         return true;
 
     } catch (error) {
@@ -209,14 +211,24 @@ function hideChartLoadingAndError(chartId) {
 }
 
 // 加载和更新数据
-function loadData() {
+function loadData(options) {
+    const requestSeq = ++dashboardRequestSeq;
+    const shouldResetChartPeriods = options && options.resetChartPeriods === true;
     const dateRangePicker = document.getElementById('dateRangePicker');
     const dateRangeValue = dateRangePicker ? dateRangePicker.value : '';
+    const requestDateRangeValue = dateRangeValue;
     const classification = document.getElementById('classificationFilter').value;
     const priority = document.getElementById('priorityFilter').value;
     const search = document.getElementById('searchInput').value;
 
-    console.log("loadData调用 - dateRangeValue:", dateRangeValue, "dateRangePicker:", dateRangePicker);
+    if (shouldResetChartPeriods) {
+        engineerChartUseGlobalDateRange = true;
+        statusChartUseGlobalDateRange = true;
+        issueChartUseGlobalDateRange = true;
+        priorityChartUseGlobalDateRange = true;
+    }
+
+    // console.log("loadData调用 - dateRangeValue:", dateRangeValue, "dateRangePicker:", dateRangePicker);
 
     let dateRangeString = "";
     const today = new Date();
@@ -267,7 +279,7 @@ function loadData() {
             dateRangeString = ""; // 默认为空，后端不进行日期筛选
     }
 
-    console.log("加载数据参数:", { dateRange: dateRangeString, classification, priority, search });
+    // console.log("加载数据参数:", { dateRange: dateRangeString, classification, priority, search });
 
     // 显示所有图表的加载状态
     Object.keys(charts).forEach(chartId => showChartLoading(chartId));
@@ -283,41 +295,53 @@ function loadData() {
         },
         dataType: 'json',
         success: function (res) {
-            console.log("后端返回数据:", res);
+            const currentDateRangeValue = dateRangePicker ? dateRangePicker.value : '';
+            if (requestSeq !== dashboardRequestSeq || currentDateRangeValue !== requestDateRangeValue) {
+                return;
+            }
+            // console.log("后端返回数据:", res);
             if (res.code === 200 && res.data) {
                 updateStatistics(res.data); // 传递整个 res.data 对象
-                updateCharts(res.data);
                 updateEngineerStats(res.data.assignee_data); // 使用 assignee_data 更新工程师统计
 
-                // 重置工程师图表为使用全局日期范围
-                resetEngineerChartToGlobal();
-                // 使用全局日期范围更新工程师图表
-                if (res.data.assignee_stats) {
-                    updateSatisfactionChart(res.data.assignee_stats);
+
+
+                if (engineerChartUseGlobalDateRange) {
+                    resetEngineerChartToGlobal();
+                    if (res.data.assignee_stats) {
+                        updateSatisfactionChart(res.data.assignee_stats);
+                    }
+                } else {
+                    loadEngineerChartData(currentEngineerChartPeriod);
                 }
 
-                // 重置状态图表为使用全局日期范围
-                resetStatusChartToGlobal();
-                // 使用全局日期范围更新状态图表
-                if (res.data.trendChart) {
-                    updateStatusChart(res.data.trendChart);
+                if (statusChartUseGlobalDateRange) {
+                    resetStatusChartToGlobal();
+                    if (res.data.trendChart) {
+                        updateStatusChart(res.data.trendChart);
+                    }
+                } else {
+                    loadStatusChartData(currentStatusChartPeriod);
                 }
 
-                // 重置工单问题分类统计图表为使用全局日期范围
-                resetIssueChartToGlobal();
-                // 使用全局日期范围更新工单问题分类统计图表
-                if (res.data.categoryChart) {
-                    renderIssueChart(res.data.categoryChart);
+                if (issueChartUseGlobalDateRange) {
+                    resetIssueChartToGlobal();
+                    if (res.data.categoryChart) {
+                        renderIssueChart(res.data.categoryChart);
+                    }
+                } else {
+                    loadIssueChartData(currentIssueChartPeriod);
                 }
 
-                // 重置优先级图表为使用全局日期范围
-                resetPriorityChartToGlobal();
-                // 使用全局日期范围更新优先级图表
-                if (res.data.priorityChart) {
-                    renderPriorityChart(res.data.priorityChart);
+                if (priorityChartUseGlobalDateRange) {
+                    resetPriorityChartToGlobal();
+                    if (res.data.priorityChart) {
+                        renderPriorityChart(res.data.priorityChart);
+                    }
+                } else {
+                    loadPriorityChartData(currentPriorityChartPeriod);
                 }
 
-                // 隐藏所有图表的加载和错误状态
                 Object.keys(charts).forEach(chartId => hideChartLoadingAndError(chartId));
             } else {
                 console.error("获取数据失败:", res.msg);
@@ -678,11 +702,11 @@ function animateNumber(element, targetValue, duration = 800, suffix = '') { // �
 // 更新工单状态图 (原趋势图逻辑，现在用于statusChart)
 function updateStatusChart(data) { // Renamed from updateTrendChart
     const chartId = 'statusChart'; // Changed from trendChart to statusChart
-    console.log('updateStatusChart被调用 - chartId:', chartId, 'data:', data);
+    // console.log('updateStatusChart被调用 - chartId:', chartId, 'data:', data);
 
     // 详细的数据检查
-    console.log('updateStatusChart - data类型:', typeof data);
-    console.log('updateStatusChart - data内容:', JSON.stringify(data));
+    // console.log('updateStatusChart - data类型:', typeof data);
+    // console.log('updateStatusChart - data内容:', JSON.stringify(data););
 
     const chartElement = document.getElementById(chartId);
     if (!chartElement) {
@@ -698,8 +722,8 @@ function updateStatusChart(data) { // Renamed from updateTrendChart
         const categories = data.categories || [];
         const chartData = data.data || [];
 
-        console.log('updateStatusChart - categories:', categories, '类型:', typeof categories, '长度:', categories.length);
-        console.log('updateStatusChart - chartData:', chartData, '类型:', typeof chartData, '长度:', chartData.length);
+        // console.log('updateStatusChart - categories:', categories, '类型:', typeof categories, '长度:', categories.length);
+        // console.log('updateStatusChart - chartData:', chartData, '类型:', typeof chartData, '长度:', chartData.length);
 
         // 检查categories和chartData是否都是数组
         if (!Array.isArray(categories)) {
@@ -720,7 +744,7 @@ function updateStatusChart(data) { // Renamed from updateTrendChart
             return;
         }
 
-        console.log('updateStatusChart - 数据验证通过，准备构建图表配置');
+        // console.log('updateStatusChart - 数据验证通过，准备构建图表配置');
 
         const option = {
             tooltip: {
@@ -770,10 +794,10 @@ function updateStatusChart(data) { // Renamed from updateTrendChart
             ]
         };
 
-        console.log('updateStatusChart - 即将调用safeSetOption');
+        // console.log('updateStatusChart - 即将调用safeSetOption');
         const success = safeSetOption(chartId, option, true);
         if (success) {
-            console.log('updateStatusChart - safeSetOption调用成功');
+            // console.log('updateStatusChart - safeSetOption调用成功');
             hideChartLoadingAndError(chartId);
         }
 
@@ -782,7 +806,7 @@ function updateStatusChart(data) { // Renamed from updateTrendChart
         charts[chartId].instance.on('click', function (params) {
             if (params.componentType === 'series' || params.componentType === 'xAxis') {
                 let clickedDate = params.name; // params.name 是X轴的标签，即日期
-                console.log('图表点击日期:', clickedDate);
+                // console.log('图表点击日期:', clickedDate);
                 // 假设data.categories中的日期已经是 YYYY-MM-DD 格式
                 // 如果不是，需要在这里添加转换逻辑
                 $('#customDateRangeInput').val(clickedDate + ' - ' + clickedDate);
@@ -800,11 +824,11 @@ function updateStatusChart(data) { // Renamed from updateTrendChart
 function updateIssueChart(data) { // Renamed from updateCategoryChart
     const chartId = 'issueChart'; // Changed from categoryChart to issueChart
     const chartElement = document.getElementById(chartId);
-    console.log('updateIssueChart被调用 - chartId:', chartId, 'data:', data);
+    // console.log('updateIssueChart被调用 - chartId:', chartId, 'data:', data);
 
     // 详细的数据检查
-    console.log('updateIssueChart - data类型:', typeof data);
-    console.log('updateIssueChart - data内容:', JSON.stringify(data));
+    // console.log('updateIssueChart - data类型:', typeof data);
+    // console.log('updateIssueChart - data内容:', JSON.stringify(data););
 
     if (!chartElement) {
         console.error(`Chart element with ID '${chartId}' not found for updateCategoryChart.`);
@@ -819,8 +843,8 @@ function updateIssueChart(data) { // Renamed from updateCategoryChart
         const labels = data.labels || [];
         const chartData = data.data || [];
 
-        console.log('updateIssueChart - labels:', labels, '类型:', typeof labels, '长度:', labels.length);
-        console.log('updateIssueChart - chartData:', chartData, '类型:', typeof chartData, '长度:', chartData.length);
+        // console.log('updateIssueChart - labels:', labels, '类型:', typeof labels, '长度:', labels.length);
+        // console.log('updateIssueChart - chartData:', chartData, '类型:', typeof chartData, '长度:', chartData.length);
 
         // 检查labels和chartData是否都是数组
         if (!Array.isArray(labels)) {
@@ -849,7 +873,7 @@ function updateIssueChart(data) { // Renamed from updateCategoryChart
             return;
         }
 
-        console.log('updateIssueChart - 数据验证通过，准备构建图表配置');
+        // console.log('updateIssueChart - 数据验证通过，准备构建图表配置');
 
         // 缓存数据用于视图切换
         issueChartDataCache = { labels: [...labels], data: [...chartData] };
@@ -1047,11 +1071,11 @@ function renderIssueChart(data) {
 // 更新满意度图 (原负责人图逻辑，现在用于satisfactionChart)
 function updateSatisfactionChart(data) { // Renamed from updateResponsibleChart
     const chartId = 'satisfactionChart'; // Changed from responsibleChart to satisfactionChart
-    console.log('updateSatisfactionChart被调用 - chartId:', chartId, 'data:', data);
+    // console.log('updateSatisfactionChart被调用 - chartId:', chartId, 'data:', data);
 
     // 详细的数据检查
-    console.log('updateSatisfactionChart - data类型:', typeof data);
-    console.log('updateSatisfactionChart - data内容:', JSON.stringify(data));
+    // console.log('updateSatisfactionChart - data类型:', typeof data);
+    // console.log('updateSatisfactionChart - data内容:', JSON.stringify(data););
 
     const chartElement = document.getElementById(chartId);
     if (!chartElement) {
@@ -1068,8 +1092,8 @@ function updateSatisfactionChart(data) { // Renamed from updateResponsibleChart
         const names = data.names || data.labels || [];
         const counts = data.counts || data.data || [];
 
-        console.log('updateSatisfactionChart - names:', names, '类型:', typeof names, '长度:', names.length);
-        console.log('updateSatisfactionChart - counts:', counts, '类型:', typeof counts, '长度:', counts.length);
+        // console.log('updateSatisfactionChart - names:', names, '类型:', typeof names, '长度:', names.length);
+        // console.log('updateSatisfactionChart - counts:', counts, '类型:', typeof counts, '长度:', counts.length);
 
         // 检查names和counts是否都是数组
         if (!Array.isArray(names)) {
@@ -1104,14 +1128,14 @@ function updateSatisfactionChart(data) { // Renamed from updateResponsibleChart
             return;
         }
 
-        console.log('updateSatisfactionChart - 数据验证通过，准备构建图表数据');
+        // console.log('updateSatisfactionChart - 数据验证通过，准备构建图表数据');
 
         const chartData = names.map((name, index) => ({
             value: counts[index] || 0,
             name: name
         }));
 
-        console.log('updateSatisfactionChart - 构建的图表数据:', chartData);
+        // console.log('updateSatisfactionChart - 构建的图表数据:', chartData);
 
         // 计算总数和百分比
         const total = counts.reduce((sum, count) => sum + count, 0);
@@ -1187,10 +1211,10 @@ function updateSatisfactionChart(data) { // Renamed from updateResponsibleChart
             ]
         };
 
-        console.log('updateSatisfactionChart - 即将调用safeSetOption');
+        // console.log('updateSatisfactionChart - 即将调用safeSetOption');
         const success = safeSetOption(chartId, option, true);
         if (success) {
-            console.log('updateSatisfactionChart - safeSetOption调用成功');
+            // console.log('updateSatisfactionChart - safeSetOption调用成功');
             hideChartLoadingAndError(chartId);
         }
     } catch (e) {
@@ -1201,6 +1225,27 @@ function updateSatisfactionChart(data) { // Renamed from updateResponsibleChart
 }
 
 // 切换工程师图表周期
+function getGlobalChartButtonPeriod() {
+    const picker = document.getElementById('dateRangePicker');
+    const value = picker ? picker.value : '';
+    if (value === 'this_week') return 'this_week';
+    if (value === '') return 'all';
+    return null;
+}
+
+function syncGlobalChartPeriodButtons(chartId) {
+    const chartCard = document.querySelector(`.chart-card:has(#${chartId})`);
+    const activePeriod = getGlobalChartButtonPeriod();
+    if (!chartCard) return;
+    chartCard.querySelectorAll('.chart-actions button').forEach(btn => {
+        const onclick = btn.getAttribute('onclick') || '';
+        btn.classList.remove('active');
+        if (activePeriod && onclick.includes(`'${activePeriod}'`)) {
+            btn.classList.add('active');
+        }
+    });
+}
+
 window.switchEngineerChart = function (period) {
     currentEngineerChartPeriod = period;
     engineerChartUseGlobalDateRange = false; // 用户手动选择了特定周期
@@ -1241,6 +1286,7 @@ function resetEngineerChartToGlobal() {
             }
         });
     }
+    syncGlobalChartPeriodButtons('satisfactionChart');
 }
 
 // 加载工程师图表数据
@@ -1268,6 +1314,9 @@ function loadEngineerChartData(period) {
         data: requestData,
         dataType: 'json',
         success: function (res) {
+            if (engineerChartUseGlobalDateRange) {
+                return;
+            }
             if (res.code === 200 && res.data && res.data.assignee_stats) {
                 engineerChartData[period] = res.data.assignee_stats;
                 updateSatisfactionChart(res.data.assignee_stats);
@@ -1320,6 +1369,7 @@ function resetStatusChartToGlobal() {
             }
         });
     }
+    syncGlobalChartPeriodButtons('statusChart');
 }
 
 // 加载状态图表数据
@@ -1347,6 +1397,9 @@ function loadStatusChartData(period) {
         data: requestData,
         dataType: 'json',
         success: function (res) {
+            if (statusChartUseGlobalDateRange) {
+                return;
+            }
             if (res.code === 200 && res.data && res.data.trendChart) {
                 statusChartData[period] = res.data.trendChart;
                 updateStatusChart(res.data.trendChart);
@@ -1385,6 +1438,7 @@ window.switchIssueChartPeriod = function (period) {
 
 // 重置工单问题分类统计图表为使用全局日期范围
 function resetIssueChartToGlobal() {
+    issueChartRequestSeq++;
     issueChartUseGlobalDateRange = true;
     currentIssueChartPeriod = 'this_week';
 
@@ -1399,10 +1453,14 @@ function resetIssueChartToGlobal() {
             }
         });
     }
+    syncGlobalChartPeriodButtons('issueChart');
 }
 
 // 加载工单问题分类统计数据
 function loadIssueChartData(period) {
+    const requestSeq = ++issueChartRequestSeq;
+    const requestPeriod = period;
+
     // 获取其他筛选条件
     const classification = $('#classificationFilter').val();
     const priority = $('#priorityFilter').val();
@@ -1415,10 +1473,9 @@ function loadIssueChartData(period) {
         search: search
     };
 
-    // 如果不是使用全局日期范围，则添加 issue_period 参数
-    if (!issueChartUseGlobalDateRange) {
-        requestData.issue_period = period;
-    }
+    // 工单问题分类统计始终按按钮周期请求数据。
+    // Always request the selected period for issue chart.
+    requestData.issue_period = period;
 
     $.ajax({
         url: getAnalyticsUrl,
@@ -1426,6 +1483,9 @@ function loadIssueChartData(period) {
         data: requestData,
         dataType: 'json',
         success: function (res) {
+            if (requestSeq !== issueChartRequestSeq || requestPeriod !== currentIssueChartPeriod) {
+                return;
+            }
             if (res.code === 200 && res.data && res.data.categoryChart) {
                 issueChartData[period] = res.data.categoryChart;
                 renderIssueChart(res.data.categoryChart);
@@ -1478,6 +1538,7 @@ function resetPriorityChartToGlobal() {
             }
         });
     }
+    syncGlobalChartPeriodButtons('timeChart');
 }
 
 // 加载优先级图表数据
@@ -1505,6 +1566,9 @@ function loadPriorityChartData(period) {
         data: requestData,
         dataType: 'json',
         success: function (res) {
+            if (priorityChartUseGlobalDateRange) {
+                return;
+            }
             if (res.code === 200 && res.data && res.data.priorityChart) {
                 priorityChartData[period] = res.data.priorityChart;
                 renderPriorityChart(res.data.priorityChart);
@@ -1626,7 +1690,7 @@ function updateEngineerStats(assigneeData) {
         return;
     }
 
-    console.log("Updating engineer stats with data:", assigneeData);
+    // console.log("Updating engineer stats with data:", assigneeData);
     container.innerHTML = ''; // 清空现有内容
 
     const colors = ['#3b82f6', '#10b981', '#f59e0b', '#6366f1', '#8b5cf6', '#ec4899', '#22d3ee'];
@@ -1734,18 +1798,18 @@ function toggleFullscreen(chartId) {
 
 // window.onload确保所有资源加载完毕后执行
 window.onload = function () {
-    console.log("window.onload开始执行");
+    // console.log("window.onload开始执行");
     updateCurrentDate(); // 新增：更新当前日期
-    console.log("准备调用initCharts");
+    // console.log("准备调用initCharts");
     initCharts();
-    console.log("initCharts调用完成，charts对象:", charts);
+    // console.log("initCharts调用完成，charts对象:", charts);
     // loadData(); // 页面加载时首次加载数据 - 移动到laydate初始化后，或根据逻辑调整
 
     // 为筛选器添加事件监听
     const dateRangePicker = document.getElementById('dateRangePicker');
     if (dateRangePicker) {
         dateRangePicker.addEventListener('change', function () {
-            console.log("日期范围选择器变化 - 新值:", this.value);
+            // console.log("日期范围选择器变化 - 新值:", this.value);
             if (this.value === 'custom') {
                 $('#customDateRangeInput').show();
                 if (typeof layui !== 'undefined' && layui.laydate) {
@@ -1759,9 +1823,9 @@ window.onload = function () {
                             show: true, // 直接显示
                             // trigger: 'click', // 改为直接显示
                             done: function (value, date, endDate) {
-                                console.log('自定义日期范围选择: ' + value);
+                                // console.log('自定义日期范围选择: ' + value);
                                 if (value) {
-                                    loadData();
+                                    loadData({ resetChartPeriods: true });
                                 }
                                 // 选择后可以考虑隐藏输入框或根据需求处理
                                 // $('#customDateRangeInput').hide(); 
@@ -1772,26 +1836,32 @@ window.onload = function () {
             } else {
                 $('#customDateRangeInput').hide();
                 $('#customDateRangeInput').val('');
-                console.log("调用loadData，非自定义日期范围");
-                loadData();
+                // console.log("调用loadData，非自定义日期范围");
+                loadData({ resetChartPeriods: true });
             }
         });
     }
 
     const classificationFilter = document.getElementById('classificationFilter');
-    if (classificationFilter) classificationFilter.addEventListener('change', loadData);
+    if (classificationFilter) classificationFilter.addEventListener('change', function () {
+        loadData({ resetChartPeriods: true });
+    });
 
     const priorityFilter = document.getElementById('priorityFilter');
-    if (priorityFilter) priorityFilter.addEventListener('change', loadData);
+    if (priorityFilter) priorityFilter.addEventListener('change', function () {
+        loadData({ resetChartPeriods: true });
+    });
 
     const searchInput = document.getElementById('searchInput');
-    if (searchInput) searchInput.addEventListener('input', debounce(loadData, 500)); // 添加防抖
+    if (searchInput) searchInput.addEventListener('input', debounce(function () {
+        loadData({ resetChartPeriods: true });
+    }, 500)); // 添加防抖
 
-    loadData(); // 确保在所有事件监听器设置完毕后，进行首次数据加载
+    loadData({ resetChartPeriods: true }); // 确保在所有事件监听器设置完毕后，进行首次数据加载
 
     // 设置定时器，每30秒自动刷新一次数据
     setInterval(function () {
-        loadData();
+        loadData({ resetChartPeriods: false });
     }, 30000); // 30000毫秒 = 30秒
 };
 
@@ -1810,35 +1880,31 @@ function updateCurrentDate() {
 }
 
 function updateCharts(data) {
-    console.log('updateCharts被调用 - data:', data);
+    // console.log('updateCharts被调用 - data:', data);
     try {
         // 验证所有图表实例状态
-        console.log('updateCharts - 图表实例状态检查:');
+        // console.log('updateCharts - 图表实例状态检查:');
         Object.keys(charts).forEach(chartId => {
-            console.log(`  ${chartId}: instance=${charts[chartId].instance}, loading=${charts[chartId].loading}, error=${charts[chartId].error}`);
+            // console.log(`  ${chartId}: instance=${charts[chartId].instance}, loading=${charts[chartId].loading}, error=${charts[chartId].error}`);
         });
 
         // 使用正确的键名从后端数据中获取图表数据
         if (charts.statusChart.instance && data.trendChart) {
-            console.log('更新statusChart');
+            // console.log('更新statusChart');
             updateStatusChart(data.trendChart);
         }
 
-        if (charts.issueChart.instance && data.categoryChart) {
-            console.log('更新issueChart - data.categoryChart:', data.categoryChart);
-            updateIssueChart(data.categoryChart);
-        } else {
-            console.warn('issueChart未更新 - charts.issueChart.instance:', charts.issueChart.instance, 'data.categoryChart:', data.categoryChart);
-        }
+        // issueChart uses its own period buttons and is loaded by
+        // loadIssueChartData(). Do not update it from the dashboard payload.
 
         // 更新工程师工单处理占比图表
         if (data.assignee_stats) {
-            console.log('更新工程师图表数据');
+            // console.log('更新工程师图表数据');
             updateEngineerChartData(data);
         }
 
         if (charts.timeChart.instance && data.timeAnalysisChart) {
-            console.log('更新timeChart');
+            // console.log('更新timeChart');
             updateTimeChart(data.timeAnalysisChart);
         }
 
@@ -1850,11 +1916,11 @@ function updateCharts(data) {
 
 // 单独为 timeChart 创建更新函数
 function updateTimeChart(chartData) {
-    console.log('updateTimeChart被调用 - chartData:', chartData);
+    // console.log('updateTimeChart被调用 - chartData:', chartData);
 
     // 详细的数据检查
-    console.log('updateTimeChart - chartData类型:', typeof chartData);
-    console.log('updateTimeChart - chartData内容:', JSON.stringify(chartData));
+    // console.log('updateTimeChart - chartData类型:', typeof chartData);
+    // console.log('updateTimeChart - chartData内容:', JSON.stringify(chartData););
 
     if (!charts.timeChart.instance || !chartData) {
         console.warn('updateTimeChart - timeChart实例或数据不存在 - charts.timeChart.instance:', charts.timeChart.instance, 'chartData:', chartData);
@@ -1870,8 +1936,8 @@ function updateTimeChart(chartData) {
     const categories = chartData.categories;
     const data = chartData.data;
 
-    console.log('updateTimeChart - categories:', categories, '类型:', typeof categories, '长度:', categories.length);
-    console.log('updateTimeChart - data:', data, '类型:', typeof data, '长度:', data.length);
+    // console.log('updateTimeChart - categories:', categories, '类型:', typeof categories, '长度:', categories.length);
+    // console.log('updateTimeChart - data:', data, '类型:', typeof data, '长度:', data.length);
 
     // 检查categories和data是否都是数组
     if (!Array.isArray(categories)) {
@@ -1900,7 +1966,7 @@ function updateTimeChart(chartData) {
         return;
     }
 
-    console.log('updateTimeChart - 数据验证通过，准备构建图表配置');
+    // console.log('updateTimeChart - 数据验证通过，准备构建图表配置');
 
     const timeOption = {
         tooltip: {
@@ -1943,10 +2009,10 @@ function updateTimeChart(chartData) {
             }
         }]
     };
-    console.log('updateTimeChart - 即将调用safeSetOption');
+    // console.log('updateTimeChart - 即将调用safeSetOption');
     const success = safeSetOption('timeChart', timeOption, true);
     if (success) {
-        console.log('updateTimeChart - safeSetOption调用成功');
+        // console.log('updateTimeChart - safeSetOption调用成功');
         hideChartLoadingAndError('timeChart');
     }
 }

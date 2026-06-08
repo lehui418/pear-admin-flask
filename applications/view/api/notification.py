@@ -4,6 +4,7 @@ from datetime import datetime
 from applications.extensions import db
 from applications.models import User
 from applications.common.utils.http import success_api, fail_api
+from applications.common.utils.rights import authorize
 
 bp = Blueprint('notification', __name__, url_prefix='/notification')
 
@@ -13,6 +14,7 @@ ticket_handled_status = {}
 
 @bp.route('/list', methods=['GET'])
 @login_required
+@authorize("system:ticket:main")
 def get_notifications():
     """获取当前用户的消息通知列表"""
     user_id = current_user.id
@@ -28,6 +30,7 @@ def get_notifications():
 
 @bp.route('/send', methods=['POST'])
 @login_required
+@authorize("system:ticket:edit")
 def send_notification():
     """发送消息通知（内部使用）"""
     data = request.get_json()
@@ -76,6 +79,7 @@ def send_notification():
 
 @bp.route('/read/<int:notification_id>', methods=['POST'])
 @login_required
+@authorize("system:ticket:main")
 def mark_as_read(notification_id):
     """标记消息为已读"""
     user_id = current_user.id
@@ -90,6 +94,7 @@ def mark_as_read(notification_id):
 
 @bp.route('/clear', methods=['POST'])
 @login_required
+@authorize("system:ticket:main")
 def clear_notifications():
     """清空当前用户的消息"""
     user_id = current_user.id
@@ -100,6 +105,7 @@ def clear_notifications():
 
 @bp.route('/handle/<int:ticket_id>', methods=['POST'])
 @login_required
+@authorize("system:ticket:edit")
 def mark_as_handled(ticket_id):
     """标记工单通知为已处理"""
     user_id = current_user.id
@@ -116,6 +122,7 @@ def mark_as_handled(ticket_id):
 
 @bp.route('/revoke/<int:ticket_id>', methods=['POST'])
 @login_required
+@authorize("system:ticket:edit")
 def revoke_handled(ticket_id):
     """撤回已处理状态"""
     user_id = current_user.id
@@ -131,6 +138,7 @@ def revoke_handled(ticket_id):
 
 @bp.route('/status/<int:ticket_id>', methods=['GET'])
 @login_required
+@authorize("system:ticket:main")
 def get_ticket_status(ticket_id):
     """获取工单通知的处理状态"""
     user_id = current_user.id

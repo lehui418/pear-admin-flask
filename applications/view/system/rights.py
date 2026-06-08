@@ -271,10 +271,19 @@ def menu():
     ADMIN_ONLY_MENU_CODES = ['system:log:main', 'system:admin_log:main']
     ADMIN_ONLY_MENU_IDS = [13, 68]  # 日志管理(ID:13) 和 操作日志(ID:68)
     
+    # 定义客户工单相关权限码（仅技术支持部可见）
+    CUSTOMER_TICKET_CODES = ['system:customer_ticket:main']
+    
     if current_user.username != current_app.config.get("SUPERADMIN"):
         role = current_user.role
         powers = []
         parent_powers = []
+        
+        # 获取用户部门ID
+        user_dept_id = getattr(current_user, 'dept_id', None)
+        # 判断是否是技术支持部成员（部门ID=4）
+        is_support_dept = user_dept_id == 4
+        
         for i in role:
             # 如果角色没有被启用就直接跳过
             if i.enable == 0:
@@ -286,6 +295,9 @@ def menu():
                     continue
                 # 过滤掉只有 admin 才能查看的菜单（通过code或id匹配）
                 if p.code in ADMIN_ONLY_MENU_CODES or p.id in ADMIN_ONLY_MENU_IDS:
+                    continue
+                # 非技术支持部用户，过滤掉客户工单菜单
+                if not is_support_dept and p.code in CUSTOMER_TICKET_CODES:
                     continue
                 # 添加所有权限到临时列表
                 if p not in powers:
@@ -381,7 +393,7 @@ def rights_main():
     """
     # 确保用户已登录
     if not current_user.is_authenticated:
-        return redirect(url_for('passport.login'))
+        return redirect(url_for('system.passport.login'))
 
     # 获取当前用户的用户名，用于筛选待办工单
     current_username = current_user.username

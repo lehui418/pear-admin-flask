@@ -7,10 +7,13 @@ import logging
 from applications.common.utils.http import fail_api
 from applications.common.utils.rights import authorize
 from applications.view.api.ticket_analytics import get_ticket_analytics_data
+from flask_login import login_required
 
 bp = Blueprint('ticket', __name__, url_prefix='/ticket')
 
 @bp.route('/analytics', methods=['GET'])
+@login_required
+@authorize("system:ticket:main")
 def get_ticket_analytics():
     """
     获取工单分析数据

@@ -4,6 +4,8 @@
  */
 
 var basePath = '/'; // Adjust if your app is not at the root
+var ticketTableInstance = null;
+var ticketTableRefreshTimer = null;
 
 /**
  * 初始化 Layui 模块和页面功能
@@ -13,6 +15,7 @@ layui.use(['table', 'form', 'jquery', 'laydate'], function () {
     let form = layui.form;
     let $ = layui.jquery;
     let laydate = layui.laydate;
+    ticketTableInstance = table;
 
     // 初始化页面功能
     initSearchToggle($);
@@ -20,6 +23,7 @@ layui.use(['table', 'form', 'jquery', 'laydate'], function () {
     initTableEvents(table, $);
     initToolbarEvents(table, $);
     initSearchEvents(table, form, $);
+    initAutoRefresh(table);
 });
 
 /**
@@ -87,6 +91,36 @@ function initTable(table, $) {
         limit: 15,
         limits: [15, 30, 50, 100],
         text: { none: '暂无相关数据' }
+    });
+}
+
+/**
+ * 页面重新变为活跃状态时自动刷新工单列表
+ * @param {Object} table - Layui table 模块
+ */
+function initAutoRefresh(table) {
+    function scheduleReload() {
+        if (!ticketTableInstance) {
+            return;
+        }
+
+        if (ticketTableRefreshTimer) {
+            clearTimeout(ticketTableRefreshTimer);
+        }
+
+        ticketTableRefreshTimer = setTimeout(function () {
+            ticketTableInstance.reload('dataTable', {
+                where: getSearchParams()
+            });
+        }, 150);
+    }
+
+    window.addEventListener('focus', scheduleReload);
+    window.addEventListener('pageshow', scheduleReload);
+    document.addEventListener('visibilitychange', function () {
+        if (!document.hidden) {
+            scheduleReload();
+        }
     });
 }
 

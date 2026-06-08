@@ -1,4 +1,4 @@
-from flask import Blueprint, session, redirect, url_for, render_template, request
+from flask import Blueprint, session, redirect, url_for, render_template, request, current_app
 from flask_login import current_user, login_user, login_required, logout_user
 import time
 from sqlalchemy.orm import joinedload
@@ -6,6 +6,7 @@ from sqlalchemy.orm import joinedload
 from applications.common.admin import get_captcha, login_log, normal_log
 from applications.common.script.admin import operation_log
 from applications.common.utils.http import fail_api, success_api, table_api
+from applications.extensions import csrf
 from applications.models import User
 
 bp = Blueprint('passport', __name__, url_prefix='/passport')
@@ -23,7 +24,9 @@ def captcha():
 @bp.get('/debug_captcha')
 def debug_captcha():
     """调试验证码接口，仅用于开发环境"""
-    # 这里可以添加环境检查，确保只在开发环境可用
+    # 添加环境检查，确保只在开发环境可用
+    if not current_app.debug:
+        return fail_api(msg="此接口仅开发环境可用")
     code = session.get("code", "")
     return table_api(msg="当前验证码", data=code)
 
@@ -31,9 +34,24 @@ def debug_captcha():
 # 登录
 @bp.get('/login')
 def login():
+    # 判断是否为移动端访问
+    user_agent = request.headers.get('User-Agent', '').lower()
+    is_mobile = 'mobile' in user_agent or 'android' in user_agent or 'iphone' in user_agent
+    
+    # 通过参数强制移动端
+    if request.args.get('mobile') == '1':
+        is_mobile = True
+    
     if current_user.is_authenticated:
+        # 已登录用户跳转到首页，保留 mobile 参数
+        if is_mobile:
+            return redirect(url_for('system.workboard.main') + '?mobile=1')
         return redirect(url_for('system.workboard.main'))
-    return render_template('system/login.html')
+    
+    if is_mobile:
+        return render_template('mobile/passport/login.html')
+    else:
+        return render_template('system/login.html')
 
 
 # 登录
@@ -121,6 +139,7 @@ def check_session():
 
 # 退出登录
 @bp.post('/logout')
+@csrf.exempt
 @login_required
 def logout():
     # 手动记录登出日志

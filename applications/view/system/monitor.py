@@ -96,8 +96,8 @@ def main():
 @bp.get('/polling')
 @authorize("system:monitor:main")
 def ajax_polling():
-    # 获取 CPU 核心数
-    cpu_count = cache_auto_internal('cpu_count', lambda: psutil.cpu_count(), expired=999999999)
+    # 获取 CPU 核心数（缓存1小时，CPU核心数不会频繁变化）
+    cpu_count = cache_auto_internal('cpu_count', lambda: psutil.cpu_count(), expired=3600)
 
     # 获取 CPU 使用率
     cpus_percent = cache_auto_internal('cpus_percent',

@@ -210,6 +210,8 @@
                                             <div class="layui-input-block">
                                                 <select name="searchVersionNumber" id="searchVersionNumber">
                                                     <option value="">请选择版本号</option>
+                                                    <option value="V3.4.12">V3.4.12</option>
+                                                    <option value="V3.4.11">V3.4.11</option>
                                                     <option value="V3.4.10">V3.4.10</option>
                                                     <option value="V3.4.9">V3.4.9</option>
                                                     <option value="V3.4.7">V3.4.7</option>
@@ -422,6 +424,19 @@
     </script>
 
     <script>
+        layui.use(['jquery'], function () {
+            var $ = layui.jquery;
+            var csrfToken = "{{ csrf_token() }}";
+            $.ajaxSetup({
+                beforeSend: function (xhr, settings) {
+                    var method = (settings.type || 'GET').toUpperCase();
+                    if (!/^(GET|HEAD|OPTIONS|TRACE)$/.test(method)) {
+                        xhr.setRequestHeader('X-CSRFToken', csrfToken);
+                    }
+                }
+            });
+        });
+
         // 存储当前用户信息供 JavaScript 使用
         var CURRENT_USER_ID = {{ current_user.id | tojson }};
         var CURRENT_USERNAME = {{ current_user.username | tojson }};

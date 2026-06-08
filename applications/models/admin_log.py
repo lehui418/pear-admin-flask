@@ -8,7 +8,7 @@ class OperationLog(db.Model):
     method = db.Column(db.String(10), comment='请求方法')
     uid = db.Column(db.Integer, comment='用户ID')
     url = db.Column(db.String(255), comment='URL地址')
-    desc = db.Column(db.String(255), comment='描述')
+    desc = db.Column(db.Text, comment='描述')
     ip = db.Column(db.String(255), comment='IP地址')
     user_agent = db.Column(db.String(255), comment='User-Agent')
     content_type = db.Column(db.String(255), comment='Content-Type')

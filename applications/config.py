@@ -1,6 +1,16 @@
 import logging
 import os
 from datetime import timedelta
+from dotenv import load_dotenv
+
+load_dotenv()
+
+
+def require_env(name: str, default: str = None):
+    value = os.environ.get(name, default)
+    if value is None or value == "":
+        raise RuntimeError(f"Missing required environment variable: {name}")
+    return value
 
 
 class BaseConfig:
@@ -33,6 +43,7 @@ class BaseConfig:
     UPLOADED_PHOTOS_DEST = 'static/upload'
     UPLOADED_FILES_ALLOW = ['gif', 'jpg', 'jpeg', 'png', 'webp']
     UPLOADS_AUTOSERVE = True
+    MAX_UPLOAD_SIZE = 5 * 1024 * 1024
 
     # JSON 配置
     JSON_AS_ASCII = False
@@ -60,11 +71,24 @@ class BaseConfig:
     # 添加时区配置
     TIME_ZONE = 'Asia/Shanghai'
 
-    # 数据库的配置信息
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///../pear01.db'
+    # 数据库的配置信息 - MySQL
+    SQLALCHEMY_DATABASE_URI = os.environ.get(
+        'DATABASE_URL',
+        'mysql+pymysql://root:123456@127.0.0.1:3306/pear_ticket?charset=utf8mb4'
+    )
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        "pool_pre_ping": True,
+        "pool_recycle": int(os.environ.get("DB_POOL_RECYCLE", "1800")),
+        "pool_timeout": int(os.environ.get("DB_POOL_TIMEOUT", "30")),
+        "pool_size": int(os.environ.get("DB_POOL_SIZE", "10")),
+        "max_overflow": int(os.environ.get("DB_MAX_OVERFLOW", "20")),
+    }
 
     # 默认日志等级
     LOG_LEVEL = logging.DEBUG
+
+    # Flask模板配置 - 修改模板后自动重载（开发环境建议开启）
+    TEMPLATES_AUTO_RELOAD = True
 
     # 日志格式配置
     LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -81,18 +105,28 @@ class BaseConfig:
     MAIL_USE_TLS = False
     MAIL_USE_SSL = True
     MAIL_PORT = 465
-    MAIL_USERNAME = '123@qq.com'
-    MAIL_PASSWORD = 'XXXXX'
+    MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
+    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
     MAIL_DEFAULT_SENDER = MAIL_USERNAME
 
     # 插件配置，填写插件的文件名名称，默认不启用插件。
     PLUGIN_ENABLE_FOLDERS = []
 
     # Session 设置
-    PERMANENT_SESSION_LIFETIME = timedelta(days=7)
+    PERMANENT_SESSION_LIFETIME = timedelta(days=2)
 
     SESSION_TYPE = 'filesystem'
-    SESSION_PERMANENT = False
+    SESSION_PERMANENT = True  # 改为永久Session，避免用户长时间不操作后需要重新登录
     SESSION_USE_SIGNER = True
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = os.environ.get("SESSION_COOKIE_SAMESITE", "Lax")
+    SESSION_COOKIE_SECURE = os.environ.get("SESSION_COOKIE_SECURE", "0").lower() in (
+        "1",
+        "true",
+        "yes",
+    )
 
-    SECRET_KEY = 'pear-system-flask'
+    SECRET_KEY = require_env('SECRET_KEY')
+
+    WTF_CSRF_ENABLED = True
+    WTF_CSRF_TIME_LIMIT = None

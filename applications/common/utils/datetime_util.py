@@ -13,15 +13,17 @@ DEFAULT_DATE_FORMAT = '%Y-%m-%d'
 DATETIME_FORMATS = [
     '%Y-%m-%d %H:%M:%S',
     '%Y-%m-%dT%H:%M:%S',
-    '%Y-%m-%d'
+    '%Y-%m-%d',
+    '%a, %d %b %Y %H:%M:%S %Z',  # GMT 格式: Wed, 27 May 2026 16:00:29 GMT
+    '%a, %d %b %Y %H:%M:%S GMT'   # 带 GMT 后缀的格式
 ]
 
 
 def format_datetime(value: Optional[datetime], format_str: str = DEFAULT_DATETIME_FORMAT) -> str:
     """
-    将 datetime 对象格式化为字符串
+    将 datetime 对象或时间字符串格式化为指定格式的字符串
     
-    :param value: datetime 对象
+    :param value: datetime 对象或时间字符串
     :param format_str: 格式化字符串，默认为 '%Y-%m-%d %H:%M:%S'
     :return: 格式化后的时间字符串，如果 value 为 None 则返回空字符串
     
@@ -30,9 +32,15 @@ def format_datetime(value: Optional[datetime], format_str: str = DEFAULT_DATETIM
         '2026-03-12 17:45:30'
         >>> format_datetime(None)
         ''
+        >>> format_datetime('2026-03-12 17:45:30')
+        '2026-03-12 17:45:30'
     """
     if isinstance(value, datetime):
         return value.strftime(format_str)
+    elif isinstance(value, str):
+        # 如果已经是字符串格式，直接返回（假设已经是正确格式）
+        # 如果需要转换格式，可以先解析再格式化
+        return value
     return ""
 
 

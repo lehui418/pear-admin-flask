@@ -1,0 +1,585 @@
+{% extends "mobile/base.html" %}
+
+{% block title %}客户工单{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/mobile/ticket-list.css') }}">
+<style>
+    /* 客户工单特定样式 */
+    .action-btn.view {
+        flex: 1;
+        background: #f0f2ff;
+        color: #667eea;
+        border: none;
+        padding: 8px 0;
+        border-radius: 4px;
+        font-size: 13px;
+        cursor: pointer;
+        text-align: center;
+    }
+
+    .claim-btn {
+        flex: 1;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #fff;
+        border: none;
+        padding: 8px 0;
+        border-radius: 4px;
+        font-size: 13px;
+        cursor: pointer;
+        text-align: center;
+    }
+
+    .claim-btn:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-size: 11px;
+        font-weight: 500;
+    }
+
+    .status-pending {
+        background: #FFF3E0;
+        color: #FF9800;
+    }
+
+    .status-processing {
+        background: #E3F2FD;
+        color: #2196F3;
+    }
+
+    .status-resolved {
+        background: #E8F5E9;
+        color: #4CAF50;
+    }
+
+    .customer-info {
+        font-size: 12px;
+        color: #999;
+        margin-top: 5px;
+    }
+
+    .assigned-info {
+        flex: 1;
+        font-size: 13px;
+        color: #52c41a;
+        padding: 8px 0;
+        background: #f6ffed;
+        border: 1px solid #b7eb8f;
+        border-radius: 4px;
+        text-align: center;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 80px 20px;
+        color: #999;
+    }
+
+    .empty-state .empty-icon {
+        width: 120px;
+        height: 120px;
+        margin: 0 auto 20px;
+        background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 60px;
+    }
+
+    .empty-state .empty-title {
+        font-size: 16px;
+        color: #333;
+        margin-bottom: 8px;
+        font-weight: 500;
+    }
+
+    /* 快捷入口按钮 */
+    .quick-entry {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+
+    .quick-btn {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 10px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-decoration: none;
+    }
+
+    .quick-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .quick-btn i {
+        font-size: 16px;
+    }
+
+    .quick-btn.secondary {
+        background: #f0f2ff;
+        color: #667eea;
+        border: 1px solid #d6dce8;
+    }
+
+    .quick-btn.secondary:hover {
+        background: #e8ebff;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- 页面头部 -->
+<div class="mobile-header">
+    <button class="home-btn" onclick="goToHome()">
+        <i class="fa fa-home"></i> 首页
+    </button>
+    <span class="title">客户工单</span>
+    <a href="/api/public/ticket/submit/page" class="add-btn" target="_blank" style="text-decoration: none; display: flex; align-items: center; gap: 4px;">
+        <i class="fa fa-plus"></i> 客户提交
+    </a>
+</div>
+
+<!-- 搜索栏 -->
+<div class="search-bar">
+    <div class="search-input-wrapper">
+        <input type="text" class="search-input" id="searchInput" placeholder="搜索工单标题、客户单位、联系人...">
+    </div>
+    <button class="search-btn" onclick="searchTickets()">搜索</button>
+</div>
+
+<!-- 筛选栏 -->
+<div class="filter-bar">
+    <div class="filter-item active" data-status="" onclick="filterByStatus('')">
+        <span>全部</span>
+    </div>
+    <div class="filter-item" data-status="待分配" onclick="filterByStatus('待分配')">
+        <span>待分配</span>
+    </div>
+    <div class="filter-item" data-status="处理中" onclick="filterByStatus('处理中')">
+        <span>处理中</span>
+    </div>
+    <div class="filter-item" data-status="已解决" onclick="filterByStatus('已解决')">
+        <span>已解决</span>
+    </div>
+</div>
+
+<!-- 工单列表 -->
+<div class="mobile-content" id="ticketContent">
+    
+    <div class="ticket-list" id="ticketList">
+        <div class="loading-hint">加载中...</div>
+    </div>
+    <!-- 加载更多 -->
+    <div class="load-more" id="loadMore" onclick="loadMoreTickets()">
+        <span class="load-more-text">上拉加载更多</span>
+    </div>
+</div>
+
+<!-- 认领确认弹窗 -->
+<div class="delete-modal" id="claimModal" onclick="if(event.target === this) { console.log('Modal backdrop clicked, hiding modal'); hideClaimModal(); }">
+    <div class="delete-modal-content" onclick="event.stopPropagation();">
+        <div class="delete-modal-icon">✋</div>
+        <div class="delete-modal-title">确认认领</div>
+        <div class="delete-modal-desc">确定要认领此工单吗？认领后将由您负责处理。</div>
+        <div class="delete-modal-actions">
+            <button class="delete-modal-btn cancel" onclick="hideClaimModal()">取消</button>
+            <button class="delete-modal-btn confirm" onclick="confirmClaim()">认领</button>
+        </div>
+    </div>
+</div>
+
+<!-- 加载提示 -->
+<div class="loading-toast" id="loadingToast">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">处理中...</div>
+</div>
+
+<!-- Toast提示 -->
+<div class="toast" id="toast"></div>
+
+<!-- 底部导航 -->
+<div class="bottom-nav">
+    <div class="nav-item" onclick="goToWorkboard()">
+        <span class="nav-icon">📊</span>
+        <span>看板</span>
+    </div>
+    <div class="nav-item" onclick="goToTicketList()">
+        <span class="nav-icon">📝</span>
+        <span>工单</span>
+    </div>
+    <div class="nav-item active" onclick="goToCustomerTickets()">
+        <span class="nav-icon">📋</span>
+        <span>客户</span>
+    </div>
+    <div class="nav-item" onclick="goToProductSuggestion()">
+        <span class="nav-icon">💡</span>
+        <span>建议</span>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script src="{{ url_for('static', filename='index/layui/layui.js') }}"></script>
+<script>
+    // 当前筛选状态
+    let currentStatus = '';
+    let currentPage = 1;
+    let currentTicketId = null;
+    let isLoading = false;
+    let hasMore = true;
+
+    // 页面加载完成后初始化
+    document.addEventListener('DOMContentLoaded', function() {
+        loadTickets();
+    });
+
+    // 加载工单列表
+    function loadTickets(reset = true) {
+        if (isLoading) return;
+        isLoading = true;
+
+        if (reset) {
+            currentPage = 1;
+            hasMore = true;
+            document.getElementById('ticketList').innerHTML = '<div class="loading-hint">加载中...</div>';
+        }
+
+        showLoading();
+
+        const searchKeyword = document.getElementById('searchInput').value;
+        
+        fetch(`/system/ticket/customer_table?page=${currentPage}&limit=10&source=wechat&status=${currentStatus}&keyword=${encodeURIComponent(searchKeyword)}`)
+            .then(res => res.json())
+            .then(data => {
+                hideLoading();
+                isLoading = false;
+
+                if (data.code !== 0) {
+                    showToast('加载失败：' + data.msg, 'error');
+                    return;
+                }
+
+                renderTickets(data.data, reset);
+                hasMore = data.data.length === 10;
+                
+                const loadMoreEl = document.getElementById('loadMore');
+                if (hasMore) {
+                    loadMoreEl.style.display = 'block';
+                    loadMoreEl.querySelector('.load-more-text').textContent = '上拉加载更多';
+                } else {
+                    loadMoreEl.style.display = data.count > 0 ? 'block' : 'none';
+                    loadMoreEl.querySelector('.load-more-text').textContent = '没有更多了';
+                }
+            })
+            .catch(err => {
+                hideLoading();
+                isLoading = false;
+                showToast('加载失败，请稍后重试', 'error');
+                console.error(err);
+            });
+    }
+
+    // 渲染工单列表
+    function renderTickets(tickets, reset) {
+        const listEl = document.getElementById('ticketList');
+        
+        if (reset) {
+            listEl.innerHTML = '';
+        }
+
+        if (tickets.length === 0 && reset) {
+            listEl.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">📭</div>
+                    <div class="empty-title">暂无客户工单</div>
+                </div>
+            `;
+            return;
+        }
+
+        tickets.forEach(ticket => {
+            const statusClass = getStatusClass(ticket.status);
+            const statusText = ticket.status;
+            const canClaim = ticket.status === '待分配';
+            
+            const ticketEl = document.createElement('div');
+            ticketEl.className = 'ticket-card';
+            ticketEl.setAttribute('data-ticket-id', ticket.id);
+            ticketEl.innerHTML = `
+                <div class="ticket-title-row">
+                    <span class="ticket-title-text">${escapeHtml(ticket.title)}</span>
+                    <span class="status-tag status-${statusText}">${statusText}</span>
+                </div>
+                <div class="customer-name">
+                    <span class="info-label">客户：</span>
+                    <span class="customer-text">${escapeHtml(ticket.submitter_company || '未知')}</span>
+                </div>
+                <div class="ticket-info">
+                    <span class="info-label">联系人：</span>
+                    <span>${escapeHtml(ticket.submitter_contact || '-')}</span>
+                </div>
+                <div class="ticket-info">
+                    <span class="info-label">提交时间：</span>
+                    <span>${formatDate(ticket.create_time)}</span>
+                </div>
+                <div class="ticket-actions" data-ticket-action>
+                    <button class="action-btn view" onclick="viewTicket('${ticket.id}')">查看</button>
+                    ${canClaim ? `<button class="claim-btn" onclick="showClaimModal('${ticket.id}')">认领</button>` : `<span class="assigned-info">已认领：${escapeHtml(ticket.assignee_name || '-')}</span>`}
+                </div>
+            `;
+            listEl.appendChild(ticketEl);
+        });
+    }
+
+    // 获取状态样式类
+    function getStatusClass(status) {
+        switch(status) {
+            case '待分配': return 'status-pending';
+            case '处理中': return 'status-processing';
+            case '已解决':
+            case '已关闭': return 'status-resolved';
+            default: return 'status-pending';
+        }
+    }
+
+    // 按状态筛选
+    function filterByStatus(status) {
+        currentStatus = status;
+        currentPage = 1;
+        
+        // 更新筛选按钮样式
+        document.querySelectorAll('.filter-item').forEach(item => {
+            item.classList.remove('active');
+            if (item.dataset.status === status) {
+                item.classList.add('active');
+            }
+        });
+        
+        loadTickets(true);
+    }
+
+    // 搜索工单
+    function searchTickets() {
+        currentPage = 1;
+        loadTickets(true);
+    }
+
+    // 加载更多
+    function loadMoreTickets() {
+        if (!hasMore || isLoading) return;
+        currentPage++;
+        loadTickets(false);
+    }
+
+    // 刷新列表
+    function refreshList() {
+        loadTickets(true);
+        showToast('刷新成功');
+    }
+
+    // 显示认领弹窗
+    function showClaimModal(ticketId) {
+        console.log('showClaimModal called with ticketId:', ticketId);
+        currentTicketId = ticketId;
+        console.log('currentTicketId set to:', currentTicketId);
+        document.getElementById('claimModal').classList.add('active');
+    }
+
+    // 隐藏认领弹窗
+    function hideClaimModal() {
+        console.log('hideClaimModal called, currentTicketId was:', currentTicketId);
+        document.getElementById('claimModal').classList.remove('active');
+        currentTicketId = null;
+        console.log('hideClaimModal finished, currentTicketId set to null');
+    }
+
+    // 确认认领
+    function confirmClaim() {
+        console.log('confirmClaim called, currentTicketId:', currentTicketId);
+        // 保存 currentTicketId 到局部变量，防止被其他代码修改
+        const ticketId = currentTicketId;
+        if (!ticketId) {
+            console.error('currentTicketId is null or undefined');
+            return;
+        }
+
+        hideClaimModal();
+        showLoading();
+
+        MobileCommon.fetch(`/system/ticket/claim/${ticketId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(res => {
+            console.log('Fetch response received:', res.status);
+            return res.json();
+        })
+        .then(data => {
+            console.log('Response data:', JSON.stringify(data));
+            hideLoading();
+            // 后端返回的是 {msg: "认领成功", success: true} 格式
+            if (data.success === true) {
+                console.log('Claim success, updating UI for ticket:', ticketId);
+                // 先更新UI，再显示提示
+                updateTicketClaimStatus(ticketId);
+                console.log('UI updated');
+                // 显示成功提示
+                const toast = document.getElementById('toast');
+                if (toast) {
+                    toast.innerHTML = '<span style="font-size: 18px; margin-right: 8px;">✓</span>认领成功';
+                    toast.className = 'toast show success';
+                    setTimeout(() => {
+                        toast.classList.remove('show');
+                    }, 2000);
+                }
+                // 延迟1秒后刷新列表，确保后端数据已更新
+                setTimeout(() => {
+                    loadTickets(true);
+                }, 1000);
+            } else {
+                console.log('Claim failed:', data.msg);
+                const toast = document.getElementById('toast');
+                if (toast) {
+                    toast.innerHTML = '<span style="font-size: 18px; margin-right: 8px;">✗</span>' + (data.msg || '认领失败');
+                    toast.className = 'toast show error';
+                    setTimeout(() => {
+                        toast.classList.remove('show');
+                    }, 2000);
+                }
+            }
+        })
+        .catch(err => {
+            console.error('Fetch error:', err);
+            hideLoading();
+            const toast = document.getElementById('toast');
+            if (toast) {
+                toast.innerHTML = '<span style="font-size: 18px; margin-right: 8px;">✗</span>认领失败，请稍后重试';
+                toast.className = 'toast show error';
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 2000);
+            }
+        });
+    }
+
+    // 更新工单认领状态（本地更新，无需刷新页面）
+    function updateTicketClaimStatus(ticketId) {
+        console.log('Updating ticket', ticketId, 'to claimed status');
+
+        // 查找所有卡片
+        const allCards = document.querySelectorAll('.ticket-card');
+        let ticketCard = null;
+
+        for (let card of allCards) {
+            const cardId = card.getAttribute('data-ticket-id');
+            // 使用 == 进行宽松比较，因为ID可能是数字或字符串
+            if (cardId == ticketId) {
+                ticketCard = card;
+                break;
+            }
+        }
+
+        if (!ticketCard) {
+            console.error('Ticket card not found for ID:', ticketId);
+            return;
+        }
+
+        const actionEl = ticketCard.querySelector('[data-ticket-action]');
+        if (!actionEl) {
+            console.error('Action element not found');
+            return;
+        }
+
+        // 获取当前用户信息
+        const currentUserName = '{{ current_user.realname or current_user.username }}';
+
+        // 更新为已认领状态，保留查看按钮
+        actionEl.innerHTML = `
+            <button class="action-btn view" onclick="viewTicket('${ticketId}')">查看</button>
+            <span class="assigned-info">已认领：${escapeHtml(currentUserName)}</span>
+        `;
+
+        // 强制浏览器重绘，确保UI立即更新
+        actionEl.style.display = 'none';
+        actionEl.offsetHeight; // 触发重排
+        actionEl.style.display = '';
+
+        // 同时更新工单状态标签
+        const statusTag = ticketCard.querySelector('.status-tag');
+        if (statusTag) {
+            statusTag.textContent = '处理中';
+            statusTag.className = 'status-tag status-处理中';
+        }
+
+        console.log('Ticket', ticketId, 'updated to claimed');
+    }
+
+    // 查看工单
+    function viewTicket(id) {
+        window.location.href = `/system/ticket/view/${id}?mobile=1`;
+    }
+
+    // 编辑工单
+    function editTicket(id) {
+        window.location.href = `/system/ticket/edit/${id}?mobile=1`;
+    }
+
+    // 显示加载中
+    function showLoading() {
+        document.getElementById('loadingToast').classList.add('show');
+    }
+
+    // 隐藏加载中
+    function hideLoading() {
+        document.getElementById('loadingToast').classList.remove('show');
+    }
+
+    // 显示Toast
+    function showToast(message, type = 'success') {
+        const toast = document.getElementById('toast');
+        const icon = type === 'success' ? '✓' : '✗';
+        toast.innerHTML = `<span style="font-size: 18px; margin-right: 8px;">${icon}</span>${message}`;
+        toast.className = 'toast show ' + type;
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 2000);
+    }
+
+    // HTML转义
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // 格式化日期
+    function formatDate(dateStr) {
+        if (!dateStr) return '-';
+        const date = new Date(dateStr);
+        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    }
+
+    // 页面导航函数已移至 common.js
+</script>
+{% endblock %}

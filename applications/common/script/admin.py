@@ -1,6 +1,6 @@
 import datetime
 from functools import wraps
-from flask import request, g
+from flask import request, g, has_request_context
 from flask_login import current_user
 
 from flask.cli import AppGroup
@@ -628,65 +628,71 @@ def add_role_power():
 @admin_cli.command("init")
 def init_db():
     db.session.add_all(userdata)
-    print("加载系统必须用户数据")
+    print("??????????")
     db.session.add_all(roledata)
-    print("加载系统必须角色数据")
+    print("??????????")
     db.session.add_all(deptdata)
-    print("加载系统必须部门数据")
+    print("??????????")
     db.session.add_all(powerdata)
-    print("加载系统必须权限数据")
+    print("??????????")
     db.session.commit()
-    print("基础数据存入")
+    print("??????")
     add_user_role()
-    print("用户角色数据存入")
+    print("????????")
     add_role_power()
-    print("角色权限数据存入")
-    print("数据初始化完成，请使用run脚本运行")
+    print("????????")
+    print("???????????run????")
+
 
 def login_log(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        # 记录登录日志
-        # ...
         return f(*args, **kwargs)
+
     return decorated_function
+
 
 def operation_log(description=None):
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
-            # 先执行视图函数，以便在函数内部准备好动态描述所需的数据
             response = f(*args, **kwargs)
-            
-            # 如果是重定向响应，通常不记录日志
-            if response.status_code in [301, 302]:
+
+            status_code = getattr(response, "status_code", None)
+            if isinstance(response, tuple) and len(response) >= 2:
+                status_code = response[1]
+            if status_code is None:
+                status_code = 200
+            if int(status_code) in [301, 302]:
                 return response
 
-            # 动态生成描述
-            log_desc = ""
             if callable(description):
-                # 如果描述是函数，调用它来获取动态描述
-                # 我们可以通过 g 对象在视图函数和装饰器之间传递数据
                 try:
                     log_desc = description()
-                except Exception as e:
-                    log_desc = "动态生成日志描述失败"
+                except Exception:
+                    log_desc = "dynamic log description failed"
             else:
-                log_desc = description
+                log_desc = description or ""
 
-            # 记录操作日志
+            request_id = getattr(g, "request_id", "-") if has_request_context() else "-"
+            log_desc = f"[req:{request_id}] {log_desc}"
+
+            uid = current_user.id if getattr(current_user, "is_authenticated", False) else None
+            success = 1 if int(status_code) < 400 else 0
             log = OperationLog(
-                uid=current_user.id,
+                uid=uid,
                 url=request.path,
                 method=request.method,
                 ip=request.remote_addr,
-                user_agent=request.headers.get('User-Agent'),
+                user_agent=request.headers.get("User-Agent"),
                 content_type=request.content_type,
-                desc=log_desc
+                desc=log_desc,
+                success=success,
             )
             db.session.add(log)
             db.session.commit()
-            
             return response
+
         return decorated_function
+
     return decorator

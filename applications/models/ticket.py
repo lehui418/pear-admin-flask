@@ -3,6 +3,12 @@ from datetime import datetime
 
 class Ticket(db.Model):
     __tablename__ = 'ticket'
+    __table_args__ = (
+        db.Index('idx_ticket_status_create_time', 'status', 'create_time'),
+        db.Index('idx_ticket_assignee_create_time', 'assignee_name', 'create_time'),
+        db.Index('idx_ticket_priority_create_time', 'priority', 'create_time'),
+        db.Index('idx_ticket_source_create_time', 'source', 'create_time'),
+    )
 
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(255), nullable=False)
@@ -50,7 +56,7 @@ class Ticket(db.Model):
     product_type_level1 = db.Column(db.String(50), nullable=True)  # 产品类型一级分类
     product_type_level2 = db.Column(db.String(50), nullable=True)  # 产品类型二级分类
     version_number = db.Column(db.String(50), nullable=True)  # 版本号
-    serial_number = db.Column(db.String(50), nullable=True)  # 序列号
+    serial_number = db.Column(db.String(255), nullable=True)  # 序列号
     
     # 保修和时间字段
     is_out_of_warranty = db.Column(db.Boolean, default=False)  # 是否过保
@@ -77,6 +83,12 @@ class Ticket(db.Model):
     # 创建和更新时间
     create_time = db.Column(db.DateTime, default=datetime.now)
     update_time = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
+    
+    # 工单来源字段（用于区分内部录入和外部客户提交）
+    source = db.Column(db.String(50), default='internal')  # internal: 内部录入, wechat: 公众号客户提交
+    submitter_ip = db.Column(db.String(50), nullable=True)  # 提交者IP地址（外部提交时记录）
+    submitter_contact = db.Column(db.String(100), nullable=True)  # 外部提交者联系方式
+    submitter_company = db.Column(db.String(200), nullable=True)  # 外部提交者单位名称
 
     # Relationships (optional)
     # created_by = db.relationship('User', foreign_keys=[created_by_id], backref='created_tickets')

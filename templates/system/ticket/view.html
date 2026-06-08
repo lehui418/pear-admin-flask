@@ -107,6 +107,8 @@
                     <div class="layui-input-inline">
                          <select name="version_number"  lay-verify="required">
                             <option value="">请选择版本号</option>
+                            <option value="V3.4.12" {{ 'selected' if ticket and ticket.version_number == 'V3.4.12' else '' }}>V3.4.12</option>
+                            <option value="V3.4.11" {{ 'selected' if ticket and ticket.version_number == 'V3.4.11' else '' }}>V3.4.11</option>
                             <option value="V3.4.10" {{ 'selected' if ticket and ticket.version_number == 'V3.4.10' else '' }}>V3.4.10</option>
                             <option value="V3.4.9" {{ 'selected' if ticket and ticket.version_number == 'V3.4.9' else '' }}>V3.4.9</option>
                             <option value="V3.4.7" {{ 'selected' if ticket and ticket.version_number == 'V3.4.7' else '' }}>V3.4.7</option>

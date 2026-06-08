@@ -7,6 +7,7 @@ from .init_mail import init_mail, mail as flask_mail
 from .init_upload import init_upload
 from .init_migrate import init_migrate
 from .init_session import init_session
+from .init_csrf import init_csrf, csrf
 from .init_plugins import register_plugin, broadcast_execute
 
 
@@ -22,6 +23,7 @@ def init_plugs(app: Flask) -> None:
     init_upload(app)
     init_migrate(app)
     init_session(app)
+    init_csrf(app)
 
     # 系统蓝图相关
     init_template_directives(app)

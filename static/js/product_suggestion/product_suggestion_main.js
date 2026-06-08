@@ -2,6 +2,7 @@ layui.use(['table', 'form', 'jquery'], function () {
     let table = layui.table
     let form = layui.form
     let $ = layui.jquery
+    let deletingIds = {}
 
     // 初始化表格
     table.render({
@@ -14,6 +15,7 @@ layui.use(['table', 'form', 'jquery'], function () {
             { type: 'checkbox' },
             { field: 'id', title: 'ID', width: 80, sort: true },
             { field: 'title', title: '建议标题', minWidth: 200 },
+            { field: 'customer_name', title: '客户名称', width: 160 },
             { field: 'priority', title: '优先级', width: 100, templet: '#priorityTpl' },
             { field: 'status', title: '状态', width: 120, templet: '#statusTpl' },
             { field: 'creator_name', title: '创建者', width: 120 },
@@ -88,6 +90,11 @@ layui.use(['table', 'form', 'jquery'], function () {
 
     // 删除建议
     window.deleteSuggestion = function (id, title) {
+        if (deletingIds[id]) {
+            return
+        }
+        deletingIds[id] = true
+
         layer.confirm('确定要删除产品建议【' + title + '】吗？', {
             btn: ['确定', '取消']
         }, function () {
@@ -106,8 +113,13 @@ layui.use(['table', 'form', 'jquery'], function () {
                 },
                 error: function () {
                     layer.msg('删除失败', { icon: 2 })
+                },
+                complete: function () {
+                    delete deletingIds[id]
                 }
             })
+        }, function () {
+            delete deletingIds[id]
         })
     }
 
@@ -151,6 +163,7 @@ layui.use(['table', 'form', 'jquery'], function () {
     // 重置搜索
     window.resetSearch = function () {
         $('#searchTitle').val('')
+        $('#searchCustomer').val('')
         $('#searchPriority').val('')
         $('#searchStatus').val('')
         $('#product_type_level1').val('')
@@ -159,6 +172,7 @@ layui.use(['table', 'form', 'jquery'], function () {
         table.reload('suggestionTable', {
             where: {
                 searchTitle: '',
+                searchCustomer: '',
                 searchPriority: '',
                 searchStatus: '',
                 product_type_level1: '',
@@ -173,6 +187,7 @@ layui.use(['table', 'form', 'jquery'], function () {
     // 搜索表格
     window.search_table = function () {
         let searchTitle = $('#searchTitle').val()
+        let searchCustomer = $('#searchCustomer').val()
         let priority = $('#searchPriority').val()
         let status = $('#searchStatus').val()
         let product_type_level1 = $('#product_type_level1').val()
@@ -181,6 +196,7 @@ layui.use(['table', 'form', 'jquery'], function () {
         table.reload('suggestionTable', {
             where: {
                 searchTitle: searchTitle,
+                searchCustomer: searchCustomer,
                 searchPriority: priority,
                 searchStatus: status,
                 product_type_level1: product_type_level1,

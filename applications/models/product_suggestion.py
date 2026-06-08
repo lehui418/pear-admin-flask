@@ -6,6 +6,7 @@ class ProductSuggestion(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(255), nullable=False)
+    customer_name = db.Column(db.String(255), nullable=True)
     description = db.Column(db.Text, nullable=True)
     priority = db.Column(db.String(50), default='Medium')  # e.g., Low, Medium, High
     status = db.Column(db.String(50), default='Open')  # e.g., Open, In Review, Accepted, Rejected, Implemented
